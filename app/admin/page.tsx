@@ -1,17 +1,17 @@
-// app/admin/page.tsx
 "use client";
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { 
   collection, addDoc, serverTimestamp, 
-  query, where, onSnapshot, doc, updateDoc 
+  query, where, onSnapshot, doc, updateDoc, getDoc 
 } from 'firebase/firestore';
 import { db, auth } from '@/lib/firebase';
-import { Zap } from 'lucide-react';
 import BottomNav from '@/components/BottomNav';
+import { Check, X, Zap } from 'lucide-react';
+import { getRole } from '@/utils/roles';
 
-// Import the Titan Visuals
+// UI Components
 import { 
   GodModeBackground, 
   OmegaHeader, 
@@ -19,143 +19,189 @@ import {
   SignalCard, 
   LoadingSequence 
 } from '@/components/GodMode';
+import { StandardAdminUI } from '@/components/StandardAdmin'; // <--- THIS WAS MISSING
 
 export default function AdminDashboard() {
   const router = useRouter();
-  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [user, setUser] = useState<any>(null);
+  const [role, setRole] = useState('agent');
   const [loading, setLoading] = useState(true);
+  
+  const [myRooms, setMyRooms] = useState<any[]>([]);
+  const [applications, setApplications] = useState<any[]>([]);
+  const [view, setView] = useState<'rooms' | 'applications'>('rooms');
   
   const [title, setTitle] = useState('');
   const [meetLink, setMeetLink] = useState('');
   const [tags, setTags] = useState('');
-  const [myRooms, setMyRooms] = useState<any[]>([]);
 
-  // 1. AUTH LOGIC (Trust Mode)
+  // 1. INITIALIZATION & AUTH
   useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 1200); // Artificial delay for cool loading effect
-    const unsubscribeAuth = auth.onAuthStateChanged((user) => {
-      if (!user) {
+    const unsubscribeAuth = auth.onAuthStateChanged(async (currentUser) => {
+      if (!currentUser) {
         router.push('/login');
-      } else {
-        setCurrentUser(user);
-        // Load Rooms
-        const q = query(collection(db, 'rooms'), where("moderatorId", "==", user.uid));
-        const unsubscribeRooms = onSnapshot(q, (snapshot) => {
-          const rooms = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-          setMyRooms(rooms);
-        });
-        return () => unsubscribeRooms();
+        return;
       }
+      setUser(currentUser);
+
+      const userDocRef = doc(db, 'users', currentUser.uid);
+      const userDocSnap = await getDoc(userDocRef);
+      const calculatedRole = getRole(currentUser, userDocSnap.data());
+      
+      setRole(calculatedRole);
+
+      if (calculatedRole === 'agent') {
+        alert("Access Denied: Clearance Level Too Low.");
+        router.push('/profile');
+        return;
+      }
+
+      const roomQuery = query(
+          collection(db, 'rooms'), 
+          where("status", "==", "active"),
+          where("moderatorId", "==", currentUser.uid) 
+      );
+
+      const unsubRooms = onSnapshot(roomQuery, (snapshot) => {
+        setMyRooms(snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
+      });
+
+      let unsubApps = () => {};
+      if (calculatedRole === 'founder') {
+          const appQuery = query(collection(db, 'applications'), where('status', '==', 'pending'));
+          unsubApps = onSnapshot(appQuery, (snap) => {
+              setApplications(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+          });
+      }
+
+      setLoading(false);
+      return () => { unsubRooms(); unsubApps(); };
     });
-    return () => { unsubscribeAuth(); clearTimeout(timer); }
+
+    return () => unsubscribeAuth();
   }, [router]);
 
-  // 2. CREATE ROOM
+  // 2. ACTIONS
   const handleCreateRoom = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!auth.currentUser) return;
+    if (!user) return;
     try {
       await addDoc(collection(db, 'rooms'), {
         title,
-        meetLink, 
+        meetLink: meetLink || 'jitsi-embedded',
         tags: tags.split(',').map(t => t.trim()).filter(Boolean),
-        moderator: "★ " + (auth.currentUser.displayName || "Founder"),
-        moderatorId: auth.currentUser.uid,
+        moderator: role === 'founder' ? "★ FOUNDER" : (user.displayName || "Moderator"),
+        moderatorId: user.uid,
         participants: 0,
         status: 'active',
         createdAt: serverTimestamp(),
-        isHot: true
+        isHot: role === 'founder'
       });
       setTitle('');
-      setMeetLink('');
       setTags('');
+      alert("Protocol Initiated.");
     } catch (error) {
       alert("System Error: Could not deploy room.");
     }
   };
 
-  // 3. CLOSE ROOM
   const handleCloseRoom = async (roomId: string) => {
-    if (!confirm("EXECUTE SOLAR FLARE?")) return;
+    const message = role === 'founder'
+        ? "EXECUTE SOLAR FLARE? (Terminates Protocol)" 
+        : "Are you sure you want to close this room?";
+    
+    if (!confirm(message)) return;
     try {
       await updateDoc(doc(db, 'rooms', roomId), { status: 'closed' });
     } catch (error) { console.error(error); }
   };
 
+  const handleApprove = async (appId: string, applicantId: string) => {
+      if (!confirm("Promote this Agent to Moderator?")) return;
+      try {
+        await updateDoc(doc(db, 'users', applicantId), { role: 'moderator' });
+        await updateDoc(doc(db, 'applications', appId), { status: 'approved' });
+        alert("Promotion Successful.");
+      } catch (e) { alert("Error promoting agent."); }
+  };
+
+  const handleReject = async (appId: string) => {
+      if (!confirm("Reject application?")) return;
+      await updateDoc(doc(db, 'applications', appId), { status: 'rejected' });
+  };
+
   if (loading) return <LoadingSequence />;
 
+  // VIEW: MODERATOR
+  if (role === 'moderator') {
+    return (
+      <>
+        <StandardAdminUI 
+            rooms={myRooms} 
+            onCloseRoom={handleCloseRoom} 
+            userName={user?.displayName || "Moderator"} 
+        />
+        <BottomNav />
+      </>
+    );
+  }
+
+  // VIEW: FOUNDER
   return (
     <div className="min-h-screen bg-black text-white p-6 pb-24 relative overflow-hidden font-mono selection:bg-yellow-500 selection:text-black">
-      
       <GodModeBackground />
-      <OmegaHeader userName={currentUser?.displayName || "Founder"} />
+      <OmegaHeader userName="Founder" />
 
-      <ReactorCore>
-        <form onSubmit={handleCreateRoom} className="space-y-8">
-            <div className="space-y-2 group">
-                <label className="text-[10px] uppercase font-bold text-yellow-800 group-focus-within:text-yellow-500 transition-colors tracking-widest">Protocol Name</label>
-                <input 
-                    type="text" 
-                    value={title}
-                    onChange={e => setTitle(e.target.value)}
-                    className="w-full bg-[#050505] border border-yellow-900/30 p-5 text-base focus:border-yellow-400 focus:shadow-[0_0_30px_rgba(255,215,0,0.1)] outline-none text-yellow-100 placeholder:text-yellow-900/30 transition-all font-bold rounded-lg"
-                    placeholder="e.g. OMEGA STUDY SESSION"
-                    required 
-                />
-            </div>
-            
-            <div className="space-y-2 group">
-                <label className="text-[10px] uppercase font-bold text-yellow-800 group-focus-within:text-yellow-500 transition-colors tracking-widest">Uplink URL</label>
-                <input 
-                    type="url" 
-                    value={meetLink}
-                    onChange={e => setMeetLink(e.target.value)}
-                    className="w-full bg-[#050505] border border-yellow-900/30 p-5 text-base focus:border-yellow-400 focus:shadow-[0_0_30px_rgba(255,215,0,0.1)] outline-none text-yellow-100 placeholder:text-yellow-900/30 transition-all font-mono rounded-lg"
-                    placeholder="https://meet.google.com/..."
-                    required 
-                />
-            </div>
-            
-            <div className="space-y-2 group">
-                <label className="text-[10px] uppercase font-bold text-yellow-800 group-focus-within:text-yellow-500 transition-colors tracking-widest">Signal Tags</label>
-                <input 
-                    type="text" 
-                    value={tags}
-                    onChange={e => setTags(e.target.value)}
-                    className="w-full bg-[#050505] border border-yellow-900/30 p-5 text-base focus:border-yellow-400 focus:shadow-[0_0_30px_rgba(255,215,0,0.1)] outline-none text-yellow-100 placeholder:text-yellow-900/30 transition-all rounded-lg"
-                    placeholder="FOCUS, SILENT, HARDCORE"
-                />
-            </div>
-
-            <button type="submit" className="w-full bg-yellow-500 text-black font-black uppercase tracking-[0.3em] text-sm py-6 relative overflow-hidden group hover:scale-[1.01] transition-transform shadow-[0_0_40px_rgba(255,215,0,0.3)] rounded-lg mt-4">
-                <div className="absolute inset-0 bg-white/40 translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
-                <span className="relative flex items-center justify-center gap-3">
-                    <Zap className="w-5 h-5 fill-black" /> INITIATE SEQUENCE
-                </span>
-            </button>
-        </form>
-      </ReactorCore>
-
-      <div className="relative z-10 max-w-4xl mx-auto">
-        <h2 className="font-bold text-xs uppercase text-yellow-800 tracking-[0.3em] mb-8 border-b border-yellow-900/30 pb-4">
-            Active Transmissions ({myRooms.length})
-        </h2>
-        <div className="space-y-4">
-            {myRooms.map(room => (
-              <SignalCard 
-                key={room.id} 
-                room={room} 
-                onClose={handleCloseRoom} 
-              />
-            ))}
-            {myRooms.length === 0 && (
-                <div className="text-center py-16 border-2 border-dashed border-yellow-900/20 text-yellow-900/40 text-sm font-mono uppercase tracking-widest rounded-xl">
-                    // SILENCE DETECTED IN SECTOR //
-                </div>
-            )}
-        </div>
+      <div className="flex justify-center gap-4 mb-8 relative z-10">
+          <button onClick={() => setView('rooms')} className={`text-xs font-black uppercase tracking-[0.2em] px-6 py-3 border transition-all ${view === 'rooms' ? 'bg-yellow-500 text-black border-yellow-500 shadow-[0_0_20px_rgba(255,215,0,0.3)]' : 'bg-black text-yellow-700 border-yellow-900/30 hover:text-yellow-500'}`}>War Room</button>
+          <button onClick={() => setView('applications')} className={`text-xs font-black uppercase tracking-[0.2em] px-6 py-3 border transition-all ${view === 'applications' ? 'bg-yellow-500 text-black border-yellow-500 shadow-[0_0_20px_rgba(255,215,0,0.3)]' : 'bg-black text-yellow-700 border-yellow-900/30 hover:text-yellow-500'}`}>
+            Approvals {applications.length > 0 && <span className="ml-2 bg-red-600 text-white px-1.5 py-0.5 rounded-full text-[9px]">{applications.length}</span>}
+          </button>
       </div>
 
+      {view === 'rooms' ? (
+          <>
+            <ReactorCore>
+                <form onSubmit={handleCreateRoom} className="space-y-8">
+                    <div className="space-y-2 group">
+                        <label className="text-[10px] uppercase font-bold text-yellow-800 tracking-widest">Protocol Name</label>
+                        <input type="text" value={title} onChange={e => setTitle(e.target.value)} className="w-full bg-[#050505]/50 border border-yellow-900/30 p-5 text-base focus:border-yellow-400 outline-none text-yellow-100 font-bold rounded-lg" placeholder="OMEGA SESSION" required />
+                    </div>
+                    <div className="space-y-2 group">
+                        <label className="text-[10px] uppercase font-bold text-yellow-800 tracking-widest">Tags</label>
+                        <input type="text" value={tags} onChange={e => setTags(e.target.value)} className="w-full bg-[#050505]/50 border border-yellow-900/30 p-5 text-base focus:border-yellow-400 outline-none text-yellow-100 rounded-lg" placeholder="FOCUS, DEEP WORK" />
+                    </div>
+                    <button type="submit" className="w-full bg-yellow-500 text-black font-black uppercase tracking-[0.3em] text-sm py-6 hover:scale-[1.01] transition-transform shadow-[0_0_40px_rgba(255,215,0,0.3)] rounded-lg mt-4 flex justify-center gap-2 items-center">
+                        <Zap className="w-5 h-5 fill-black" /> DEPLOY
+                    </button>
+                </form>
+            </ReactorCore>
+
+            <div className="relative z-10 max-w-4xl mx-auto mt-12">
+                <div className="space-y-4">
+                    {myRooms.map(room => (
+                    <SignalCard key={room.id} room={room} onClose={handleCloseRoom} />
+                    ))}
+                </div>
+            </div>
+          </>
+      ) : (
+          <div className="max-w-4xl mx-auto space-y-4 relative z-10">
+              {applications.map(app => (
+                  <div key={app.id} className="bg-[#050505] border border-yellow-900/30 p-6 rounded-xl flex justify-between items-center group hover:border-yellow-500/50 transition-colors">
+                      <div>
+                          <div className="text-yellow-500 font-bold text-lg">{app.displayName}</div>
+                          <div className="text-yellow-800 text-xs uppercase tracking-widest mb-3">{app.email}</div>
+                          <div className="text-gray-400 text-sm italic bg-[#111] p-3 rounded border border-[#222]">"{app.reason}"</div>
+                      </div>
+                      <div className="flex flex-col gap-2 ml-4">
+                          <button onClick={() => handleApprove(app.id, app.uid)} className="p-3 bg-green-900/10 text-green-500 border border-green-900/50 hover:bg-green-500 hover:text-black transition-all rounded"><Check className="w-5 h-5"/></button>
+                          <button onClick={() => handleReject(app.id)} className="p-3 bg-red-900/10 text-red-500 border border-red-900/50 hover:bg-red-500 hover:text-white transition-all rounded"><X className="w-5 h-5"/></button>
+                      </div>
+                  </div>
+              ))}
+          </div>
+      )}
       <BottomNav />
     </div>
   );
