@@ -7,15 +7,13 @@ import { doc, onSnapshot } from 'firebase/firestore';
 import { useRouter } from 'next/navigation';
 import { Settings, Clock, Zap, LogOut, ShieldCheck, Crown } from 'lucide-react';
 import BottomNav from '@/components/BottomNav';
-import { GodModeBackground } from '@/components/GodMode'; // Import Background
-
-const FOUNDER_EMAIL = "logan.nguyen.opla@gmail.com";
-const FOUNDER_NAME = "Logan Ng";
+import { GodModeBackground } from '@/components/GodMode';
+import { getRole } from '@/utils/roles'; // <--- IMPORT THIS
 
 export default function Profile() {
   const [user, setUser] = useState<any>(null);
   const [stats, setStats] = useState<any>({ totalPoints: 0, totalSeconds: 0 }); 
-  const [isGodMode, setIsGodMode] = useState(false);
+  const [role, setRole] = useState('agent'); // 'agent', 'moderator', 'founder'
   const router = useRouter();
 
   useEffect(() => {
@@ -25,16 +23,17 @@ export default function Profile() {
       } else {
         setUser(currentUser);
         
-        // --- GOD MODE CHECK ---
-        const isFounder = 
-            currentUser.email?.toLowerCase() === FOUNDER_EMAIL || 
-            currentUser.displayName === FOUNDER_NAME;
-        setIsGodMode(isFounder);
-
+        // 1. Listen to User Data & Determine Role
         const userRef = doc(db, 'users', currentUser.uid);
         const unsubscribeFirestore = onSnapshot(userRef, (docSnap) => {
           if (docSnap.exists()) {
-            setStats(docSnap.data());
+            const data = docSnap.data();
+            setStats(data);
+            // Calculate Role using the utility (checks hardcoded emails + DB role)
+            setRole(getRole(currentUser, data)); 
+          } else {
+             // Fallback if no DB record yet
+             setRole(getRole(currentUser, {}));
           }
         });
         return () => unsubscribeFirestore();
@@ -51,24 +50,25 @@ export default function Profile() {
   };
 
   const formatHours = (seconds: number) => (seconds / 3600).toFixed(1) + 'h';
+  const isGodMode = role === 'founder';
 
   return (
     <div className={`min-h-screen p-6 pb-24 relative overflow-hidden font-mono ${isGodMode ? 'bg-black text-white selection:bg-yellow-500 selection:text-black' : 'bg-[#050505] text-white'}`}>
       
-      {/* GOD MODE BACKGROUND */}
+      {/* GOD MODE BACKGROUND (Founder Only) */}
       {isGodMode && <GodModeBackground />}
 
       {/* HEADER */}
       <div className="flex justify-between items-center mb-8 relative z-10">
         <h2 className={`text-sm font-black uppercase tracking-[0.2em] ${isGodMode ? 'text-yellow-600' : 'text-[#A1A1AA]'}`}>
-            {isGodMode ? "FOUNDER CLEARANCE" : "INTELLIGENCE PROFILE"}
+            {isGodMode ? "FOUNDER CLEARANCE" : (role === 'moderator' ? "MODERATOR PROFILE" : "INTELLIGENCE PROFILE")}
         </h2>
         <Settings className={`${isGodMode ? 'text-yellow-500' : 'text-[#52525B]'} w-5 h-5 cursor-pointer`} />
       </div>
 
       {/* IDENTITY CARD */}
       <div className="text-center mb-10 relative z-10 group">
-        <div className={`w-24 h-24 rounded-full mx-auto flex items-center justify-center text-3xl font-black mb-4 overflow-hidden border-4 ${isGodMode ? 'border-yellow-500 shadow-[0_0_30px_rgba(255,215,0,0.4)]' : 'bg-gradient-to-br from-[#7000FF] to-[#00FF94] border-transparent'}`}>
+        <div className={`w-24 h-24 rounded-full mx-auto flex items-center justify-center text-3xl font-black mb-4 overflow-hidden border-4 ${isGodMode ? 'border-yellow-500 shadow-[0_0_30px_rgba(255,215,0,0.4)]' : (role === 'moderator' ? 'border-[#00FF94] shadow-[0_0_20px_rgba(0,255,148,0.2)]' : 'bg-gradient-to-br from-[#7000FF] to-[#00FF94] border-transparent')}`}>
           {user?.photoURL ? (
              <img src={user.photoURL} alt="Avatar" className="w-full h-full object-cover" />
           ) : (
@@ -78,17 +78,18 @@ export default function Profile() {
         
         <div className="flex items-center justify-center gap-2">
             {isGodMode && <Crown className="w-5 h-5 text-yellow-500 animate-bounce" />}
+            {role === 'moderator' && <ShieldCheck className="w-5 h-5 text-[#00FF94]" />}
             <h3 className={`text-xl font-bold ${isGodMode ? 'text-yellow-400 drop-shadow-[0_0_10px_rgba(255,215,0,0.5)]' : 'text-white'}`}>
                 {user?.displayName || "Deskmate Agent"}
             </h3>
         </div>
         
         <p className={`text-xs font-mono mt-1 ${isGodMode ? 'text-yellow-700' : 'text-[#52525B]'}`}>
-          {isGodMode ? "STATUS: OMNIPOTENT" : "STATUS: ONLINE"}
+          {isGodMode ? "STATUS: OMNIPOTENT" : (role === 'moderator' ? "STATUS: OPERATIVE" : "STATUS: ONLINE")}
         </p>
       </div>
 
-      {/* STATS GRID (INFINITE FOR GOD MODE) */}
+      {/* STATS GRID */}
       <div className="grid grid-cols-2 gap-4 mb-8 relative z-10">
         {/* TIME */}
         <div className={`border p-4 rounded-2xl ${isGodMode ? 'bg-[#080808]/50 border-yellow-500/30' : 'bg-[#121212] border-[#27272a]'}`}>
@@ -112,6 +113,7 @@ export default function Profile() {
       {/* ACTIONS */}
       <div className="space-y-4 relative z-10">
         
+        {/* GOD MODE BUTTON */}
         {isGodMode && (
             <button 
                 onClick={() => router.push('/admin')}
@@ -120,6 +122,28 @@ export default function Profile() {
                 <ShieldCheck className="w-4 h-4 group-hover:rotate-12 transition-transform" /> 
                 Enter Command Deck
             </button>
+        )}
+
+        {/* MODERATOR BUTTON */}
+        {role === 'moderator' && (
+             <button 
+                onClick={() => router.push('/admin')}
+                className="w-full bg-[#00FF94]/10 border border-[#00FF94]/50 text-[#00FF94] py-4 rounded-xl font-bold uppercase text-xs tracking-widest hover:bg-[#00FF94] hover:text-black transition-all flex items-center justify-center gap-2"
+             >
+                <ShieldCheck className="w-4 h-4" /> 
+                Access Moderator Dashboard
+             </button>
+        )}
+        
+        {/* APPLY FOR MOD (Only for regular Agents) */}
+        {role === 'agent' && (
+             <button 
+                onClick={() => router.push('/apply')}
+                className="w-full bg-[#1A1A1A] border border-[#27272a] text-[#A1A1AA] py-4 rounded-xl font-bold uppercase text-xs tracking-widest hover:bg-[#27272a] hover:text-white transition-colors flex items-center justify-center gap-2"
+             >
+                <ShieldCheck className="w-4 h-4" /> 
+                Apply for Clearance
+             </button>
         )}
 
         <button 
