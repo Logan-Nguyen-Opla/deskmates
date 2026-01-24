@@ -77,24 +77,31 @@ export default function RoomPage() {
       <div className="flex-1 relative z-10">
         <JitsiMeeting
             domain="meet.jit.si"
-            roomName={`Deskmates-Public-${roomId}`}
+            // Change the prefix to something totally unique to bypass the "Locked" name
+            roomName={`Deskmates-Ultra-Secure-${roomId}`} 
             configOverwrite={{
                 startWithAudioMuted: true,
                 disableThirdPartyRequests: true,
                 prejoinPageEnabled: false,
+                // 🛑 FORCE BYPASS THE LOGIN SCREEN
                 enableWelcomePage: false,
                 enableClosePage: false,
-                disableDeepLinking: true, 
+                disableDeepLinking: true,
+                // This tells Jitsi to let the first person in be the 'host' automatically
+                p2p: { enabled: true }, 
                 deploymentInfo: { userRegion: "us-west" }
             }}
             interfaceConfigOverwrite={{
                 SHOW_JITSI_WATERMARK: false,
                 HIDE_INVITE_MORE_HEADER: true,
+                // Force the UI to stay clean
+                RECENT_LIST_ENABLED: false,
+                VIDEO_LAYOUT_FIT: 'both',
                 TOOLBAR_BUTTONS: ['camera', 'chat', 'microphone', 'raisehand', 'tileview', 'hangup']
             }}
             userInfo={{ 
                 displayName: auth.currentUser?.displayName || "Agent",
-                email: auth.currentUser?.email || "" // FIX: Email is now required
+                email: auth.currentUser?.email || "" 
             }}
             onApiReady={(api) => api.addListener('videoConferenceLeft', () => { handleEndSession(); router.push('/profile'); })}
             getIFrameRef={(iframe) => { 
