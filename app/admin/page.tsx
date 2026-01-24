@@ -138,7 +138,33 @@ export default function AdminDashboard() {
       <>
         <StandardAdminUI 
             rooms={myRooms} 
-            onCloseRoom={handleCloseRoom} 
+            onCloseRoom={handleCloseRoom}
+            // 👇 THIS IS THE NEW PART THAT CONNECTS THE LOGIC
+            onCreateRoom={(e, newTitle, newTags) => {
+                // We manually trigger the create event with the data from the child component
+                setTitle(newTitle);
+                setTags(newTags);
+                // We need to wrap it in a synthetic event or just call logic directly
+                // To keep it simple, let's just reuse the logic but adaptable:
+                const fakeEvent = { preventDefault: () => {} } as React.FormEvent;
+                
+                // We need to set state first, then call. 
+                // ACTUALLY, React state updates are async, so calling handleCreateRoom immediately 
+                // with empty state won't work.
+                
+                // Let's call the DB directly here for Mods to avoid state sync issues:
+                addDoc(collection(db, 'rooms'), {
+                    title: newTitle,
+                    meetLink: 'jitsi-embedded',
+                    tags: newTags.split(',').map(t => t.trim()).filter(Boolean),
+                    moderator: user.displayName || "Moderator",
+                    moderatorId: user.uid,
+                    participants: 0,
+                    status: 'active',
+                    createdAt: serverTimestamp(),
+                    isHot: false // Mods don't get "HOT" status automatically
+                }).then(() => alert("Room Deployed Successfully."));
+            }}
             userName={user?.displayName || "Moderator"} 
         />
         <BottomNav />

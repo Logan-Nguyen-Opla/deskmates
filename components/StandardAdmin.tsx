@@ -1,16 +1,30 @@
 "use client";
 
-import { Shield, Trash2, Activity, Users, Radio } from 'lucide-react';
+import { useState } from 'react';
+import { Shield, Trash2, Activity, Users, Radio, Plus, X } from 'lucide-react';
 
 export const StandardAdminUI = ({ 
   rooms, 
   onCloseRoom, 
+  onCreateRoom, // <--- NEW PROP
   userName 
 }: { 
   rooms: any[], 
   onCloseRoom: (id: string) => void,
+  onCreateRoom: (e: React.FormEvent, title: string, tags: string) => void, // <--- NEW TYPE
   userName: string 
 }) => {
+  const [isCreating, setIsCreating] = useState(false);
+  const [title, setTitle] = useState('');
+  const [tags, setTags] = useState('');
+
+  const handleSubmit = (e: React.FormEvent) => {
+    onCreateRoom(e, title, tags);
+    setIsCreating(false);
+    setTitle('');
+    setTags('');
+  };
+
   return (
     <div className="min-h-screen bg-[#050505] text-white font-sans p-6 pb-24">
       {/* Header */}
@@ -23,10 +37,46 @@ export const StandardAdminUI = ({
           <h1 className="text-3xl font-bold text-white tracking-tight">Mission Control</h1>
         </div>
         <div className="text-right">
-          <div className="text-xs text-[#A1A1AA] uppercase tracking-widest mb-1">Operative</div>
-          <div className="font-mono text-[#00FF94]">{userName}</div>
+          <button 
+            onClick={() => setIsCreating(!isCreating)}
+            className="bg-[#00FF94] text-black px-4 py-2 rounded font-bold uppercase text-xs tracking-widest hover:bg-[#00cc76] transition-colors flex items-center gap-2"
+          >
+            {isCreating ? <X className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
+            {isCreating ? "Cancel" : "Deploy New Room"}
+          </button>
         </div>
       </header>
+
+      {/* CREATION FORM (Conditionally Rendered) */}
+      {isCreating && (
+        <div className="mb-8 bg-[#121212] border border-[#00FF94]/30 p-6 rounded-xl animate-in fade-in slide-in-from-top-4">
+            <h3 className="font-bold text-[#00FF94] uppercase tracking-widest text-sm mb-4">Initialize New Protocol</h3>
+            <form onSubmit={handleSubmit} className="flex gap-4 items-end">
+                <div className="flex-1 space-y-1">
+                    <label className="text-[10px] uppercase font-bold text-[#52525B]">Room Name</label>
+                    <input 
+                        value={title}
+                        onChange={(e) => setTitle(e.target.value)}
+                        className="w-full bg-black border border-[#27272a] p-3 rounded text-sm focus:border-[#00FF94] outline-none text-white"
+                        placeholder="e.g. Late Night Study"
+                        required
+                    />
+                </div>
+                <div className="flex-1 space-y-1">
+                    <label className="text-[10px] uppercase font-bold text-[#52525B]">Tags (Optional)</label>
+                    <input 
+                        value={tags}
+                        onChange={(e) => setTags(e.target.value)}
+                        className="w-full bg-black border border-[#27272a] p-3 rounded text-sm focus:border-[#00FF94] outline-none text-white"
+                        placeholder="CHILL, MUSIC, CAMERA ON"
+                    />
+                </div>
+                <button className="bg-[#00FF94]/10 border border-[#00FF94] text-[#00FF94] px-6 py-3 rounded font-bold uppercase text-xs hover:bg-[#00FF94] hover:text-black transition-all">
+                    Launch
+                </button>
+            </form>
+        </div>
+      )}
 
       {/* Stats Overview */}
       <div className="grid grid-cols-3 gap-4 mb-8">
@@ -72,8 +122,6 @@ export const StandardAdminUI = ({
                     <span className="font-mono">ID: {room.id.slice(0, 6)}</span>
                     <span>•</span>
                     <span>{room.participants || 0} Online</span>
-                    <span>•</span>
-                    <span className="uppercase text-[#00FF94]">Mod: {room.moderator}</span>
                   </div>
                 </div>
 
