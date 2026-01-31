@@ -76,16 +76,18 @@ export default function RoomPage() {
 
       <div className="flex-1 relative z-10">
         <JitsiMeeting
-            domain="8x8.vc" // 👈 CHANGE THIS from meet.jit.si
-            roomName={`vpaas-magic-cookie-08658661642247b988185c67768a44d0/${roomId}`} // 👈 USE THIS specific format
+            // 🛑 CHANGE 1: Use the developer domain
+            domain="8x8.vc" 
+            // 🛑 CHANGE 2: Use this specific "vpaas-magic-cookie" prefix
+            roomName={`vpaas-magic-cookie-08658661642247b988185c67768a44d0/${roomId}`} 
             configOverwrite={{
                 startWithAudioMuted: true,
                 disableThirdPartyRequests: true,
                 prejoinPageEnabled: false,
                 enableWelcomePage: false,
                 enableClosePage: false,
-                // 🛑 THIS IS THE MAGIC KEY
-                disableLobby: true, 
+                // 🛑 CHANGE 3: Explicitly disable the lobby system
+                disableLobby: true,
                 enableLobbyChat: false,
                 hideLobbyButton: true,
                 deploymentInfo: { userRegion: "us-west" }
@@ -93,9 +95,6 @@ export default function RoomPage() {
             interfaceConfigOverwrite={{
                 SHOW_JITSI_WATERMARK: false,
                 HIDE_INVITE_MORE_HEADER: true,
-                // Force the UI to stay clean
-                RECENT_LIST_ENABLED: false,
-                VIDEO_LAYOUT_FIT: 'both',
                 TOOLBAR_BUTTONS: ['camera', 'chat', 'microphone', 'raisehand', 'tileview', 'hangup']
             }}
             userInfo={{ 
