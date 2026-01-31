@@ -78,7 +78,7 @@ export default function RoomPage() {
         <JitsiMeeting
             domain="meet.jit.si"
             // Change the prefix to something totally unique to bypass the "Locked" name
-            roomName={`Deskmates-Ultra-Secure-${roomId}`} 
+            roomName={`DM-V1-SECURE-PROBATION-${roomId}-${auth.currentUser?.uid.slice(0,5)}`}
             configOverwrite={{
                 startWithAudioMuted: true,
                 disableThirdPartyRequests: true,
