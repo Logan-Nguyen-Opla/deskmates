@@ -76,19 +76,18 @@ export default function RoomPage() {
 
       <div className="flex-1 relative z-10">
         <JitsiMeeting
-            domain="meet.jit.si"
-            // Change the prefix to something totally unique to bypass the "Locked" name
-            roomName={`DM-V1-SECURE-PROBATION-${roomId}-${auth.currentUser?.uid.slice(0,5)}`}
+            domain="8x8.vc" // 👈 CHANGE THIS from meet.jit.si
+            roomName={`vpaas-magic-cookie-08658661642247b988185c67768a44d0/${roomId}`} // 👈 USE THIS specific format
             configOverwrite={{
                 startWithAudioMuted: true,
                 disableThirdPartyRequests: true,
                 prejoinPageEnabled: false,
-                // 🛑 FORCE BYPASS THE LOGIN SCREEN
                 enableWelcomePage: false,
                 enableClosePage: false,
-                disableDeepLinking: true,
-                // This tells Jitsi to let the first person in be the 'host' automatically
-                p2p: { enabled: true }, 
+                // 🛑 THIS IS THE MAGIC KEY
+                disableLobby: true, 
+                enableLobbyChat: false,
+                hideLobbyButton: true,
                 deploymentInfo: { userRegion: "us-west" }
             }}
             interfaceConfigOverwrite={{
