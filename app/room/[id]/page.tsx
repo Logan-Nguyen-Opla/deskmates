@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { useParams, useRouter } from 'next/navigation';
-import { doc, onSnapshot } from 'firebase/firestore';
+import { useRouter, useParams } from 'next/navigation';
+import { doc, onSnapshot, getDoc } from 'firebase/firestore';
 import { db, auth } from '@/lib/firebase';
 import { GodModeBackground } from '@/components/GodMode';
 import { getRole } from '@/utils/roles';
@@ -12,12 +12,16 @@ export default function RoomPage() {
   const router = useRouter();
   const [room, setRoom] = useState<any>(null);
   const [role, setRole] = useState('agent');
+  const [loading, setLoading] = useState(true);
+
+  const ROOMS_PATH = 'artifacts/deskmates-online/public/data/rooms';
+  const roomId = Array.isArray(id) ? id[0] : id;
 
   useEffect(() => {
-    const roomId = Array.isArray(id) ? id[0] : id;
     if (!roomId) return;
 
-    const unsub = onSnapshot(doc(db, 'rooms', roomId), (snap) => {
+    // Fetch the room data and role 
+    const unsub = onSnapshot(doc(db, ROOMS_PATH, roomId), (snap) => {
       const data = snap.data();
       if (!data || data.status === 'closed') {
         router.push('/');
@@ -27,24 +31,34 @@ export default function RoomPage() {
       if (auth.currentUser) {
         setRole(getRole(auth.currentUser, data));
       }
+      setLoading(false);
     });
 
     return () => unsub();
-  }, [id, router]);
+  }, [roomId, router]);
 
-  if (!room) return <div className="h-screen bg-black flex items-center justify-center text-yellow-500 font-mono">LOADING...</div>;
+  if (loading || !room) return (
+    <div className="h-screen bg-black text-yellow-500 flex items-center justify-center font-mono uppercase tracking-widest">
+        Syncing Channel...
+    </div>
+  );
 
-  // BYPASS: Owner/Mod/Founder gets the hostUrl
+  // Privilege logic for Whereby 
   const isPrivileged = role === 'founder' || role === 'moderator' || auth.currentUser?.uid === room.moderatorId;
   const finalUrl = isPrivileged ? room.hostUrl : room.userUrl;
 
   return (
-    <div className="h-screen flex flex-col bg-black overflow-hidden">
+    <div className="h-screen flex flex-col bg-black overflow-hidden relative">
       {role === 'founder' && <GodModeBackground />}
       
       <div className="z-20 flex justify-between items-center px-6 py-4 border-b border-white/10 bg-black/80 backdrop-blur-md">
-        <h1 className="text-white font-black italic tracking-tighter text-lg">{room.title}</h1>
-        <button onClick={() => router.push('/')} className="bg-red-500/20 text-red-500 border border-red-500/50 px-4 py-2 rounded text-[10px] font-black uppercase tracking-widest">Exit</button>
+        <h1 className="text-white font-black italic text-lg">{room.title}</h1>
+        <button 
+            onClick={() => router.push('/')} 
+            className="bg-red-500/20 text-red-500 border border-red-500/50 px-4 py-2 rounded text-[10px] font-black uppercase tracking-widest"
+        >
+            Disconnect
+        </button>
       </div>
 
       <div className="flex-1 relative z-10">
