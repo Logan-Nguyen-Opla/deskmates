@@ -4,9 +4,9 @@ export const WherebyService = {
   async createMeeting() {
     try {
       const response = await axios.post('https://api.whereby.dev/v1/meetings', {
-        endDate: "2099-12-31T23:59:59Z", // Persistent room
+        endDate: "2099-12-31T23:59:59Z", 
         isLocked: false,
-        fields: ["hostRoomUrl"] // Essential for Mod/Godmode bypass
+        fields: ["hostRoomUrl"] 
       }, {
         headers: {
           'Authorization': `Bearer ${process.env.WHEREBY_API_KEY}`,
@@ -15,11 +15,11 @@ export const WherebyService = {
       });
       return {
         meetingId: response.data.meetingId,
-        userUrl: response.data.roomUrl,      // For regular participants
-        hostUrl: response.data.hostRoomUrl  // For Moderators & Godmode
+        userUrl: response.data.roomUrl,     
+        hostUrl: response.data.hostRoomUrl  
       };
     } catch (err) {
-      console.error("Whereby API Error:", err.response?.data || err.message);
+      console.error("Whereby API Error:", err);
       throw err;
     }
   }

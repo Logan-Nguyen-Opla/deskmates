@@ -85,22 +85,19 @@ export default function AdminDashboard() {
   // 2. ACTIONS
   const handleCreateRoom = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user) return;
+    if (!auth.currentUser) return;
     try {
-      // 1. Generate URLs via Whereby API
       const wherebyData = await WherebyService.createMeeting();
 
-      // 2. Save to Firestore using your schema
       await addDoc(collection(db, 'rooms'), {
         title,
         tags: tags.split(',').map(t => t.trim()).filter(Boolean),
-        moderator: role === 'founder' ? "★ FOUNDER" : (user.displayName || "Moderator"),
-        moderatorId: user.uid,
+        moderator: auth.currentUser.displayName || "Moderator",
+        moderatorId: auth.currentUser.uid,
         participants: 0,
         status: 'active',
         createdAt: serverTimestamp(),
-        isHot: role === 'founder',
-        // SAVE THE WHEREBY DATA
+        // THE FIX: Storing Whereby instead of Jitsi
         userUrl: wherebyData.userUrl,
         hostUrl: wherebyData.hostUrl,
         meetingId: wherebyData.meetingId
