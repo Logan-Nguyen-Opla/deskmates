@@ -1,0 +1,1984 @@
+This file is a merged representation of the entire codebase, combined into a single document by Repomix.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of the entire repository's contents.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+.gitignore
+app/admin/page.tsx
+app/apply/page.tsx
+app/favicon.ico
+app/globals.css
+app/layout.tsx
+app/leaderboard/page.tsx
+app/login/page.tsx
+app/page.tsx
+app/profile/page.tsx
+app/room/[id]/page.tsx
+components/BottomNav.tsx
+components/GodMode.tsx
+components/MeetingRoom.js
+components/Roomlist.js
+components/StandardAdmin.tsx
+eslint.config.mjs
+lib/firebase.ts
+next-env.d.ts
+next.config.ts
+package.json
+pages/CreateRoomPage.js
+pages/RoomPage.js
+postcss.config.mjs
+public/file.svg
+public/globe.svg
+public/next.svg
+public/vercel.svg
+public/window.svg
+README.md
+services/MeetingRoom.js
+services/roomService.js
+services/wherebyService.js
+tsconfig.json
+utils/roles.ts
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="app/apply/page.tsx">
+"use client";
+
+import { useState } from 'react';
+import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
+import { db, auth } from '@/lib/firebase';
+import { useRouter } from 'next/navigation';
+import { Shield, ChevronLeft } from 'lucide-react';
+
+export default function ApplyForMod() {
+  const [reason, setReason] = useState('');
+  const [loading, setLoading] = useState(false);
+  const router = useRouter();
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!auth.currentUser) return router.push('/login');
+    
+    setLoading(true);
+    try {
+      await addDoc(collection(db, 'applications'), {
+        uid: auth.currentUser.uid,
+        email: auth.currentUser.email,
+        displayName: auth.currentUser.displayName,
+        reason,
+        status: 'pending',
+        createdAt: serverTimestamp()
+      });
+      alert("Application sent to High Command.");
+      router.push('/profile');
+    } catch (error) {
+      alert("Transmission failed.");
+    }
+    setLoading(false);
+  };
+
+  return (
+    <div className="min-h-screen bg-[#050505] text-white flex flex-col items-center justify-center p-6 font-mono">
+      <div className="max-w-md w-full border border-[#27272a] bg-[#121212] p-8 rounded-xl relative overflow-hidden">
+        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#00FF94] to-transparent opacity-50" />
+        
+        <div className="flex items-center gap-3 mb-6">
+            <Shield className="w-6 h-6 text-[#00FF94]" />
+            <h1 className="text-xl font-bold uppercase tracking-widest">Request Clearance</h1>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-6">
+            <div>
+                <label className="text-xs uppercase text-[#52525B] font-bold block mb-2">Why do you want to moderate?</label>
+                <textarea 
+                    value={reason}
+                    onChange={(e) => setReason(e.target.value)}
+                    className="w-full bg-black border border-[#27272a] p-4 rounded-lg text-sm focus:border-[#00FF94] outline-none h-32 resize-none transition-colors"
+                    placeholder="I want to keep the focus high..."
+                    required
+                />
+            </div>
+
+            <button disabled={loading} className="w-full bg-[#00FF94] text-black font-bold uppercase py-4 rounded hover:bg-[#00cc76] transition-colors tracking-widest text-xs">
+                {loading ? "Transmitting..." : "Submit Application"}
+            </button>
+        </form>
+
+        <button onClick={() => router.back()} className="mt-6 flex items-center gap-2 text-xs text-[#52525B] hover:text-white transition-colors mx-auto">
+            <ChevronLeft className="w-3 h-3" /> Cancel
+        </button>
+      </div>
+    </div>
+  );
+}
+</file>
+
+<file path="app/globals.css">
+@import "tailwindcss";
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+}
+</file>
+
+<file path="app/layout.tsx">
+import type { Metadata } from "next";
+import { Geist, Geist_Mono } from "next/font/google";
+import "./globals.css";
+
+const geistSans = Geist({
+  variable: "--font-geist-sans",
+  subsets: ["latin"],
+});
+
+const geistMono = Geist_Mono({
+  variable: "--font-geist-mono",
+  subsets: ["latin"],
+});
+
+export const metadata: Metadata = {
+  title: "Create Next App",
+  description: "Generated by create next app",
+};
+
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
+  return (
+    <html lang="en">
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+      >
+        {children}
+      </body>
+    </html>
+  );
+}
+</file>
+
+<file path="app/leaderboard/page.tsx">
+"use client";
+
+import { useState, useEffect } from 'react';
+import { collection, onSnapshot, query, orderBy, limit } from 'firebase/firestore'; 
+import { db, auth } from '@/lib/firebase';
+import BottomNav from '@/components/BottomNav';
+import { Trophy, Medal, Crown } from 'lucide-react';
+import { GodModeBackground } from '@/components/GodMode';
+
+const FOUNDER_EMAIL = "logan.nguyen.opla@gmail.com";
+const FOUNDER_NAME = "Logan Ng";
+
+export default function Leaderboard() {
+  const [users, setUsers] = useState<any[]>([]);
+  const [isGodMode, setIsGodMode] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // 1. Check Auth for Theme
+    const unsubscribeAuth = auth.onAuthStateChanged((user) => {
+      if (user) {
+        const isFounder = user.email?.toLowerCase() === FOUNDER_EMAIL || user.displayName === FOUNDER_NAME;
+        setIsGodMode(isFounder);
+      }
+    });
+
+    // 2. Fetch Leaderboard Data
+    const usersRef = collection(db, 'users');
+    const q = query(usersRef, orderBy("totalPoints", "desc"), limit(50));
+
+    const unsubscribeData = onSnapshot(q, (snapshot) => {
+      const leaderboardData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      setUsers(leaderboardData);
+      setLoading(false);
+    });
+
+    return () => {
+      unsubscribeAuth();
+      unsubscribeData();
+    };
+  }, []);
+
+  if (loading) return (
+    <div className="h-screen bg-[#050505] flex flex-col items-center justify-center">
+       <div className={`w-12 h-12 border-4 ${isGodMode ? 'border-yellow-500' : 'border-[#00FF94]'} border-t-transparent rounded-full animate-spin`} />
+    </div>
+  );
+
+  return (
+    <div className={`min-h-screen font-sans pb-24 relative overflow-hidden ${isGodMode ? 'bg-black text-white selection:bg-yellow-500 selection:text-black' : 'bg-[#050505] text-white'}`}>
+      
+      {isGodMode && <GodModeBackground />}
+
+      <header className={`p-6 border-b relative z-10 backdrop-blur-md sticky top-0 ${isGodMode ? 'bg-black/50 border-yellow-500/30' : 'bg-[#121212]/50 border-[#27272a]'}`}>
+        <h1 className={`text-2xl font-black italic tracking-tighter ${isGodMode ? 'text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-orange-500' : 'text-[#00FF94]'}`}>
+          RANKINGS
+        </h1>
+        <p className={`text-xs uppercase tracking-widest mt-1 ${isGodMode ? 'text-yellow-700 font-bold' : 'text-[#A1A1AA]'}`}>
+          Top Focus Agents
+        </p>
+      </header>
+
+      <div className="p-4 space-y-4 relative z-10">
+        
+        {/* PODIUM (Top 3) */}
+        {users.length > 0 && (
+          <div className="flex justify-center items-end gap-2 mb-8 mt-4">
+            
+            {/* 2nd Place */}
+            {users[1] && (
+              <div className="flex flex-col items-center w-1/3">
+                 <div className="w-16 h-16 rounded-full border-2 border-gray-400 overflow-hidden mb-2 bg-[#121212]">
+                    {users[1].photoURL ? <img src={users[1].photoURL} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-gray-500">?</div>}
+                 </div>
+                 <div className="h-24 w-full bg-gradient-to-t from-gray-800 to-gray-600 rounded-t-lg flex items-end justify-center pb-2 relative">
+                    <span className="text-2xl font-black text-white/50 absolute top-2">2</span>
+                    <span className="text-[10px] font-bold uppercase truncate px-1">{users[1].displayName?.split(' ')[0]}</span>
+                 </div>
+              </div>
+            )}
+
+            {/* 1st Place */}
+            {users[0] && (
+              <div className="flex flex-col items-center w-1/3 relative -top-4">
+                 <Crown className="w-6 h-6 text-yellow-400 animate-bounce mb-1" />
+                 <div className="w-20 h-20 rounded-full border-2 border-yellow-400 overflow-hidden mb-2 bg-[#121212] shadow-[0_0_20px_rgba(255,215,0,0.3)]">
+                    {users[0].photoURL ? <img src={users[0].photoURL} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-yellow-500">?</div>}
+                 </div>
+                 <div className="h-32 w-full bg-gradient-to-t from-yellow-700 to-yellow-500 rounded-t-lg flex items-end justify-center pb-2 relative shadow-[0_0_30px_rgba(255,215,0,0.2)]">
+                    <span className="text-4xl font-black text-white/50 absolute top-2">1</span>
+                    <span className="text-xs font-black uppercase truncate px-1 text-black">{users[0].displayName?.split(' ')[0]}</span>
+                 </div>
+              </div>
+            )}
+
+            {/* 3rd Place */}
+            {users[2] && (
+              <div className="flex flex-col items-center w-1/3">
+                 <div className="w-16 h-16 rounded-full border-2 border-orange-700 overflow-hidden mb-2 bg-[#121212]">
+                    {users[2].photoURL ? <img src={users[2].photoURL} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-orange-700">?</div>}
+                 </div>
+                 <div className="h-20 w-full bg-gradient-to-t from-orange-900 to-orange-700 rounded-t-lg flex items-end justify-center pb-2 relative">
+                    <span className="text-2xl font-black text-white/50 absolute top-2">3</span>
+                    <span className="text-[10px] font-bold uppercase truncate px-1">{users[2].displayName?.split(' ')[0]}</span>
+                 </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* LIST (4th - 50th) */}
+        <div className="space-y-2">
+          {users.slice(3).map((user, index) => (
+            <div key={user.id} className={`flex items-center gap-4 p-4 rounded-xl border ${isGodMode ? 'bg-[#080808]/50 border-yellow-500/10' : 'bg-[#121212] border-[#27272a]'}`}>
+              <span className={`text-lg font-mono font-bold w-6 text-center ${isGodMode ? 'text-yellow-700' : 'text-[#52525B]'}`}>{index + 4}</span>
+              
+              <div className="w-10 h-10 rounded-full bg-[#1A1A1A] overflow-hidden flex-shrink-0">
+                {user.photoURL && <img src={user.photoURL} className="w-full h-full object-cover" />}
+              </div>
+              
+              <div className="flex-1">
+                <div className={`font-bold text-sm ${isGodMode ? 'text-yellow-100' : 'text-white'}`}>{user.displayName}</div>
+                <div className="text-[10px] text-[#A1A1AA] uppercase">{user.totalSeconds ? (user.totalSeconds / 3600).toFixed(1) + 'h Focus' : '0.0h Focus'}</div>
+              </div>
+
+              <div className={`font-mono font-bold ${isGodMode ? 'text-yellow-500' : 'text-[#00FF94]'}`}>
+                {user.totalPoints || 0}
+              </div>
+            </div>
+          ))}
+        </div>
+
+      </div>
+      <BottomNav />
+    </div>
+  );
+}
+</file>
+
+<file path="app/login/page.tsx">
+"use client";
+
+import { useState } from 'react';
+import { signInWithPopup } from 'firebase/auth';
+import { auth, googleProvider } from '@/lib/firebase';
+import { useRouter } from 'next/navigation';
+import { Chrome } from 'lucide-react'; // Simulating Google Icon
+
+export default function LoginPage() {
+  const router = useRouter();
+  const [error, setError] = useState('');
+
+  const handleGoogleLogin = async () => {
+    try {
+      await signInWithPopup(auth, googleProvider);
+      router.push('/'); // Teleport to Lobby on success
+    } catch (err: any) {
+      setError("Access Denied: " + err.message);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-[#050505] flex flex-col items-center justify-center p-6 text-white relative overflow-hidden">
+      {/* Background Decor */}
+      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#7000FF] via-[#00FF94] to-[#00D4FF]" />
+      
+      <div className="z-10 w-full max-w-sm text-center space-y-8">
+        <div>
+          <h1 className="text-4xl font-black italic tracking-tighter text-[#00FF94] mb-2">DESKMATES</h1>
+          <p className="text-xs text-[#52525B] uppercase tracking-[0.3em]">Neural Link Interface</p>
+        </div>
+
+        <div className="bg-[#121212] border border-[#27272a] p-8 rounded-3xl shadow-2xl shadow-[#00FF94]/5 space-y-6">
+          <div className="space-y-2">
+            <h2 className="text-lg font-bold">Identity Verification</h2>
+            <p className="text-xs text-[#A1A1AA]">Connect your Google Neural ID to proceed.</p>
+          </div>
+
+          <button 
+            onClick={handleGoogleLogin}
+            className="w-full flex items-center justify-center gap-3 bg-white text-black py-4 rounded-xl font-bold hover:bg-[#e4e4e4] transition-all hover:scale-[1.02]"
+          >
+            <Chrome className="w-5 h-5" /> {/* Using Chrome icon as proxy for Google */}
+            Sign in with Google
+          </button>
+          
+          {error && <p className="text-red-500 text-xs mt-4 border border-red-500/20 p-2 rounded bg-red-500/10">{error}</p>}
+        </div>
+
+        <p className="text-[10px] text-[#27272a] uppercase">Secure Connection • V1.0.0</p>
+      </div>
+    </div>
+  );
+}
+</file>
+
+<file path="components/BottomNav.tsx">
+// components/BottomNav.tsx
+"use client"; // Required for client-side interactivity
+
+import Link from "next/link";
+import { Hash, Trophy, User } from "lucide-react";
+import { usePathname } from "next/navigation";
+
+export default function BottomNav() {
+  const pathname = usePathname();
+
+  const isActive = (path: string) => pathname === path;
+
+  return (
+    <nav className="fixed bottom-0 left-0 right-0 bg-[#121212]/80 backdrop-blur-xl border-t border-[#27272a] flex justify-around py-4 px-6 z-50">
+      <Link href="/" className={`flex flex-col items-center gap-1 ${isActive('/') ? "text-[#00FF94]" : "text-[#52525B]"}`}>
+        <Hash className="w-5 h-5" />
+        <span className="text-[8px] font-black uppercase">Lobby</span>
+      </Link>
+      <Link href="/leaderboard" className={`flex flex-col items-center gap-1 ${isActive('/leaderboard') ? "text-[#00FF94]" : "text-[#52525B]"}`}>
+        <Trophy className="w-5 h-5" />
+        <span className="text-[8px] font-black uppercase">Rank</span>
+      </Link>
+      <Link href="/profile" className={`flex flex-col items-center gap-1 ${isActive('/profile') ? "text-[#00FF94]" : "text-[#52525B]"}`}>
+        <User className="w-5 h-5" />
+        <span className="text-[8px] font-black uppercase">Me</span>
+      </Link>
+    </nav>
+  );
+}
+</file>
+
+<file path="components/GodMode.tsx">
+"use client";
+
+import { ShieldCheck, Cpu, Crosshair, AlertTriangle, Trash2, Radio, Zap } from 'lucide-react';
+
+/**
+ * BACKGROUND: The "Cool" Atmosphere
+ * Applied to: Admin, Lobby, Room, Profile
+ */
+export const GodModeBackground = () => (
+  <div className="fixed inset-0 pointer-events-none z-0 bg-[#020202]">
+    {/* Deep Space Gold Fog */}
+    <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[100vw] h-[60vh] bg-yellow-600/10 rounded-full blur-[120px] animate-pulse" />
+    <div className="absolute bottom-0 right-0 w-[80vw] h-[50vh] bg-orange-900/10 rounded-full blur-[100px]" />
+    
+    {/* Falling Gold Dust */}
+    <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-30 animate-pulse" />
+    
+    {/* Subtle Grid */}
+    <div className="absolute inset-0 bg-[linear-gradient(rgba(255,215,0,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,215,0,0.02)_1px,transparent_1px)] bg-[size:40px_40px] opacity-20" />
+  </div>
+);
+
+/**
+ * HEADER: Clean & Infinite
+ */
+export const OmegaHeader = ({ userName }: { userName: string }) => (
+  <div className="relative z-10 mb-12 group">
+    {/* Glowing Underline */}
+    <div className="absolute bottom-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-yellow-500/50 to-transparent" />
+    
+    <div className="relative flex justify-between items-end pb-6 px-2">
+        <div>
+            <div className="flex items-center gap-3 mb-2">
+                <ShieldCheck className="text-yellow-400 w-5 h-5 animate-bounce" />
+                <span className="text-[10px] text-yellow-600 font-bold tracking-[0.4em] uppercase">Pax Deskmates</span>
+            </div>
+            <h1 className="text-6xl font-black italic tracking-tighter text-transparent bg-clip-text bg-gradient-to-b from-yellow-100 via-yellow-500 to-yellow-800 drop-shadow-[0_0_20px_rgba(255,215,0,0.3)]">
+                GOD MODE
+            </h1>
+        </div>
+        <div className="text-right hidden sm:block">
+            <div className="text-[9px] text-yellow-800 uppercase tracking-widest mb-1">Total Focus</div>
+            <div className="text-3xl font-bold text-yellow-500 font-mono">
+                ∞
+            </div>
+        </div>
+    </div>
+  </div>
+);
+
+/**
+ * CORE: Clean Deployment Frame
+ */
+export const ReactorCore = ({ children }: { children: React.ReactNode }) => (
+  <div className="relative z-10 mb-16 max-w-4xl mx-auto">
+    <div className="bg-[#050505]/50 backdrop-blur-sm border border-yellow-500/20 p-8 rounded-2xl relative overflow-hidden shadow-[0_0_50px_rgba(255,200,0,0.05)]">
+        
+        {/* Corner Accents */}
+        <div className="absolute top-0 left-0 w-2 h-2 border-t border-l border-yellow-500" />
+        <div className="absolute top-0 right-0 w-2 h-2 border-t border-r border-yellow-500" />
+        <div className="absolute bottom-0 left-0 w-2 h-2 border-b border-l border-yellow-500" />
+        <div className="absolute bottom-0 right-0 w-2 h-2 border-b border-r border-yellow-500" />
+
+        <div className="relative">
+            <div className="flex items-center gap-4 mb-8 border-b border-yellow-900/20 pb-4">
+                <Crosshair className="w-5 h-5 text-yellow-500 animate-[spin_10s_linear_infinite]" />
+                <div>
+                    <h2 className="font-bold text-sm uppercase text-yellow-500 tracking-[0.2em]">Deploy Signal</h2>
+                </div>
+            </div>
+            {children}
+        </div>
+    </div>
+  </div>
+);
+
+/**
+ * LIST ITEM: Clean Signal Card
+ */
+export const SignalCard = ({ room, onClose }: { room: any, onClose: (id: string) => void }) => (
+  <div className={`relative bg-[#080808] border-l-2 ${room.status === 'closed' ? 'border-red-900 opacity-50 grayscale' : 'border-yellow-500'} p-6 flex justify-between items-center group overflow-hidden transition-all hover:bg-[#0A0A0A]`}>
+      
+      {/* Golden Shine on Hover */}
+      <div className="absolute inset-0 bg-gradient-to-r from-yellow-500/5 to-transparent translate-x-[-100%] group-hover:translate-x-0 transition-transform duration-700 ease-out" />
+
+      <div className="relative z-10 flex items-center gap-6">
+          <div className="flex flex-col items-center justify-center w-10 h-10 border border-yellow-900/30 rounded bg-black/50">
+             <Radio className="w-4 h-4 text-yellow-600" />
+          </div>
+          <div>
+            <div className="font-bold text-lg text-gray-200 group-hover:text-yellow-200 transition-colors uppercase tracking-tight">{room.title}</div>
+            <div className="flex items-center gap-3 mt-1">
+                <span className={`text-[9px] font-black uppercase tracking-widest ${room.status === 'closed' ? 'text-red-500' : 'text-yellow-600'}`}>
+                    {room.status}
+                </span>
+            </div>
+          </div>
+      </div>
+      
+      {room.status !== 'closed' && (
+      <button 
+          onClick={() => onClose(room.id)}
+          className="relative z-10 bg-[#120505] border border-red-900/30 text-red-600 px-4 py-3 rounded hover:bg-red-900 hover:text-white transition-all uppercase text-[10px] font-black tracking-widest"
+      >
+          TERMINATE
+      </button>
+      )}
+  </div>
+);
+
+/**
+ * LOADING
+ */
+export const LoadingSequence = () => (
+    <div className="h-screen bg-black flex flex-col items-center justify-center gap-8 relative overflow-hidden font-mono">
+        <div className="w-24 h-24 border-t-2 border-yellow-500 rounded-full animate-spin shadow-[0_0_30px_#FFD700]" />
+        <div className="text-yellow-500 font-black text-xl uppercase tracking-[0.5em] animate-pulse">
+            SYNCING...
+        </div>
+    </div>
+);
+</file>
+
+<file path="components/MeetingRoom.js">
+import React from 'react';
+
+const MeetingRoom = ({ roomData, role, onNuke }) => {
+  // Logic: Mods and Godmode get the powerful Host URL
+  const isPrivileged = role === 'moderator' || role === 'godmode';
+  const finalUrl = isPrivileged ? roomData.hostUrl : roomData.userUrl;
+
+  // These parameters make the UI look clean and integrated
+  const params = new URLSearchParams({
+    embed: 'true',
+    displayNames: 'on',
+    background: 'off',
+    chat: 'on',
+    people: 'on'
+  }).toString();
+
+  return (
+    <div style={{ width: '100%', height: '85vh', position: 'relative' }}>
+      <iframe
+        src={`${finalUrl}?${params}`}
+        allow="camera; microphone; fullscreen; display-capture"
+        style={{ width: '100%', height: '100%', border: 'none', borderRadius: '12px' }}
+      />
+      
+      {isPrivileged && (
+        <button 
+          onClick={() => onNuke(roomData.meetingId)}
+          style={{ position: 'absolute', top: '10px', right: '10px', background: 'red', color: 'white', border: 'none', padding: '10px', cursor: 'pointer', borderRadius: '5px' }}
+        >
+          FORCE END SESSION
+        </button>
+      )}
+    </div>
+  );
+};
+
+export default MeetingRoom;
+</file>
+
+<file path="components/Roomlist.js">
+import React, { useEffect, useState } from 'react';
+import { db, auth } from '../firebaseConfig'; // Your Firebase init file
+import { collection, onSnapshot, query, where } from 'firebase/firestore';
+
+const RoomList = () => {
+  const [rooms, setRooms] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  // 1. Fetch live rooms from the path in your Firestore schema 
+  useEffect(() => {
+    const roomsRef = collection(db, 'artifacts/deskmates-online/public/data/rooms');
+    const q = query(roomsRef, where('status', '==', 'live')); // Only show live sessions 
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const roomData = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      setRooms(roomData);
+      setLoading(setLoading(false));
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  // 2. The Fix: Open Whereby links instead of Jitsi
+  const handleJoin = (room) => {
+    const currentUser = auth.currentUser;
+    if (!currentUser) return alert("Please log in first!");
+
+    // Check if user is the moderator or in Godmode 
+    const isModerator = currentUser.uid === room.moderatorId;
+    const isGodmode = currentUser.email === 'your-admin-email@example.com'; // Add your logic here
+
+    // Use hostUrl for privileged users to bypass the moderator wall, userUrl for others
+    const finalUrl = (isModerator || isGodmode) ? room.hostUrl : room.userUrl;
+
+    if (finalUrl) {
+      window.open(finalUrl, '_blank');
+    } else {
+      alert("This is an old Jitsi room and cannot be opened. Please create a new room.");
+    }
+  };
+
+  if (loading) return <div>Loading Deskmates...</div>;
+
+  return (
+    <div className="room-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '20px', padding: '20px' }}>
+      {rooms.map((room) => (
+        <div key={room.id} className="room-card" style={{ border: '1px solid #333', padding: '20px', borderRadius: '12px', background: '#1a1a1a', color: 'white' }}>
+          <h3 style={{ margin: '0 0 10px 0' }}>{room.title}</h3> {/* cite: 7 */}
+          <p style={{ fontSize: '0.9rem', color: '#aaa' }}>Host: {room.moderator}</p> {/* cite: 7 */}
+          
+          <div style={{ margin: '15px 0', display: 'flex', gap: '5px' }}>
+            {room.tags?.map(tag => (
+              <span key={tag} style={{ background: '#333', padding: '4px 8px', borderRadius: '4px', fontSize: '0.8rem' }}>{tag}</span>
+            ))}
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span>👤 {room.participants}/{room.maxParticipants}</span> {/* cite: 7 */}
+            <button 
+              onClick={() => handleJoin(room)}
+              style={{ background: '#007bff', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '6px', cursor: 'pointer' }}
+            >
+              Join Room
+            </button>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+};
+
+export default RoomList;
+</file>
+
+<file path="eslint.config.mjs">
+import { defineConfig, globalIgnores } from "eslint/config";
+import nextVitals from "eslint-config-next/core-web-vitals";
+import nextTs from "eslint-config-next/typescript";
+
+const eslintConfig = defineConfig([
+  ...nextVitals,
+  ...nextTs,
+  // Override default ignores of eslint-config-next.
+  globalIgnores([
+    // Default ignores of eslint-config-next:
+    ".next/**",
+    "out/**",
+    "build/**",
+    "next-env.d.ts",
+  ]),
+]);
+
+export default eslintConfig;
+</file>
+
+<file path="next-env.d.ts">
+/// <reference types="next" />
+/// <reference types="next/image-types/global" />
+import "./.next/dev/types/routes.d.ts";
+
+// NOTE: This file should not be edited
+// see https://nextjs.org/docs/app/api-reference/config/typescript for more information.
+</file>
+
+<file path="next.config.ts">
+import type { NextConfig } from "next";
+
+const nextConfig: NextConfig = {
+  /* config options here */
+};
+
+export default nextConfig;
+</file>
+
+<file path="pages/CreateRoomPage.js">
+// src/pages/CreateRoomPage.js
+import { createDeskmatesRoom } from '../services/roomService';
+
+const handleCreateClick = async () => {
+  const roomTitle = "My New Study Room"; // Get this from your input field
+  const currentUser = { displayName: "YourName", uid: "123" }; // Get this from your Auth
+
+  try {
+    // This is the "Hook": It calls the service, creates the Whereby room, 
+    // and saves everything to /artifacts/deskmates-online/public/data/rooms[cite: 5, 7].
+    const roomId = await createDeskmatesRoom(roomTitle, currentUser);
+    
+    console.log("Room Created! ID is:", roomId);
+    // Redirect user to the new room page or close the modal
+  } catch (error) {
+    alert("Creation failed. Check console.");
+  }
+};
+</file>
+
+<file path="pages/RoomPage.js">
+// src/pages/RoomPage.js
+import React, { useEffect, useState } from 'react';
+import { db } from '../firebaseConfig';
+import { doc, getDoc } from 'firebase/firestore';
+import MeetingRoom from '../components/MeetingRoom';
+
+const RoomPage = ({ roomId, currentUserId }) => {
+  const [roomData, setRoomData] = useState(null);
+
+  useEffect(() => {
+    // Fetch the room data from the path in your schema [cite: 5, 6]
+    const fetchRoom = async () => {
+      const docRef = doc(db, 'artifacts/deskmates-online/public/data/rooms', roomId);
+      const snap = await getDoc(docRef);
+      if (snap.exists()) setRoomData(snap.data());
+    };
+    fetchRoom();
+  }, [roomId]);
+
+  if (!roomData) return <div>Loading...</div>;
+
+  // This is the "Hook": Pass the hostUrl/userUrl logic to the iframe component
+  // Use 'moderator' if the current user created it, otherwise 'user'
+  const role = currentUserId === roomData.moderatorId ? 'moderator' : 'user';
+
+  return (
+    <div className="room-container">
+      <h1>{roomData.title}</h1>
+      <MeetingRoom 
+        room={roomData} 
+        role={role} 
+        onEndSession={() => console.log("Nuking...")} 
+      />
+    </div>
+  );
+};
+</file>
+
+<file path="postcss.config.mjs">
+const config = {
+  plugins: {
+    "@tailwindcss/postcss": {},
+  },
+};
+
+export default config;
+</file>
+
+<file path="public/file.svg">
+<svg fill="none" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><path d="M14.5 13.5V5.41a1 1 0 0 0-.3-.7L9.8.29A1 1 0 0 0 9.08 0H1.5v13.5A2.5 2.5 0 0 0 4 16h8a2.5 2.5 0 0 0 2.5-2.5m-1.5 0v-7H8v-5H3v12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1M9.5 5V2.12L12.38 5zM5.13 5h-.62v1.25h2.12V5zm-.62 3h7.12v1.25H4.5zm.62 3h-.62v1.25h7.12V11z" clip-rule="evenodd" fill="#666" fill-rule="evenodd"/></svg>
+</file>
+
+<file path="public/globe.svg">
+<svg fill="none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><g clip-path="url(#a)"><path fill-rule="evenodd" clip-rule="evenodd" d="M10.27 14.1a6.5 6.5 0 0 0 3.67-3.45q-1.24.21-2.7.34-.31 1.83-.97 3.1M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16m.48-1.52a7 7 0 0 1-.96 0H7.5a4 4 0 0 1-.84-1.32q-.38-.89-.63-2.08a40 40 0 0 0 3.92 0q-.25 1.2-.63 2.08a4 4 0 0 1-.84 1.31zm2.94-4.76q1.66-.15 2.95-.43a7 7 0 0 0 0-2.58q-1.3-.27-2.95-.43a18 18 0 0 1 0 3.44m-1.27-3.54a17 17 0 0 1 0 3.64 39 39 0 0 1-4.3 0 17 17 0 0 1 0-3.64 39 39 0 0 1 4.3 0m1.1-1.17q1.45.13 2.69.34a6.5 6.5 0 0 0-3.67-3.44q.65 1.26.98 3.1M8.48 1.5l.01.02q.41.37.84 1.31.38.89.63 2.08a40 40 0 0 0-3.92 0q.25-1.2.63-2.08a4 4 0 0 1 .85-1.32 7 7 0 0 1 .96 0m-2.75.4a6.5 6.5 0 0 0-3.67 3.44 29 29 0 0 1 2.7-.34q.31-1.83.97-3.1M4.58 6.28q-1.66.16-2.95.43a7 7 0 0 0 0 2.58q1.3.27 2.95.43a18 18 0 0 1 0-3.44m.17 4.71q-1.45-.12-2.69-.34a6.5 6.5 0 0 0 3.67 3.44q-.65-1.27-.98-3.1" fill="#666"/></g><defs><clipPath id="a"><path fill="#fff" d="M0 0h16v16H0z"/></clipPath></defs></svg>
+</file>
+
+<file path="public/next.svg">
+<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 394 80"><path fill="#000" d="M262 0h68.5v12.7h-27.2v66.6h-13.6V12.7H262V0ZM149 0v12.7H94v20.4h44.3v12.6H94v21h55v12.6H80.5V0h68.7zm34.3 0h-17.8l63.8 79.4h17.9l-32-39.7 32-39.6h-17.9l-23 28.6-23-28.6zm18.3 56.7-9-11-27.1 33.7h17.8l18.3-22.7z"/><path fill="#000" d="M81 79.3 17 0H0v79.3h13.6V17l50.2 62.3H81Zm252.6-.4c-1 0-1.8-.4-2.5-1s-1.1-1.6-1.1-2.6.3-1.8 1-2.5 1.6-1 2.6-1 1.8.3 2.5 1a3.4 3.4 0 0 1 .6 4.3 3.7 3.7 0 0 1-3 1.8zm23.2-33.5h6v23.3c0 2.1-.4 4-1.3 5.5a9.1 9.1 0 0 1-3.8 3.5c-1.6.8-3.5 1.3-5.7 1.3-2 0-3.7-.4-5.3-1s-2.8-1.8-3.7-3.2c-.9-1.3-1.4-3-1.4-5h6c.1.8.3 1.6.7 2.2s1 1.2 1.6 1.5c.7.4 1.5.5 2.4.5 1 0 1.8-.2 2.4-.6a4 4 0 0 0 1.6-1.8c.3-.8.5-1.8.5-3V45.5zm30.9 9.1a4.4 4.4 0 0 0-2-3.3 7.5 7.5 0 0 0-4.3-1.1c-1.3 0-2.4.2-3.3.5-.9.4-1.6 1-2 1.6a3.5 3.5 0 0 0-.3 4c.3.5.7.9 1.3 1.2l1.8 1 2 .5 3.2.8c1.3.3 2.5.7 3.7 1.2a13 13 0 0 1 3.2 1.8 8.1 8.1 0 0 1 3 6.5c0 2-.5 3.7-1.5 5.1a10 10 0 0 1-4.4 3.5c-1.8.8-4.1 1.2-6.8 1.2-2.6 0-4.9-.4-6.8-1.2-2-.8-3.4-2-4.5-3.5a10 10 0 0 1-1.7-5.6h6a5 5 0 0 0 3.5 4.6c1 .4 2.2.6 3.4.6 1.3 0 2.5-.2 3.5-.6 1-.4 1.8-1 2.4-1.7a4 4 0 0 0 .8-2.4c0-.9-.2-1.6-.7-2.2a11 11 0 0 0-2.1-1.4l-3.2-1-3.8-1c-2.8-.7-5-1.7-6.6-3.2a7.2 7.2 0 0 1-2.4-5.7 8 8 0 0 1 1.7-5 10 10 0 0 1 4.3-3.5c2-.8 4-1.2 6.4-1.2 2.3 0 4.4.4 6.2 1.2 1.8.8 3.2 2 4.3 3.4 1 1.4 1.5 3 1.5 5h-5.8z"/></svg>
+</file>
+
+<file path="public/vercel.svg">
+<svg fill="none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1155 1000"><path d="m577.3 0 577.4 1000H0z" fill="#fff"/></svg>
+</file>
+
+<file path="public/window.svg">
+<svg fill="none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path fill-rule="evenodd" clip-rule="evenodd" d="M1.5 2.5h13v10a1 1 0 0 1-1 1h-11a1 1 0 0 1-1-1zM0 1h16v11.5a2.5 2.5 0 0 1-2.5 2.5h-11A2.5 2.5 0 0 1 0 12.5zm3.75 4.5a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5M7 4.75a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0m1.75.75a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5" fill="#666"/></svg>
+</file>
+
+<file path="README.md">
+This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+
+## Getting Started
+
+First, run the development server:
+
+```bash
+npm run dev
+# or
+yarn dev
+# or
+pnpm dev
+# or
+bun dev
+```
+
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+
+You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+
+This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+
+## Learn More
+
+To learn more about Next.js, take a look at the following resources:
+
+- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
+- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+
+You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+
+## Deploy on Vercel
+
+The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+
+Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+</file>
+
+<file path="services/MeetingRoom.js">
+import React from 'react';
+
+const MeetingRoom = ({ room, role, onEndSession }) => {
+  // If the user is a Moderator or in Godmode, give them the hostUrl [cite: 1, 7]
+  // This prevents the "Waiting for Moderator" screen you saw earlier.
+  const isPrivileged = role === 'moderator' || role === 'godmode';
+  const finalLink = isPrivileged ? room.hostUrl : room.userUrl;
+
+  const uiParams = new URLSearchParams({
+    embed: 'true',
+    displayNames: 'on',
+    background: 'off',
+    chat: 'on'
+  }).toString();
+
+  return (
+    <div style={{ width: '100%', height: '100%', position: 'relative' }}>
+      <iframe
+        src={`${finalLink}?${uiParams}`}
+        allow="camera; microphone; fullscreen; display-capture"
+        style={{ width: '100%', height: '100%', border: 'none', borderRadius: '12px' }}
+        title={room.title}
+      />
+      
+      {isPrivileged && (
+        <button 
+          onClick={() => onEndSession(room)}
+          style={{
+            position: 'absolute', bottom: '20px', right: '20px',
+            backgroundColor: '#ff4444', color: 'white', padding: '10px 20px',
+            borderRadius: '8px', border: 'none', cursor: 'pointer', zIndex: 10
+          }}
+        >
+          END SESSION
+        </button>
+      )}
+    </div>
+  );
+};
+
+export default MeetingRoom;
+</file>
+
+<file path="services/roomService.js">
+import { db } from '../firebaseConfig'; // Ensure this points to your Firebase init file
+import { WherebyService } from './wherebyService';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+
+// THIS IS THE EXACT PATH FROM YOUR WORD DOC 
+const ROOMS_COLLECTION_PATH = 'artifacts/deskmates-online/public/data/rooms';
+
+export const createDeskmatesRoom = async (roomTitle, user) => {
+  // 1. Generate the unique Whereby URLs
+  const wherebyData = await WherebyService.createMeeting();
+
+  // 2. Prepare the payload based on your Firestore Schema [cite: 7]
+  const roomPayload = {
+    title: roomTitle,                  // [cite: 7]
+    moderator: user.displayName,       // [cite: 7]
+    moderatorId: user.uid,             // [cite: 7]
+    status: 'live',                    // [cite: 7]
+    participants: 1,                   // [cite: 7]
+    maxParticipants: 20,               // [cite: 7]
+    isHot: false,                      // [cite: 7]
+    createdAt: serverTimestamp(),      // [cite: 7]
+    // Add these new fields to handle the video [cite: 7]
+    meetingId: wherebyData.meetingId,
+    userUrl: wherebyData.userUrl,
+    hostUrl: wherebyData.hostUrl
+  };
+
+  // 3. Save to the path specified in your docs 
+  const docRef = await addDoc(collection(db, ROOMS_COLLECTION_PATH), roomPayload);
+  return docRef.id;
+};
+</file>
+
+<file path="services/wherebyService.js">
+import axios from 'axios';
+
+const API_BASE = 'https://api.whereby.dev/v1/meetings';
+
+export const WherebyService = {
+  /**
+   * Creates a persistent room and returns both host and viewer URLs.
+   */
+  async createMeeting() {
+    try {
+      const response = await axios.post(API_BASE, {
+        endDate: "2099-12-31T23:59:59Z", // Persistent
+        isLocked: false,
+        fields: ["hostRoomUrl"] // Essential for Moderator/Godmode access
+      }, {
+        headers: {
+          'Authorization': `Bearer ${process.env.WHEREBY_API_KEY}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      return {
+        meetingId: response.data.meetingId,
+        userUrl: response.data.roomUrl,     // For regular participants
+        hostUrl: response.data.hostRoomUrl  // For Moderators & Godmode
+      };
+    } catch (err) {
+      console.error("Whereby Room Creation Error:", err.response?.data || err.message);
+      throw err;
+    }
+  },
+
+  /**
+   * Deletes the meeting from Whereby's servers.
+   */
+  async deleteMeeting(meetingId) {
+    await axios.delete(`${API_BASE}/${meetingId}`, {
+      headers: { 'Authorization': `Bearer ${process.env.WHEREBY_API_KEY}` }
+    });
+  }
+};
+</file>
+
+<file path="tsconfig.json">
+{
+  "compilerOptions": {
+    "target": "ES2017",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "react-jsx",
+    "incremental": true,
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    "paths": {
+      "@/*": ["./*"]
+    }
+  },
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts",
+    ".next/dev/types/**/*.ts",
+    "**/*.mts"
+  ],
+  "exclude": ["node_modules"]
+}
+</file>
+
+<file path="utils/roles.ts">
+// utils/roles.ts
+export const FOUNDER_EMAILS = ["logan.nguyen.opla@gmail.com"];
+export const BASE_MODERATORS = ["logan.namlongnguyen@gmail.com"];
+
+export const getRole = (user: any, userDoc?: any) => {
+  if (!user || !user.email) return 'agent';
+
+  // 1. Check Hardcoded Founder
+  if (FOUNDER_EMAILS.includes(user.email.toLowerCase())) return 'founder';
+
+  // 2. Check Hardcoded Mods (Your test account)
+  if (BASE_MODERATORS.includes(user.email.toLowerCase())) return 'moderator';
+
+  // 3. Check Database Role (The "Approved" Mods)
+  if (userDoc && userDoc.role === 'moderator') return 'moderator';
+
+  return 'agent';
+};
+</file>
+
+<file path=".gitignore">
+# Dependencies
+node_modules
+.pnp
+.pnp.js
+
+# Testing
+coverage
+
+# Next.js
+.next/
+.next_OLD/
+out/
+
+# Production
+build
+
+# Misc
+.DS_Store
+*.pem
+
+# Debug
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# Local Env Files (Secrets)
+.env*.local
+.env
+</file>
+
+<file path="app/page.tsx">
+"use client";
+
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { 
+  collection, onSnapshot, addDoc, serverTimestamp, query, where, getDocs, getDoc, doc 
+} from 'firebase/firestore'; 
+import { db, auth } from '@/lib/firebase';
+import BottomNav from '@/components/BottomNav';
+import { Radio, Crown, ShieldCheck } from 'lucide-react';
+import { GodModeBackground } from '@/components/GodMode';
+
+const FOUNDER_EMAIL = "logan.nguyen.opla@gmail.com";
+const FOUNDER_NAME = "Logan Ng";
+
+export default function Lobby() {
+  const router = useRouter();
+  const [rooms, setRooms] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [isGodMode, setIsGodMode] = useState(false);
+
+  useEffect(() => {
+    const unsubscribeAuth = auth.onAuthStateChanged((user) => {
+      if (!user) {
+        router.push('/login');
+      } else {
+        const isFounder = user.email?.toLowerCase() === FOUNDER_EMAIL || user.displayName === FOUNDER_NAME;
+        setIsGodMode(isFounder);
+
+        const roomsRef = collection(db, 'rooms');
+        const unsubscribeRooms = onSnapshot(roomsRef, (snapshot) => {
+          // --- FIX: FILTER OUT CLOSED ROOMS ---
+          const liveRooms = snapshot.docs
+            .map(doc => ({ id: doc.id, ...doc.data() }))
+            .filter((room: any) => room.status !== 'closed'); // <--- CRITICAL FIX
+          
+          setRooms(liveRooms);
+          setLoading(false);
+        });
+        return () => unsubscribeRooms();
+      }
+    });
+    return () => unsubscribeAuth();
+  }, [router]);
+
+  const handleJoinRoom = async (roomId: string) => {
+    if (!auth.currentUser) return router.push('/login');
+    try {
+      // --- FIX: CHECK IF ROOM IS ACTUALLY OPEN FIRST ---
+      const roomRef = doc(db, 'rooms', roomId);
+      const roomSnap = await getDoc(roomRef);
+      if (!roomSnap.exists() || roomSnap.data().status === 'closed') {
+        alert("This room has ended.");
+        return;
+      }
+
+      // Check for existing session
+      const q = query(collection(db, 'sessions'), where("userId", "==", auth.currentUser.uid), where("roomId", "==", roomId), where("status", "==", "active"));
+      const snapshot = await getDocs(q);
+
+      if (!snapshot.empty) {
+        router.push(`/room/${roomId}?sessionId=${snapshot.docs[0].id}`);
+      } else {
+        const sessionRef = await addDoc(collection(db, 'sessions'), {
+          userId: auth.currentUser.uid, roomId: roomId, startTime: serverTimestamp(), status: 'active', pointsEarned: 0
+        });
+        router.push(`/room/${roomId}?sessionId=${sessionRef.id}`);
+      }
+    } catch (error) { alert("Connection Error."); }
+  };
+
+  if (loading) return (
+    <div className="h-screen bg-[#050505] flex flex-col items-center justify-center gap-4">
+      <div className={`w-12 h-12 border-4 ${isGodMode ? 'border-yellow-500' : 'border-[#00FF94]'} border-t-transparent rounded-full animate-spin`} />
+    </div>
+  );
+
+  return (
+    <div className={`min-h-screen font-sans pb-24 relative overflow-hidden transition-colors duration-1000 ${isGodMode ? 'bg-black text-white selection:bg-yellow-500 selection:text-black' : 'bg-[#050505] text-white'}`}>
+      
+      {isGodMode && <GodModeBackground />}
+
+      <header className={`p-6 border-b relative z-10 backdrop-blur-md sticky top-0 flex justify-between items-center ${isGodMode ? 'bg-black/50 border-yellow-500/30' : 'bg-[#121212]/50 border-[#27272a]'}`}>
+        <div>
+          <div className="flex items-center gap-2">
+             {isGodMode && <ShieldCheck className="w-5 h-5 text-yellow-500 animate-pulse" />}
+             <h1 className={`text-2xl font-black italic tracking-tighter ${isGodMode ? 'text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-orange-500' : 'text-[#00FF94]'}`}>
+                {isGodMode ? "GOD MODE" : "DESKMATES"}
+             </h1>
+          </div>
+          <p className={`text-xs uppercase tracking-widest mt-1 ${isGodMode ? 'text-yellow-700 font-bold' : 'text-[#A1A1AA]'}`}>
+            {isGodMode ? "Founder Clearance: Omega" : "Study Together"}
+          </p>
+        </div>
+        <div className={`flex items-center gap-2 px-3 py-1 rounded-full border ${isGodMode ? 'bg-yellow-900/20 border-yellow-500/30' : 'bg-[#00FF94]/10 border-[#00FF94]/20'}`}>
+            <Radio className={`w-3 h-3 animate-pulse ${isGodMode ? 'text-yellow-500' : 'text-[#00FF94]'}`} />
+            <span className={`text-[10px] font-bold ${isGodMode ? 'text-yellow-500' : 'text-[#00FF94]'}`}>
+                {rooms.reduce((acc, r) => acc + (r.participants || 0), 0)} Online
+            </span>
+        </div>
+      </header>
+
+      <div className="p-4 space-y-4 relative z-10">
+        {rooms.length === 0 && (
+          <div className={`text-center py-20 font-black text-2xl opacity-20 ${isGodMode ? 'text-yellow-900' : 'text-[#27272a]'}`}>
+            NO ACTIVE SIGNALS
+          </div>
+        )}
+
+        {rooms.map((room) => (
+          <div key={room.id} onClick={() => handleJoinRoom(room.id)} className={`group cursor-pointer border rounded-2xl p-5 transition-all hover:-translate-y-1 relative overflow-hidden ${isGodMode ? 'bg-[#080808]/50 border-yellow-500/30 hover:border-yellow-400' : 'bg-[#121212] border-[#27272a] hover:border-[#00FF94]'}`}>
+            <div className={`absolute inset-0 bg-gradient-to-r translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000 ${isGodMode ? 'from-yellow-500/0 via-yellow-500/10 to-yellow-500/0' : 'from-[#00FF94]/0 via-[#00FF94]/5 to-[#00FF94]/0'}`} />
+            <div className="flex justify-between items-start mb-3 relative z-10">
+              <h3 className={`font-bold text-lg transition-colors ${isGodMode ? 'group-hover:text-yellow-400' : 'group-hover:text-[#00FF94]'}`}>{room.title}</h3>
+              {room.isHot && <span className={`text-[10px] px-2 py-0.5 rounded font-black uppercase border ${isGodMode ? 'bg-yellow-500/20 text-yellow-500 border-yellow-500/20' : 'bg-[#FF5C00]/20 text-[#FF5C00] border-[#FF5C00]/20'}`}>HOT</span>}
+            </div>
+            <div className={`flex items-center justify-between text-xs relative z-10 ${isGodMode ? 'text-yellow-900/80' : 'text-[#A1A1AA]'}`}>
+              <div className="flex items-center gap-2"><div className={`w-2 h-2 rounded-full animate-pulse ${isGodMode ? 'bg-yellow-500' : 'bg-[#00FF94]'}`} /><span>{room.participants || 0} online</span></div>
+              <span className="font-mono text-[10px] opacity-70 flex items-center gap-1">{room.moderator?.includes('★') && <Crown className="w-3 h-3 text-yellow-500" />} MOD: {room.moderator?.split(' ')[0]}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+      <BottomNav />
+    </div>
+  );
+}
+</file>
+
+<file path="app/profile/page.tsx">
+"use client";
+
+import { useEffect, useState } from 'react';
+import { auth, db } from '@/lib/firebase';
+import { onAuthStateChanged, signOut } from 'firebase/auth';
+import { doc, onSnapshot } from 'firebase/firestore'; 
+import { useRouter } from 'next/navigation';
+import { Settings, Clock, Zap, LogOut, ShieldCheck, Crown } from 'lucide-react';
+import BottomNav from '@/components/BottomNav';
+import { GodModeBackground } from '@/components/GodMode';
+import { getRole } from '@/utils/roles'; // <--- IMPORT THIS
+
+export default function Profile() {
+  const [user, setUser] = useState<any>(null);
+  const [stats, setStats] = useState<any>({ totalPoints: 0, totalSeconds: 0 }); 
+  const [role, setRole] = useState('agent'); // 'agent', 'moderator', 'founder'
+  const router = useRouter();
+
+  useEffect(() => {
+    const unsubscribeAuth = onAuthStateChanged(auth, (currentUser) => {
+      if (!currentUser) {
+        router.push('/login');
+      } else {
+        setUser(currentUser);
+        
+        // 1. Listen to User Data & Determine Role
+        const userRef = doc(db, 'users', currentUser.uid);
+        const unsubscribeFirestore = onSnapshot(userRef, (docSnap) => {
+          if (docSnap.exists()) {
+            const data = docSnap.data();
+            setStats(data);
+            // Calculate Role using the utility (checks hardcoded emails + DB role)
+            setRole(getRole(currentUser, data)); 
+          } else {
+             // Fallback if no DB record yet
+             setRole(getRole(currentUser, {}));
+          }
+        });
+        return () => unsubscribeFirestore();
+      }
+    });
+    return () => unsubscribeAuth();
+  }, [router]);
+
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      router.push('/login');
+    } catch (error) { console.error(error); }
+  };
+
+  const formatHours = (seconds: number) => (seconds / 3600).toFixed(1) + 'h';
+  const isGodMode = role === 'founder';
+
+  return (
+    <div className={`min-h-screen p-6 pb-24 relative overflow-hidden font-mono ${isGodMode ? 'bg-black text-white selection:bg-yellow-500 selection:text-black' : 'bg-[#050505] text-white'}`}>
+      
+      {/* GOD MODE BACKGROUND (Founder Only) */}
+      {isGodMode && <GodModeBackground />}
+
+      {/* HEADER */}
+      <div className="flex justify-between items-center mb-8 relative z-10">
+        <h2 className={`text-sm font-black uppercase tracking-[0.2em] ${isGodMode ? 'text-yellow-600' : 'text-[#A1A1AA]'}`}>
+            {isGodMode ? "FOUNDER CLEARANCE" : (role === 'moderator' ? "MODERATOR PROFILE" : "INTELLIGENCE PROFILE")}
+        </h2>
+        <Settings className={`${isGodMode ? 'text-yellow-500' : 'text-[#52525B]'} w-5 h-5 cursor-pointer`} />
+      </div>
+
+      {/* IDENTITY CARD */}
+      <div className="text-center mb-10 relative z-10 group">
+        <div className={`w-24 h-24 rounded-full mx-auto flex items-center justify-center text-3xl font-black mb-4 overflow-hidden border-4 ${isGodMode ? 'border-yellow-500 shadow-[0_0_30px_rgba(255,215,0,0.4)]' : (role === 'moderator' ? 'border-[#00FF94] shadow-[0_0_20px_rgba(0,255,148,0.2)]' : 'bg-gradient-to-br from-[#7000FF] to-[#00FF94] border-transparent')}`}>
+          {user?.photoURL ? (
+             <img src={user.photoURL} alt="Avatar" className="w-full h-full object-cover" />
+          ) : (
+             user?.uid?.slice(0, 2).toUpperCase() || "??"
+          )}
+        </div>
+        
+        <div className="flex items-center justify-center gap-2">
+            {isGodMode && <Crown className="w-5 h-5 text-yellow-500 animate-bounce" />}
+            {role === 'moderator' && <ShieldCheck className="w-5 h-5 text-[#00FF94]" />}
+            <h3 className={`text-xl font-bold ${isGodMode ? 'text-yellow-400 drop-shadow-[0_0_10px_rgba(255,215,0,0.5)]' : 'text-white'}`}>
+                {user?.displayName || "Deskmate Agent"}
+            </h3>
+        </div>
+        
+        <p className={`text-xs font-mono mt-1 ${isGodMode ? 'text-yellow-700' : 'text-[#52525B]'}`}>
+          {isGodMode ? "STATUS: OMNIPOTENT" : (role === 'moderator' ? "STATUS: OPERATIVE" : "STATUS: ONLINE")}
+        </p>
+      </div>
+
+      {/* STATS GRID */}
+      <div className="grid grid-cols-2 gap-4 mb-8 relative z-10">
+        {/* TIME */}
+        <div className={`border p-4 rounded-2xl ${isGodMode ? 'bg-[#080808]/50 border-yellow-500/30' : 'bg-[#121212] border-[#27272a]'}`}>
+          <Clock className={`${isGodMode ? 'text-yellow-400' : 'text-[#00FF94]'} w-5 h-5 mb-2`} />
+          <div className="text-2xl font-black">
+              {isGodMode ? "∞" : formatHours(stats.totalSeconds || 0)}
+          </div>
+          <div className={`text-[10px] uppercase font-bold ${isGodMode ? 'text-yellow-700' : 'text-[#A1A1AA]'}`}>Total Focus</div>
+        </div>
+        
+        {/* POINTS */}
+        <div className={`border p-4 rounded-2xl ${isGodMode ? 'bg-[#080808]/50 border-yellow-500/30' : 'bg-[#121212] border-[#27272a]'}`}>
+          <Zap className={`${isGodMode ? 'text-orange-500' : 'text-[#FF5C00]'} w-5 h-5 mb-2`} />
+          <div className="text-2xl font-black">
+              {isGodMode ? "∞" : (stats.totalPoints || 0)}
+          </div>
+          <div className={`text-[10px] uppercase font-bold ${isGodMode ? 'text-yellow-700' : 'text-[#A1A1AA]'}`}>Points</div>
+        </div>
+      </div>
+
+      {/* ACTIONS */}
+      <div className="space-y-4 relative z-10">
+        
+        {/* GOD MODE BUTTON */}
+        {isGodMode && (
+            <button 
+                onClick={() => router.push('/admin')}
+                className="w-full bg-gradient-to-r from-yellow-600 to-yellow-400 text-black py-4 rounded-xl font-black uppercase text-xs tracking-[0.2em] shadow-[0_0_20px_rgba(255,215,0,0.3)] hover:scale-[1.02] transition-transform flex items-center justify-center gap-2 group"
+            >
+                <ShieldCheck className="w-4 h-4 group-hover:rotate-12 transition-transform" /> 
+                Enter Command Deck
+            </button>
+        )}
+
+        {/* MODERATOR BUTTON */}
+        {role === 'moderator' && (
+             <button 
+                onClick={() => router.push('/admin')}
+                className="w-full bg-[#00FF94]/10 border border-[#00FF94]/50 text-[#00FF94] py-4 rounded-xl font-bold uppercase text-xs tracking-widest hover:bg-[#00FF94] hover:text-black transition-all flex items-center justify-center gap-2"
+             >
+                <ShieldCheck className="w-4 h-4" /> 
+                Access Moderator Dashboard
+             </button>
+        )}
+        
+        {/* APPLY FOR MOD (Only for regular Agents) */}
+        {role === 'agent' && (
+             <button 
+                onClick={() => router.push('/apply')}
+                className="w-full bg-[#1A1A1A] border border-[#27272a] text-[#A1A1AA] py-4 rounded-xl font-bold uppercase text-xs tracking-widest hover:bg-[#27272a] hover:text-white transition-colors flex items-center justify-center gap-2"
+             >
+                <ShieldCheck className="w-4 h-4" /> 
+                Apply for Clearance
+             </button>
+        )}
+
+        <button 
+            onClick={handleLogout}
+            className={`w-full border py-4 rounded-xl font-bold uppercase text-xs tracking-widest flex items-center justify-center gap-2 transition-colors ${
+                isGodMode 
+                ? 'bg-[#080808]/50 border-red-900/30 text-red-500 hover:bg-red-900/10' 
+                : 'bg-[#1A1A1A] border-red-900/30 text-red-500 hover:bg-red-900/10'
+            }`}
+        >
+            <LogOut className="w-4 h-4" />
+            Disconnect
+        </button>
+      </div>
+
+      <BottomNav />
+    </div>
+  );
+}
+</file>
+
+<file path="components/StandardAdmin.tsx">
+"use client";
+
+import { useState } from 'react';
+import { Shield, Trash2, Activity, Users, Radio, Plus, X } from 'lucide-react';
+
+export const StandardAdminUI = ({ 
+  rooms, 
+  onCloseRoom, 
+  onCreateRoom, // <--- NEW PROP
+  userName 
+}: { 
+  rooms: any[], 
+  onCloseRoom: (id: string) => void,
+  onCreateRoom: (e: React.FormEvent, title: string, tags: string) => void, // <--- NEW TYPE
+  userName: string 
+}) => {
+  const [isCreating, setIsCreating] = useState(false);
+  const [title, setTitle] = useState('');
+  const [tags, setTags] = useState('');
+
+  const handleSubmit = (e: React.FormEvent) => {
+    onCreateRoom(e, title, tags);
+    setIsCreating(false);
+    setTitle('');
+    setTags('');
+  };
+
+  return (
+    <div className="min-h-screen bg-[#050505] text-white font-sans p-6 pb-24">
+      {/* Header */}
+      <header className="flex justify-between items-end mb-8 border-b border-[#27272a] pb-6">
+        <div>
+          <div className="flex items-center gap-2 mb-2 text-[#00FF94]">
+            <Shield className="w-5 h-5" />
+            <span className="text-xs font-bold uppercase tracking-widest">Moderator Clearance</span>
+          </div>
+          <h1 className="text-3xl font-bold text-white tracking-tight">Mission Control</h1>
+        </div>
+        <div className="text-right">
+          <button 
+            onClick={() => setIsCreating(!isCreating)}
+            className="bg-[#00FF94] text-black px-4 py-2 rounded font-bold uppercase text-xs tracking-widest hover:bg-[#00cc76] transition-colors flex items-center gap-2"
+          >
+            {isCreating ? <X className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
+            {isCreating ? "Cancel" : "Deploy New Room"}
+          </button>
+        </div>
+      </header>
+
+      {/* CREATION FORM (Conditionally Rendered) */}
+      {isCreating && (
+        <div className="mb-8 bg-[#121212] border border-[#00FF94]/30 p-6 rounded-xl animate-in fade-in slide-in-from-top-4">
+            <h3 className="font-bold text-[#00FF94] uppercase tracking-widest text-sm mb-4">Initialize New Protocol</h3>
+            <form onSubmit={handleSubmit} className="flex gap-4 items-end">
+                <div className="flex-1 space-y-1">
+                    <label className="text-[10px] uppercase font-bold text-[#52525B]">Room Name</label>
+                    <input 
+                        value={title}
+                        onChange={(e) => setTitle(e.target.value)}
+                        className="w-full bg-black border border-[#27272a] p-3 rounded text-sm focus:border-[#00FF94] outline-none text-white"
+                        placeholder="e.g. Late Night Study"
+                        required
+                    />
+                </div>
+                <div className="flex-1 space-y-1">
+                    <label className="text-[10px] uppercase font-bold text-[#52525B]">Tags (Optional)</label>
+                    <input 
+                        value={tags}
+                        onChange={(e) => setTags(e.target.value)}
+                        className="w-full bg-black border border-[#27272a] p-3 rounded text-sm focus:border-[#00FF94] outline-none text-white"
+                        placeholder="CHILL, MUSIC, CAMERA ON"
+                    />
+                </div>
+                <button className="bg-[#00FF94]/10 border border-[#00FF94] text-[#00FF94] px-6 py-3 rounded font-bold uppercase text-xs hover:bg-[#00FF94] hover:text-black transition-all">
+                    Launch
+                </button>
+            </form>
+        </div>
+      )}
+
+      {/* Stats Overview */}
+      <div className="grid grid-cols-3 gap-4 mb-8">
+        <div className="bg-[#121212] border border-[#27272a] p-4 rounded-xl">
+          <div className="flex items-center gap-2 text-[#A1A1AA] mb-2">
+            <Radio className="w-4 h-4" /> <span className="text-xs uppercase font-bold">Active Signals</span>
+          </div>
+          <div className="text-2xl font-bold text-white">{rooms.filter(r => r.status === 'active').length}</div>
+        </div>
+        <div className="bg-[#121212] border border-[#27272a] p-4 rounded-xl">
+          <div className="flex items-center gap-2 text-[#A1A1AA] mb-2">
+            <Users className="w-4 h-4" /> <span className="text-xs uppercase font-bold">Total Agents</span>
+          </div>
+          <div className="text-2xl font-bold text-white">
+            {rooms.reduce((acc, r) => acc + (r.participants || 0), 0)}
+          </div>
+        </div>
+      </div>
+
+      {/* Room Management Table */}
+      <div className="bg-[#121212] border border-[#27272a] rounded-xl overflow-hidden">
+        <div className="p-4 border-b border-[#27272a] flex justify-between items-center">
+          <h3 className="font-bold text-sm uppercase tracking-wider text-white">Active Protocols</h3>
+          <div className="flex items-center gap-2 px-2 py-1 bg-[#00FF94]/10 rounded text-[#00FF94] text-[10px] font-bold uppercase animate-pulse">
+            <Activity className="w-3 h-3" /> Live Feed
+          </div>
+        </div>
+
+        <div className="divide-y divide-[#27272a]">
+          {rooms.length === 0 ? (
+            <div className="p-8 text-center text-[#52525B] text-sm uppercase tracking-widest">
+              No active rooms detected.
+            </div>
+          ) : (
+            rooms.map((room) => (
+              <div key={room.id} className="p-4 flex items-center justify-between hover:bg-[#1A1A1A] transition-colors group">
+                <div>
+                  <div className="flex items-center gap-3">
+                    <div className={`w-2 h-2 rounded-full ${room.status === 'active' ? 'bg-[#00FF94] shadow-[0_0_8px_#00FF94]' : 'bg-red-500'}`} />
+                    <span className="font-bold text-white">{room.title}</span>
+                  </div>
+                  <div className="mt-1 flex items-center gap-4 text-xs text-[#A1A1AA]">
+                    <span className="font-mono">ID: {room.id.slice(0, 6)}</span>
+                    <span>•</span>
+                    <span>{room.participants || 0} Online</span>
+                  </div>
+                </div>
+
+                {room.status === 'active' && (
+                  <button
+                    onClick={() => onCloseRoom(room.id)}
+                    className="flex items-center gap-2 px-4 py-2 rounded-lg bg-red-500/10 text-red-500 border border-red-500/20 hover:bg-red-500 hover:text-white transition-all text-xs font-bold uppercase tracking-wider"
+                  >
+                    <Trash2 className="w-3 h-3" /> Shutdown
+                  </button>
+                )}
+                
+                {room.status === 'closed' && (
+                   <span className="px-3 py-1 bg-[#27272a] text-[#52525B] text-[10px] font-bold uppercase rounded">
+                      Terminated
+                   </span>
+                )}
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+</file>
+
+<file path="lib/firebase.ts">
+import { initializeApp, getApps, getApp } from "firebase/app";
+import { getAuth, GoogleAuthProvider } from "firebase/auth"; // <--- Added GoogleAuthProvider
+import { getFirestore } from "firebase/firestore";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBFFCxLou6Xaj2aH_mhTO9VQ-xWT20FQXM",
+  authDomain: "deskmates-gaye.firebaseapp.com",
+  projectId: "deskmates-gaye",
+  storageBucket: "deskmates-gaye.firebasestorage.app",
+  messagingSenderId: "716028559362",
+  appId: "1:716028559362:web:5673dfa08ee889ac10e71b",
+  measurementId: "G-EX85Q6ZZB1"
+};
+
+const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+const auth = getAuth(app);
+const db = getFirestore(app);
+const googleProvider = new GoogleAuthProvider(); // <--- Create the provider
+
+export { app, auth, db, googleProvider }; // <--- Export it
+</file>
+
+<file path="app/admin/page.tsx">
+"use client";
+
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { 
+  collection, addDoc, serverTimestamp, 
+  query, where, onSnapshot, doc, updateDoc, getDoc 
+} from 'firebase/firestore';
+import { db, auth } from '@/lib/firebase';
+import BottomNav from '@/components/BottomNav';
+import { Check, X, Zap } from 'lucide-react';
+import { getRole } from '@/utils/roles';
+
+// UI Components
+import { 
+  GodModeBackground, 
+  OmegaHeader, 
+  ReactorCore, 
+  SignalCard, 
+  LoadingSequence 
+} from '@/components/GodMode';
+import { StandardAdminUI } from '@/components/StandardAdmin'; // <--- THIS WAS MISSING
+
+export default function AdminDashboard() {
+  const router = useRouter();
+  const [user, setUser] = useState<any>(null);
+  const [role, setRole] = useState('agent');
+  const [loading, setLoading] = useState(true);
+  
+  const [myRooms, setMyRooms] = useState<any[]>([]);
+  const [applications, setApplications] = useState<any[]>([]);
+  const [view, setView] = useState<'rooms' | 'applications'>('rooms');
+  
+  const [title, setTitle] = useState('');
+  const [meetLink, setMeetLink] = useState('');
+  const [tags, setTags] = useState('');
+
+  // 1. INITIALIZATION & AUTH
+  useEffect(() => {
+    const unsubscribeAuth = auth.onAuthStateChanged(async (currentUser) => {
+      if (!currentUser) {
+        router.push('/login');
+        return;
+      }
+      setUser(currentUser);
+
+      const userDocRef = doc(db, 'users', currentUser.uid);
+      const userDocSnap = await getDoc(userDocRef);
+      const calculatedRole = getRole(currentUser, userDocSnap.data());
+      
+      setRole(calculatedRole);
+
+      if (calculatedRole === 'agent') {
+        alert("Access Denied: Clearance Level Too Low.");
+        router.push('/profile');
+        return;
+      }
+
+      const roomQuery = query(
+          collection(db, 'rooms'), 
+          where("status", "==", "active"),
+          where("moderatorId", "==", currentUser.uid) 
+      );
+
+      const unsubRooms = onSnapshot(roomQuery, (snapshot) => {
+        setMyRooms(snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
+      });
+
+      let unsubApps = () => {};
+      if (calculatedRole === 'founder') {
+          const appQuery = query(collection(db, 'applications'), where('status', '==', 'pending'));
+          unsubApps = onSnapshot(appQuery, (snap) => {
+              setApplications(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+          });
+      }
+
+      setLoading(false);
+      return () => { unsubRooms(); unsubApps(); };
+    });
+
+    return () => unsubscribeAuth();
+  }, [router]);
+
+  // 2. ACTIONS
+  const handleCreateRoom = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user) return;
+    try {
+      await addDoc(collection(db, 'rooms'), {
+        title,
+        meetLink: meetLink || 'jitsi-embedded',
+        tags: tags.split(',').map(t => t.trim()).filter(Boolean),
+        moderator: role === 'founder' ? "★ FOUNDER" : (user.displayName || "Moderator"),
+        moderatorId: user.uid,
+        participants: 0,
+        status: 'active',
+        createdAt: serverTimestamp(),
+        isHot: role === 'founder'
+      });
+      setTitle('');
+      setTags('');
+      alert("Protocol Initiated.");
+    } catch (error) {
+      alert("System Error: Could not deploy room.");
+    }
+  };
+
+  const handleCloseRoom = async (roomId: string) => {
+    const message = role === 'founder'
+        ? "EXECUTE SOLAR FLARE? (Terminates Protocol)" 
+        : "Are you sure you want to close this room?";
+    
+    if (!confirm(message)) return;
+    try {
+      await updateDoc(doc(db, 'rooms', roomId), { status: 'closed' });
+    } catch (error) { console.error(error); }
+  };
+
+  const handleApprove = async (appId: string, applicantId: string) => {
+      if (!confirm("Promote this Agent to Moderator?")) return;
+      try {
+        await updateDoc(doc(db, 'users', applicantId), { role: 'moderator' });
+        await updateDoc(doc(db, 'applications', appId), { status: 'approved' });
+        alert("Promotion Successful.");
+      } catch (e) { alert("Error promoting agent."); }
+  };
+
+  const handleReject = async (appId: string) => {
+      if (!confirm("Reject application?")) return;
+      await updateDoc(doc(db, 'applications', appId), { status: 'rejected' });
+  };
+
+  if (loading) return <LoadingSequence />;
+
+  // VIEW: MODERATOR
+  if (role === 'moderator') {
+    return (
+      <>
+        <StandardAdminUI 
+            rooms={myRooms} 
+            onCloseRoom={handleCloseRoom}
+            // 👇 THIS IS THE NEW PART THAT CONNECTS THE LOGIC
+            onCreateRoom={(e, newTitle, newTags) => {
+                // We manually trigger the create event with the data from the child component
+                setTitle(newTitle);
+                setTags(newTags);
+                // We need to wrap it in a synthetic event or just call logic directly
+                // To keep it simple, let's just reuse the logic but adaptable:
+                const fakeEvent = { preventDefault: () => {} } as React.FormEvent;
+                
+                // We need to set state first, then call. 
+                // ACTUALLY, React state updates are async, so calling handleCreateRoom immediately 
+                // with empty state won't work.
+                
+                // Let's call the DB directly here for Mods to avoid state sync issues:
+                addDoc(collection(db, 'rooms'), {
+                    title: newTitle,
+                    meetLink: 'jitsi-embedded',
+                    tags: newTags.split(',').map(t => t.trim()).filter(Boolean),
+                    moderator: user.displayName || "Moderator",
+                    moderatorId: user.uid,
+                    participants: 0,
+                    status: 'active',
+                    createdAt: serverTimestamp(),
+                    isHot: false // Mods don't get "HOT" status automatically
+                }).then(() => alert("Room Deployed Successfully."));
+            }}
+            userName={user?.displayName || "Moderator"} 
+        />
+        <BottomNav />
+      </>
+    );
+  }
+
+  // VIEW: FOUNDER
+  return (
+    <div className="min-h-screen bg-black text-white p-6 pb-24 relative overflow-hidden font-mono selection:bg-yellow-500 selection:text-black">
+      <GodModeBackground />
+      <OmegaHeader userName="Founder" />
+
+      <div className="flex justify-center gap-4 mb-8 relative z-10">
+          <button onClick={() => setView('rooms')} className={`text-xs font-black uppercase tracking-[0.2em] px-6 py-3 border transition-all ${view === 'rooms' ? 'bg-yellow-500 text-black border-yellow-500 shadow-[0_0_20px_rgba(255,215,0,0.3)]' : 'bg-black text-yellow-700 border-yellow-900/30 hover:text-yellow-500'}`}>War Room</button>
+          <button onClick={() => setView('applications')} className={`text-xs font-black uppercase tracking-[0.2em] px-6 py-3 border transition-all ${view === 'applications' ? 'bg-yellow-500 text-black border-yellow-500 shadow-[0_0_20px_rgba(255,215,0,0.3)]' : 'bg-black text-yellow-700 border-yellow-900/30 hover:text-yellow-500'}`}>
+            Approvals {applications.length > 0 && <span className="ml-2 bg-red-600 text-white px-1.5 py-0.5 rounded-full text-[9px]">{applications.length}</span>}
+          </button>
+      </div>
+
+      {view === 'rooms' ? (
+          <>
+            <ReactorCore>
+                <form onSubmit={handleCreateRoom} className="space-y-8">
+                    <div className="space-y-2 group">
+                        <label className="text-[10px] uppercase font-bold text-yellow-800 tracking-widest">Protocol Name</label>
+                        <input type="text" value={title} onChange={e => setTitle(e.target.value)} className="w-full bg-[#050505]/50 border border-yellow-900/30 p-5 text-base focus:border-yellow-400 outline-none text-yellow-100 font-bold rounded-lg" placeholder="OMEGA SESSION" required />
+                    </div>
+                    <div className="space-y-2 group">
+                        <label className="text-[10px] uppercase font-bold text-yellow-800 tracking-widest">Tags</label>
+                        <input type="text" value={tags} onChange={e => setTags(e.target.value)} className="w-full bg-[#050505]/50 border border-yellow-900/30 p-5 text-base focus:border-yellow-400 outline-none text-yellow-100 rounded-lg" placeholder="FOCUS, DEEP WORK" />
+                    </div>
+                    <button type="submit" className="w-full bg-yellow-500 text-black font-black uppercase tracking-[0.3em] text-sm py-6 hover:scale-[1.01] transition-transform shadow-[0_0_40px_rgba(255,215,0,0.3)] rounded-lg mt-4 flex justify-center gap-2 items-center">
+                        <Zap className="w-5 h-5 fill-black" /> DEPLOY
+                    </button>
+                </form>
+            </ReactorCore>
+
+            <div className="relative z-10 max-w-4xl mx-auto mt-12">
+                <div className="space-y-4">
+                    {myRooms.map(room => (
+                    <SignalCard key={room.id} room={room} onClose={handleCloseRoom} />
+                    ))}
+                </div>
+            </div>
+          </>
+      ) : (
+          <div className="max-w-4xl mx-auto space-y-4 relative z-10">
+              {applications.map(app => (
+                  <div key={app.id} className="bg-[#050505] border border-yellow-900/30 p-6 rounded-xl flex justify-between items-center group hover:border-yellow-500/50 transition-colors">
+                      <div>
+                          <div className="text-yellow-500 font-bold text-lg">{app.displayName}</div>
+                          <div className="text-yellow-800 text-xs uppercase tracking-widest mb-3">{app.email}</div>
+                          <div className="text-gray-400 text-sm italic bg-[#111] p-3 rounded border border-[#222]">"{app.reason}"</div>
+                      </div>
+                      <div className="flex flex-col gap-2 ml-4">
+                          <button onClick={() => handleApprove(app.id, app.uid)} className="p-3 bg-green-900/10 text-green-500 border border-green-900/50 hover:bg-green-500 hover:text-black transition-all rounded"><Check className="w-5 h-5"/></button>
+                          <button onClick={() => handleReject(app.id)} className="p-3 bg-red-900/10 text-red-500 border border-red-900/50 hover:bg-red-500 hover:text-white transition-all rounded"><X className="w-5 h-5"/></button>
+                      </div>
+                  </div>
+              ))}
+          </div>
+      )}
+      <BottomNav />
+    </div>
+  );
+}
+</file>
+
+<file path="package.json">
+{
+  "name": "deskmates",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint"
+  },
+  "dependencies": {
+    "@jitsi/react-sdk": "^1.4.4",
+    "firebase": "^12.7.0",
+    "lucide-react": "^0.562.0",
+    "next": "16.1.1",
+    "react": "19.2.3",
+    "react-dom": "19.2.3"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.1.1",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  }
+}
+</file>
+
+<file path="app/room/[id]/page.tsx">
+"use client";
+
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { useRouter, useSearchParams, useParams } from 'next/navigation';
+import { JitsiMeeting } from '@jitsi/react-sdk';
+import { 
+  doc, getDoc, updateDoc, setDoc, 
+  serverTimestamp, increment, onSnapshot 
+} from 'firebase/firestore';
+import { db, auth } from '@/lib/firebase';
+import { ShieldAlert, ShieldCheck } from 'lucide-react';
+import { GodModeBackground } from '@/components/GodMode';
+import { getRole } from '@/utils/roles';
+
+export default function RoomPage() {
+  const [role, setRole] = useState('agent');
+  const [loading, setLoading] = useState(true);
+  const router = useRouter();
+  const { id: rawRoomId } = useParams();
+  const searchParams = useSearchParams();
+  const sessionId = searchParams.get('sessionId');
+  const secondsRef = useRef(0);
+
+  // 🛑 THE GHOST BYPASS: Generate a unique ID so Jitsi doesn't ask for a login
+  const [jitsiRoomId] = useState(() => 
+    `Deskmates-Session-${Math.random().toString(36).substring(2, 10)}-${Date.now().toString(36)}`
+  );
+
+  const roomId = Array.isArray(rawRoomId) ? rawRoomId[0] : rawRoomId || "unknown";
+
+  // 1. AUTH & ROLE INIT
+  useEffect(() => {
+    if (!sessionId || !roomId) return;
+    const init = async () => {
+       const user = auth.currentUser;
+       if (user) {
+           const userDoc = await getDoc(doc(db, 'users', user.uid));
+           setRole(getRole(user, userDoc.data()));
+       }
+       setLoading(false);
+    };
+    init();
+    const interval = setInterval(() => { secondsRef.current += 1; }, 1000);
+    return () => clearInterval(interval);
+  }, [sessionId, roomId]);
+
+  // 2. END SESSION & SYNC
+  const handleEndSession = useCallback(async () => {
+    if (!sessionId || !auth.currentUser) return;
+    const points = Math.floor(secondsRef.current / 60);
+    try {
+        await updateDoc(doc(db, 'sessions', sessionId as string), { 
+            status: 'completed', 
+            endTime: serverTimestamp(), 
+            durationSeconds: secondsRef.current, 
+            pointsEarned: points 
+        });
+        await setDoc(doc(db, 'users', auth.currentUser.uid), { 
+            totalPoints: increment(points), 
+            totalSeconds: increment(secondsRef.current), 
+            sessionsCount: increment(1) 
+        }, { merge: true });
+    } catch (e) { console.error("Sync Error:", e); }
+  }, [sessionId]);
+
+  // 3. THE ENFORCER: Listen for Mod "Nuke"
+  useEffect(() => {
+    if (!roomId) return;
+    const unsub = onSnapshot(doc(db, 'rooms', roomId), (snap) => {
+        if (snap.data()?.status === 'closed') {
+            handleEndSession().then(() => {
+                alert("This protocol has been terminated by High Command.");
+                router.push('/profile');
+            });
+        }
+    });
+    return () => unsub();
+  }, [roomId, handleEndSession, router]);
+
+  if (loading) return (
+    <div className="h-screen bg-black text-yellow-500 flex flex-col items-center justify-center font-mono gap-4">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-yellow-500"></div>
+        DECRYPTING CHANNEL...
+    </div>
+  );
+
+  return (
+    <div className={`h-screen flex flex-col relative overflow-hidden ${role === 'founder' ? 'bg-black' : 'bg-[#050505]'}`}>
+      
+      {role === 'founder' && <GodModeBackground />}
+
+      {/* TOP STATUS BAR */}
+      <div className={`relative z-10 flex justify-between items-center px-6 py-4 border-b backdrop-blur-md ${role === 'founder' ? 'border-yellow-900/50 bg-black/50' : 'border-[#27272a] bg-[#121212]/80'}`}>
+         <div className="flex flex-col">
+            <span className={`text-[10px] font-black uppercase tracking-[0.3em] ${role === 'founder' ? 'text-yellow-600' : 'text-[#00FF94]'}`}>
+                {role === 'founder' ? 'Founder Priority' : 'Secure Uplink'}
+            </span>
+            <div className="font-bold text-white text-xs font-mono">{roomId.slice(0,8).toUpperCase()}</div>
+         </div>
+         <button 
+            onClick={async () => { await handleEndSession(); router.push('/profile'); }} 
+            className="text-[10px] bg-red-500/10 border border-red-500/30 text-red-500 px-4 py-2 rounded uppercase font-black tracking-widest hover:bg-red-500 hover:text-white transition-all"
+         >
+            Disconnect
+         </button>
+      </div>
+
+      {/* THE VIDEO ENGINE */}
+      <div className="flex-1 relative z-10">
+        <JitsiMeeting
+            domain="meet.jit.si"
+            roomName={jitsiRoomId} 
+            configOverwrite={{
+                startWithAudioMuted: true,
+                disableThirdPartyRequests: true,
+                prejoinPageEnabled: false,
+                enableWelcomePage: false,
+                enableClosePage: false,
+                disableLobby: true, // 🛑 KILL THE MODERATOR WALL
+                deploymentInfo: { userRegion: "us-west" }
+            }}
+            interfaceConfigOverwrite={{
+                SHOW_JITSI_WATERMARK: false,
+                HIDE_INVITE_MORE_HEADER: true,
+                TOOLBAR_BUTTONS: ['camera', 'chat', 'microphone', 'raisehand', 'tileview', 'hangup']
+            }}
+            userInfo={{ 
+                displayName: auth.currentUser?.displayName || "Agent",
+                email: auth.currentUser?.email || "" 
+            }}
+            onApiReady={(api) => {
+                api.addListener('videoConferenceLeft', () => { 
+                    handleEndSession(); 
+                    router.push('/profile'); 
+                });
+            }}
+            getIFrameRef={(iframe) => { 
+                iframe.style.height = '100%'; 
+                iframe.style.border = 'none';
+                if (role === 'founder') iframe.style.boxShadow = 'inset 0 0 100px rgba(255, 215, 0, 0.15)';
+                if (role === 'moderator') iframe.style.boxShadow = 'inset 0 0 100px rgba(0, 255, 148, 0.1)';
+            }}
+        />
+      </div>
+
+      {/* MODERATOR OVERRIDE CONTROLS */}
+      {(role === 'founder' || role === 'moderator') && (
+         <div className="absolute bottom-10 left-10 z-20">
+             <button 
+                onClick={async () => {
+                    if (!confirm("⚠️ ALERT: Shutdown this session for all participants?")) return;
+                    await updateDoc(doc(db, 'rooms', roomId), { status: 'closed' });
+                }}
+                className={`backdrop-blur border px-6 py-4 rounded-xl font-black uppercase text-[10px] tracking-[0.3em] transition-all flex items-center gap-3 shadow-2xl ${
+                    role === 'founder' 
+                    ? 'bg-black/90 border-red-900 text-red-600 hover:bg-red-600 hover:text-white' 
+                    : 'bg-[#00FF94]/10 border-[#00FF94]/40 text-[#00FF94] hover:bg-[#00FF94] hover:text-black'
+                }`}
+             >
+                {role === 'founder' ? <ShieldAlert className="w-4 h-4" /> : <ShieldCheck className="w-4 h-4" />}
+                {role === 'founder' ? "EXECUTE NUKE" : "TERMINATE ROOM"}
+             </button>
+         </div>
+      )}
+    </div>
+  );
+}
+</file>
+
+</files>

@@ -1,41 +1,26 @@
 import axios from 'axios';
 
-const API_BASE = 'https://api.whereby.dev/v1/meetings';
-
 export const WherebyService = {
-  /**
-   * Creates a persistent room and returns both host and viewer URLs.
-   */
   async createMeeting() {
     try {
-      const response = await axios.post(API_BASE, {
-        endDate: "2099-12-31T23:59:59Z", // Persistent
+      const response = await axios.post('https://api.whereby.dev/v1/meetings', {
+        endDate: "2099-12-31T23:59:59Z",
         isLocked: false,
-        fields: ["hostRoomUrl"] // Essential for Moderator/Godmode access
+        fields: ["hostRoomUrl"] 
       }, {
         headers: {
           'Authorization': `Bearer ${process.env.WHEREBY_API_KEY}`,
           'Content-Type': 'application/json'
         }
       });
-
       return {
         meetingId: response.data.meetingId,
-        userUrl: response.data.roomUrl,     // For regular participants
-        hostUrl: response.data.hostRoomUrl  // For Moderators & Godmode
+        userUrl: response.data.roomUrl,
+        hostUrl: response.data.hostRoomUrl
       };
     } catch (err) {
-      console.error("Whereby Room Creation Error:", err.response?.data || err.message);
+      console.error("Whereby API Error:", err);
       throw err;
     }
-  },
-
-  /**
-   * Deletes the meeting from Whereby's servers.
-   */
-  async deleteMeeting(meetingId) {
-    await axios.delete(`${API_BASE}/${meetingId}`, {
-      headers: { 'Authorization': `Bearer ${process.env.WHEREBY_API_KEY}` }
-    });
   }
 };
