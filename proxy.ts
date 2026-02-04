@@ -1,29 +1,21 @@
 import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server'; // FIX: changed from 'next/request'
+import type { NextRequest } from 'next/server';
 
-export function middleware(req: NextRequest) {
+// THE FIX: Added 'export' so Next.js can identify the entry point
+export function proxy(req: NextRequest) { 
   const { pathname } = req.nextUrl;
-  const SECRET_CODE = 'xyzabc123321';
+  const SECRET_CODE = 'xyzabc123321'; 
   const hasDevCookie = req.cookies.get('dev_access');
 
   // 1. Secret Entry Point: deskmates.online/xyzabc123321
   if (pathname === `/${SECRET_CODE}`) {
     const response = NextResponse.redirect(new URL('/', req.url));
-    // Grant access for 7 days
-    response.cookies.set('dev_access', 'true', { 
-      maxAge: 60 * 60 * 24 * 7,
-      path: '/' 
-    });
+    response.cookies.set('dev_access', 'true', { maxAge: 60 * 60 * 24 * 7, path: '/' });
     return response;
   }
 
-  // 2. Allow public access to Landing, static files, and images
-  if (
-    pathname === '/landing' || 
-    pathname.startsWith('/_next') || 
-    pathname.startsWith('/api') ||
-    pathname.includes('.')
-  ) {
+  // 2. Allow public access to the Landing Page and Assets
+  if (pathname === '/landing' || pathname.startsWith('/_next') || pathname.includes('.')) {
     return NextResponse.next();
   }
 
