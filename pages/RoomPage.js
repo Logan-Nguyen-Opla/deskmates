@@ -1,6 +1,6 @@
 // src/pages/RoomPage.js
 import React, { useEffect, useState } from 'react';
-import { db } from '../firebaseConfig';
+import { db, auth } from '../lib/firebase';
 import { doc, getDoc } from 'firebase/firestore';
 import MeetingRoom from '../components/MeetingRoom';
 

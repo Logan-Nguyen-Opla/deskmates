@@ -1,4 +1,4 @@
-import { db } from '../firebaseConfig'; // Ensure this points to your Firebase init file
+import { db } from '../lib/firebase';
 import { WherebyService } from './wherebyService';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 

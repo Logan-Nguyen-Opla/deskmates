@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { db, auth } from '../firebaseConfig'; // Your Firebase init file
+import { db, auth } from '../lib/firebase';
 import { collection, onSnapshot, query, where } from 'firebase/firestore';
 
 const RoomList = () => {
