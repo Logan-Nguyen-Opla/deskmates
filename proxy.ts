@@ -3,29 +3,27 @@ import type { NextRequest } from 'next/server';
 
 export function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
-  const SECRET_CODE = 'xyzabc123321'; // Share this only with your team
+  const SECRET_CODE = 'xyzabc123321'; 
   const hasDevCookie = req.cookies.get('dev_access');
 
-  // Secret Entry: Visit deskmates.online/xyzabc123321 to unlock the real app
   if (pathname === `/${SECRET_CODE}`) {
     const response = NextResponse.redirect(new URL('/', req.url));
     response.cookies.set('dev_access', 'true', { 
-      maxAge: 60 * 60 * 24 * 7, // Unlocked for 1 week
+      maxAge: 60 * 60 * 24 * 7, 
       path: '/' 
     });
     return response;
   }
 
-  // Allow everyone to see the Landing Page and core assets
   if (
     pathname === '/landing' || 
     pathname.startsWith('/_next') || 
+    pathname.startsWith('/api') ||
     pathname.includes('.')
   ) {
     return NextResponse.next();
   }
 
-  // Redirect unauthorized public users to the landing page
   if (!hasDevCookie) {
     return NextResponse.redirect(new URL('/landing', req.url));
   }
