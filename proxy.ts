@@ -18,7 +18,6 @@ export function proxy(req: NextRequest) {
   if (
     pathname === '/landing' || 
     pathname.startsWith('/_next') || 
-    pathname.startsWith('/api') ||
     pathname.includes('.')
   ) {
     return NextResponse.next();
