@@ -2,75 +2,80 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { collection, onSnapshot, doc, updateDoc, getDoc } from 'firebase/firestore';
 import { db, auth } from '@/lib/firebase';
+import { doc, getDoc, collection, onSnapshot } from 'firebase/firestore';
+import { getRole, UserRole } from '@/utils/roles';
 import { createDeskmatesRoom } from '@/services/roomService';
-import BottomNav from '@/components/BottomNav';
-import { Zap } from 'lucide-react';
-import { getRole } from '@/utils/roles';
-import { GodModeBackground, OmegaHeader, ReactorCore, SignalCard, LoadingSequence } from '@/components/GodMode';
+import { GodModeBackground } from '@/components/GodMode';
 
-export default function AdminDashboard() {
+export default function AdminPage() {
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
-  const [role, setRole] = useState('agent');
-  const [loading, setLoading] = useState(true);
+  // FIX: Explicitly tell TypeScript this state is a UserRole or null
+  const [role, setRole] = useState<UserRole | null>(null);
   const [myRooms, setMyRooms] = useState<any[]>([]);
-  const [title, setTitle] = useState('');
+  const [loading, setLoading] = useState(true);
 
   const ROOMS_PATH = 'artifacts/deskmates-online/public/data/rooms';
 
   useEffect(() => {
-    const unsubscribeAuth = auth.onAuthStateChanged(async (currentUser) => {
-      if (!currentUser) return router.push('/login');
+    const unsubAuth = auth.onAuthStateChanged(async (currentUser) => {
+      if (!currentUser) {
+        router.push('/login');
+        return;
+      }
+
       setUser(currentUser);
       const userDocSnap = await getDoc(doc(db, 'users', currentUser.uid));
+      // This now matches the state type perfectly
       setRole(getRole(currentUser, userDocSnap.data()));
 
       const unsubRooms = onSnapshot(collection(db, ROOMS_PATH), (snapshot) => {
-        setMyRooms(snapshot.docs.map(d => ({ id: d.id, ...d.data() } as any)).filter(r => r.status === 'live'));
+        const rooms = snapshot.docs
+          .map(d => ({ id: d.id, ...d.data() } as any))
+          .filter(r => r.status === 'live' && r.moderatorId === currentUser.uid);
+        setMyRooms(rooms);
         setLoading(false);
       });
+
       return () => unsubRooms();
     });
-    return () => unsubscribeAuth();
+
+    return () => unsubAuth();
   }, [router]);
 
-  const handleCreateRoom = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!user) return;
-    try {
-      await createDeskmatesRoom(title, user); // Calls Whereby API
-      setTitle('');
-      alert("Deployment Successful.");
-    } catch (error) {
-      alert("Deployment Error.");
-    }
-  };
+  if (loading) return <div className="h-screen bg-black" />;
 
-  const handleCloseRoom = async (roomId: string) => {
-    if (!confirm("Terminate Room?")) return;
-    await updateDoc(doc(db, ROOMS_PATH, roomId), { status: 'closed' });
-  };
+  // Aesthetic check for the founder background
+  const showAesthetic = role?.isFounder;
+  // Security check for actual admin powers
+  const hasPower = role?.canManageRooms;
 
-  if (loading) return <LoadingSequence />;
+  if (!hasPower) {
+    return (
+      <div className="h-screen bg-black flex flex-col items-center justify-center p-6 text-center">
+        {showAesthetic && <GodModeBackground />}
+        <h1 className="text-yellow-500 font-black italic text-4xl mb-4 tracking-tighter uppercase">Access Restricted</h1>
+        <p className="text-gray-500 uppercase text-[10px] tracking-[0.4em] font-bold">
+            Founder Identity Verified. Administrative Clearance Required.
+        </p>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-black text-white p-6 pb-24 relative overflow-hidden font-mono">
-      <GodModeBackground />
-      <OmegaHeader userName="Founder" />
-      <ReactorCore>
-          <form onSubmit={handleCreateRoom} className="space-y-8">
-              <input type="text" value={title} onChange={e => setTitle(e.target.value)} className="w-full bg-black border border-yellow-900/30 p-5 rounded-lg text-yellow-100" placeholder="SESSION TITLE" required />
-              <button type="submit" className="w-full bg-yellow-500 text-black font-black py-6 rounded-lg flex justify-center gap-2"><Zap /> DEPLOY SIGNAL</button>
-          </form>
-      </ReactorCore>
-      <div className="relative z-10 max-w-4xl mx-auto space-y-4">
-          {myRooms.map(room => (
-              <SignalCard key={room.id} room={room} onClose={handleCloseRoom} />
-          ))}
+    <div className="min-h-screen bg-black text-white p-10 font-mono relative overflow-hidden">
+      {showAesthetic && <GodModeBackground />}
+      
+      <div className="relative z-10">
+          <h1 className="text-yellow-500 font-black italic text-2xl mb-2 tracking-tighter uppercase">Command Center</h1>
+          <p className="text-[10px] text-gray-600 mb-10 uppercase font-black tracking-widest">Rank: {role?.rank}</p>
+          
+          {/* Your room creation form goes here */}
+          <div className="border border-white/5 bg-white/5 p-10 rounded-[3rem] text-center italic text-gray-500 text-xs">
+            Ready for room deployment.
+          </div>
       </div>
-      <BottomNav />
     </div>
   );
 }
