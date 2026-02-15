@@ -3,33 +3,37 @@ import { db } from '../lib/firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 
 export const createDeskmatesRoom = async (title, user) => {
-  const WHEREBY_API_KEY = process.env.NEXT_PUBLIC_WHEREBY_API_KEY || process.env.WHEREBY_API_KEY;
+  // MUST use NEXT_PUBLIC_ for client-side deployment
+  const API_KEY = process.env.NEXT_PUBLIC_WHEREBY_API_KEY;
   
-  // 1. Create the Whereby Meeting via API
+  if (!API_KEY) {
+    console.error("CRITICAL: WHEREBY_API_KEY is missing from environment.");
+    throw new Error("Configuration Error");
+  }
+
   try {
+    const sessionEnd = new Date(Date.now() + 14400000).toISOString(); // 4 hours from now
+
     const response = await axios.post(
       'https://api.whereby.dev/v1/meetings',
       {
-        endDate: new Date(Date.now() + 3600000 * 4).toISOString(), // 4 hours from now
+        endDate: sessionEnd,
         isLocked: true,
         roomMode: "normal"
       },
       {
         headers: {
-          Authorization: `Bearer ${WHEREBY_API_KEY}`,
+          Authorization: `Bearer ${API_KEY}`,
           'Content-Type': 'application/json',
         },
       }
     );
 
     const { hostUrl, roomUrl } = response.data;
-
-    // 2. Save Room Data to Firestore
-    // Using the path from your Master Plan
     const ROOMS_PATH = 'artifacts/deskmates-online/public/data/rooms';
     
     await addDoc(collection(db, ROOMS_PATH), {
-      title: title,
+      title: title.toUpperCase(),
       hostUrl: hostUrl,
       userUrl: roomUrl,
       moderatorId: user.uid,
@@ -41,7 +45,7 @@ export const createDeskmatesRoom = async (title, user) => {
 
     return true;
   } catch (error) {
-    console.error("DETAILED DEPLOYMENT ERROR:", error.response?.data || error.message);
+    console.error("WHEREBY_ERROR_LOG:", error.response?.data || error.message);
     throw error;
   }
 };

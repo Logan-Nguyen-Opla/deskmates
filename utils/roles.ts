@@ -1,18 +1,19 @@
-// utils/roles.ts
-export const FOUNDER_EMAILS = ["logan.nguyen.opla@gmail.com"];
-export const BASE_MODERATORS = ["logan.namlongnguyen@gmail.com"];
+export type UserRole = {
+  isFounder: boolean;      // Displays the aesthetic/background
+  canManageRooms: boolean; // Allows creating/deleting rooms
+  rank: string;
+};
 
-export const getRole = (user: any, userDoc?: any) => {
-  if (!user || !user.email) return 'agent';
-
-  // 1. Check Hardcoded Founder
-  if (FOUNDER_EMAILS.includes(user.email.toLowerCase())) return 'founder';
-
-  // 2. Check Hardcoded Mods (Your test account)
-  if (BASE_MODERATORS.includes(user.email.toLowerCase())) return 'moderator';
-
-  // 3. Check Database Role (The "Approved" Mods)
-  if (userDoc && userDoc.role === 'moderator') return 'moderator';
-
-  return 'agent';
+export const getRole = (user: any, userData: any): UserRole => {
+  const email = user?.email?.toLowerCase();
+  
+  // Visual Founder Status (Aesthetic Only)
+  const isLogan = email === "logan.nguyen.opla@gmail.com";
+  
+  return {
+    isFounder: isLogan || userData?.isFounder === true,
+    // Permissions must be explicitly granted in your database
+    canManageRooms: userData?.role === 'admin' || userData?.role === 'moderator',
+    rank: isLogan ? "FOUNDER" : (userData?.role?.toUpperCase() || "AGENT")
+  };
 };
