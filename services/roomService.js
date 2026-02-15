@@ -1,31 +1,47 @@
+import axios from 'axios';
 import { db } from '../lib/firebase';
-import { WherebyService } from './wherebyService';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 
-// THIS IS THE EXACT PATH FROM YOUR WORD DOC 
-const ROOMS_COLLECTION_PATH = 'artifacts/deskmates-online/public/data/rooms';
+export const createDeskmatesRoom = async (title, user) => {
+  const WHEREBY_API_KEY = process.env.NEXT_PUBLIC_WHEREBY_API_KEY || process.env.WHEREBY_API_KEY;
+  
+  // 1. Create the Whereby Meeting via API
+  try {
+    const response = await axios.post(
+      'https://api.whereby.dev/v1/meetings',
+      {
+        endDate: new Date(Date.now() + 3600000 * 4).toISOString(), // 4 hours from now
+        isLocked: true,
+        roomMode: "normal"
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${WHEREBY_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+      }
+    );
 
-export const createDeskmatesRoom = async (roomTitle, user) => {
-  // 1. Generate the unique Whereby URLs
-  const wherebyData = await WherebyService.createMeeting();
+    const { hostUrl, roomUrl } = response.data;
 
-  // 2. Prepare the payload based on your Firestore Schema [cite: 7]
-  const roomPayload = {
-    title: roomTitle,                  // [cite: 7]
-    moderator: user.displayName,       // [cite: 7]
-    moderatorId: user.uid,             // [cite: 7]
-    status: 'live',                    // [cite: 7]
-    participants: 1,                   // [cite: 7]
-    maxParticipants: 20,               // [cite: 7]
-    isHot: false,                      // [cite: 7]
-    createdAt: serverTimestamp(),      // [cite: 7]
-    // Add these new fields to handle the video [cite: 7]
-    meetingId: wherebyData.meetingId,
-    userUrl: wherebyData.userUrl,
-    hostUrl: wherebyData.hostUrl
-  };
+    // 2. Save Room Data to Firestore
+    // Using the path from your Master Plan
+    const ROOMS_PATH = 'artifacts/deskmates-online/public/data/rooms';
+    
+    await addDoc(collection(db, ROOMS_PATH), {
+      title: title,
+      hostUrl: hostUrl,
+      userUrl: roomUrl,
+      moderatorId: user.uid,
+      moderator: user.displayName || user.email,
+      status: 'live',
+      participants: 0,
+      createdAt: serverTimestamp(),
+    });
 
-  // 3. Save to the path specified in your docs 
-  const docRef = await addDoc(collection(db, ROOMS_COLLECTION_PATH), roomPayload);
-  return docRef.id;
+    return true;
+  } catch (error) {
+    console.error("DETAILED DEPLOYMENT ERROR:", error.response?.data || error.message);
+    throw error;
+  }
 };
