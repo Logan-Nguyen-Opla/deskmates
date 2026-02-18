@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { GodModeBackground } from '@/components/GodMode';
 import { db } from '@/lib/firebase';
 import { collection, onSnapshot } from 'firebase/firestore';
-import { Radio, CheckCircle, Zap, Shield, Users } from 'lucide-react';
+import { Radio, CheckCircle, Zap, ArrowRight } from 'lucide-react';
 
 export default function LandingPage() {
   const [email, setEmail] = useState("");
@@ -12,12 +12,34 @@ export default function LandingPage() {
   const [count, setCount] = useState(0);
   const [loading, setLoading] = useState(false);
 
-  // Real-time synchronization of the waitlist count
+  // NEW LAUNCH DATE: FEB 23, 2026, 6:00 PM VIETNAM (ICT/GMT+7)
+  const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, mins: 0, secs: 0 });
+
   useEffect(() => {
+    // 1. Live Waitlist Count
     const unsub = onSnapshot(collection(db, 'waitlist'), (snap) => {
       setCount(snap.size);
     });
-    return () => unsub();
+
+    // 2. Countdown Timer
+    const target = new Date("2026-02-23T18:00:00+07:00").getTime();
+    const timer = setInterval(() => {
+      const now = new Date().getTime();
+      const distance = target - now;
+
+      if (distance < 0) {
+        clearInterval(timer);
+      } else {
+        setTimeLeft({
+          days: Math.floor(distance / (1000 * 60 * 60 * 24)),
+          hours: Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
+          mins: Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60)),
+          secs: Math.floor((distance % (1000 * 60)) / 1000)
+        });
+      }
+    }, 1000);
+
+    return () => { unsub(); clearInterval(timer); };
   }, []);
 
   const handleJoin = async (e: React.FormEvent) => {
@@ -43,44 +65,40 @@ export default function LandingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-black text-white flex flex-col font-mono overflow-x-hidden">
+    <div className="min-h-screen bg-black text-white flex flex-col font-mono overflow-x-hidden selection:bg-yellow-500 selection:text-black">
       <GodModeBackground />
 
       <div className="relative z-10 flex flex-col items-center justify-center min-h-screen p-6 text-center">
-        {/* LIVE COUNTER BADGE */}
-        <div className="flex items-center gap-3 bg-yellow-500/10 border border-yellow-500/30 px-6 py-2 rounded-full mb-10 backdrop-blur-md">
+        {/* COUNTER BADGE */}
+        <div className="flex items-center gap-3 bg-yellow-500/10 border border-yellow-500/30 px-6 py-2 rounded-full mb-8 backdrop-blur-md">
             <div className="w-2 h-2 bg-yellow-500 rounded-full animate-pulse" />
             <span className="text-[10px] font-black uppercase tracking-[0.2em] text-yellow-500">
                 {count < 100 ? `${100 - count} Founder Spots Remaining` : `${count} Agents Synchronized`}
             </span>
         </div>
 
-        <h1 className="text-7xl md:text-9xl font-black italic tracking-tighter text-transparent bg-clip-text bg-gradient-to-b from-white via-yellow-500 to-yellow-900 mb-6">
+        <h1 className="text-7xl md:text-9xl font-black italic tracking-tighter text-transparent bg-clip-text bg-gradient-to-b from-white via-yellow-500 to-yellow-900 mb-2">
           DESKMATES
         </h1>
         
-        <p className="text-lg md:text-2xl font-bold uppercase tracking-[0.3em] mb-16">
-            Stop Studying Alone.
-        </p>
+        <p className="text-xl md:text-2xl font-bold uppercase tracking-[0.3em] mb-12">Don't study alone. Find a team. Grind.</p>
+
+        {/* COUNTDOWN */}
+        <div className="grid grid-cols-4 gap-6 md:gap-12 mb-16 border-y border-white/5 py-10 w-full max-w-2xl">
+            <TimeUnit value={timeLeft.days} label="Days" />
+            <TimeUnit value={timeLeft.hours} label="Hours" />
+            <TimeUnit value={timeLeft.mins} label="Mins" />
+            <TimeUnit value={timeLeft.secs} label="Secs" />
+        </div>
 
         <div id="signup" className="w-full max-w-xl">
             {status.joined ? (
-              <div className="bg-[#0a0a0a] border border-yellow-500/40 p-12 rounded-[3rem] space-y-6 animate-in zoom-in duration-500">
-                <div className="relative inline-block">
-                    <CheckCircle className="w-16 h-16 text-yellow-500 mx-auto" />
-                    {status.priority && <Zap className="w-6 h-6 text-yellow-500 absolute -top-2 -right-2 fill-yellow-500 animate-bounce" />}
-                </div>
-                <div>
-                    <h3 className="text-3xl font-black uppercase italic mb-2 tracking-tighter">
-                        {status.priority ? 'Founder Priority Active' : 'Protocol Accepted'}
-                    </h3>
-                    <p className="text-gray-500 text-sm">You are Agent #{status.pos}. Confirmation sent to your inbox.</p>
-                </div>
-                {status.priority && (
-                    <div className="text-[10px] text-yellow-800 font-black uppercase tracking-widest border border-yellow-900/30 py-2 rounded-lg">
-                        Lifetime Priority Badge Secured
-                    </div>
-                )}
+              <div className="bg-[#0a0a0a] border border-yellow-500/40 p-12 rounded-[3rem] animate-in zoom-in duration-500">
+                <CheckCircle className="w-16 h-16 text-yellow-500 mx-auto mb-6" />
+                <h3 className="text-3xl font-black uppercase italic mb-2 tracking-tighter text-white">
+                  {status.priority ? 'Founder Priority Active' : 'Protocol Accepted'}
+                </h3>
+                <p className="text-gray-500 text-sm">Agent ID: #{status.pos}. Watch for the signal.</p>
               </div>
             ) : (
               <form onSubmit={handleJoin} className="space-y-12">
@@ -98,22 +116,8 @@ export default function LandingPage() {
                     {loading ? '...' : 'Join'}
                   </button>
                 </div>
-                <p className="text-[10px] text-gray-700 uppercase font-black tracking-widest">A community-first build for students</p>
               </form>
             )}
-        </div>
-      </div>
-
-      {/* RECTANGULAR WORKFLOW SECTION */}
-      <div className="relative z-10 py-32 px-6 border-t border-white/5 bg-[#030303]">
-        <div className="max-w-6xl mx-auto">
-            <h2 className="text-center text-4xl font-black italic uppercase text-white mb-20">The Protocol</h2>
-            <div className="grid md:grid-cols-4 gap-6">
-                <VerticalStep num="01" title="Lobby Sync" desc="Browse active sessions. See who's online and find a study team instantly. No more dead links or isolated studying." />
-                <VerticalStep num="02" title="Check-In" desc="Join a room to start your focus timer. The system automatically routes you to the secure Google Meet session." />
-                <VerticalStep num="03" title="Deep Work" desc="Focus with peers under the core community rules: Camera ON for accountability, Microphone OFF for silence." />
-                <VerticalStep num="04" title="Rank Up" desc="Finish to claim Focus Points. Your effort is tracked and ranked on the national weekly leaderboard." />
-            </div>
         </div>
       </div>
 
@@ -124,12 +128,11 @@ export default function LandingPage() {
   );
 }
 
-function VerticalStep({ num, title, desc }: any) {
+function TimeUnit({ value, label }: { value: number, label: string }) {
     return (
-        <div className="p-10 min-h-[460px] border border-white/5 bg-[#0a0a0a] rounded-[2.5rem] flex flex-col hover:border-yellow-500/20 transition-all group">
-            <div className="text-6xl font-black text-yellow-500 mb-10 opacity-70 group-hover:opacity-100 transition-opacity">{num}</div>
-            <h3 className="text-2xl font-black uppercase mb-6 text-white italic tracking-tighter">{title}</h3>
-            <p className="text-[13px] text-gray-500 leading-relaxed font-bold uppercase tracking-wide">{desc}</p>
+        <div className="flex flex-col items-center">
+            <div className="text-4xl md:text-6xl font-black text-white tabular-nums">{value.toString().padStart(2, '0')}</div>
+            <div className="text-[10px] uppercase text-yellow-800 font-bold tracking-widest mt-2">{label}</div>
         </div>
     );
 }
