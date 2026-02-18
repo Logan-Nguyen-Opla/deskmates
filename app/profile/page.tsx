@@ -1,165 +1,84 @@
 "use client";
 
-import { useEffect, useState } from 'react';
-import { auth, db } from '@/lib/firebase';
-import { onAuthStateChanged, signOut } from 'firebase/auth';
-import { doc, onSnapshot } from 'firebase/firestore'; 
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Settings, Clock, Zap, LogOut, ShieldCheck, Crown } from 'lucide-react';
+import { auth, db } from '@/lib/firebase';
+import { doc, getDoc } from 'firebase/firestore';
+import { getRole, UserRole } from '@/utils/roles';
 import BottomNav from '@/components/BottomNav';
 import { GodModeBackground } from '@/components/GodMode';
-import { getRole } from '@/utils/roles'; // <--- IMPORT THIS
+import { Trophy, Zap, Shield, LogOut } from 'lucide-react';
 
-export default function Profile() {
-  const [user, setUser] = useState<any>(null);
-  const [stats, setStats] = useState<any>({ totalPoints: 0, totalSeconds: 0 }); 
-  const [role, setRole] = useState('agent'); // 'agent', 'moderator', 'founder'
+export default function ProfilePage() {
   const router = useRouter();
+  const [user, setUser] = useState<any>(null);
+  const [stats, setStats] = useState<any>(null);
+  // FIX: Explicitly define the state type as UserRole or null
+  const [role, setRole] = useState<UserRole | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribeAuth = onAuthStateChanged(auth, (currentUser) => {
+    const unsub = auth.onAuthStateChanged(async (currentUser) => {
       if (!currentUser) {
         router.push('/login');
-      } else {
-        setUser(currentUser);
-        
-        // 1. Listen to User Data & Determine Role
-        const userRef = doc(db, 'users', currentUser.uid);
-        const unsubscribeFirestore = onSnapshot(userRef, (docSnap) => {
-          if (docSnap.exists()) {
-            const data = docSnap.data();
-            setStats(data);
-            // Calculate Role using the utility (checks hardcoded emails + DB role)
-            setRole(getRole(currentUser, data)); 
-          } else {
-             // Fallback if no DB record yet
-             setRole(getRole(currentUser, {}));
-          }
-        });
-        return () => unsubscribeFirestore();
+        return;
       }
+      setUser(currentUser);
+      
+      const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
+      const data = userDoc.data() || {};
+      setStats(data);
+      
+      // Correctly set the role object
+      setRole(getRole(currentUser, data));
+      setLoading(false);
     });
-    return () => unsubscribeAuth();
+    return () => unsub();
   }, [router]);
 
-  const handleLogout = async () => {
-    try {
-      await signOut(auth);
-      router.push('/login');
-    } catch (error) { console.error(error); }
-  };
-
-  const formatHours = (seconds: number) => (seconds / 3600).toFixed(1) + 'h';
-  const isGodMode = role === 'founder';
+  if (loading) return <div className="h-screen bg-black flex items-center justify-center font-mono text-yellow-500 uppercase tracking-widest">Scanning Identity...</div>;
 
   return (
-    <div className={`min-h-screen p-6 pb-24 relative overflow-hidden font-mono ${isGodMode ? 'bg-black text-white selection:bg-yellow-500 selection:text-black' : 'bg-[#050505] text-white'}`}>
-      
-      {/* GOD MODE BACKGROUND (Founder Only) */}
-      {isGodMode && <GodModeBackground />}
+    <div className="min-h-screen bg-black text-white font-mono pb-24 relative overflow-hidden">
+      {role?.isFounder && <GodModeBackground />}
 
-      {/* HEADER */}
-      <div className="flex justify-between items-center mb-8 relative z-10">
-        <h2 className={`text-sm font-black uppercase tracking-[0.2em] ${isGodMode ? 'text-yellow-600' : 'text-[#A1A1AA]'}`}>
-            {isGodMode ? "FOUNDER CLEARANCE" : (role === 'moderator' ? "MODERATOR PROFILE" : "INTELLIGENCE PROFILE")}
-        </h2>
-        <Settings className={`${isGodMode ? 'text-yellow-500' : 'text-[#52525B]'} w-5 h-5 cursor-pointer`} />
-      </div>
-
-      {/* IDENTITY CARD */}
-      <div className="text-center mb-10 relative z-10 group">
-        <div className={`w-24 h-24 rounded-full mx-auto flex items-center justify-center text-3xl font-black mb-4 overflow-hidden border-4 ${isGodMode ? 'border-yellow-500 shadow-[0_0_30px_rgba(255,215,0,0.4)]' : (role === 'moderator' ? 'border-[#00FF94] shadow-[0_0_20px_rgba(0,255,148,0.2)]' : 'bg-gradient-to-br from-[#7000FF] to-[#00FF94] border-transparent')}`}>
-          {user?.photoURL ? (
-             <img src={user.photoURL} alt="Avatar" className="w-full h-full object-cover" />
-          ) : (
-             user?.uid?.slice(0, 2).toUpperCase() || "??"
-          )}
-        </div>
-        
-        <div className="flex items-center justify-center gap-2">
-            {isGodMode && <Crown className="w-5 h-5 text-yellow-500 animate-bounce" />}
-            {role === 'moderator' && <ShieldCheck className="w-5 h-5 text-[#00FF94]" />}
-            <h3 className={`text-xl font-bold ${isGodMode ? 'text-yellow-400 drop-shadow-[0_0_10px_rgba(255,215,0,0.5)]' : 'text-white'}`}>
-                {user?.displayName || "Deskmate Agent"}
-            </h3>
-        </div>
-        
-        <p className={`text-xs font-mono mt-1 ${isGodMode ? 'text-yellow-700' : 'text-[#52525B]'}`}>
-          {isGodMode ? "STATUS: OMNIPOTENT" : (role === 'moderator' ? "STATUS: OPERATIVE" : "STATUS: ONLINE")}
-        </p>
-      </div>
-
-      {/* STATS GRID */}
-      <div className="grid grid-cols-2 gap-4 mb-8 relative z-10">
-        {/* TIME */}
-        <div className={`border p-4 rounded-2xl ${isGodMode ? 'bg-[#080808]/50 border-yellow-500/30' : 'bg-[#121212] border-[#27272a]'}`}>
-          <Clock className={`${isGodMode ? 'text-yellow-400' : 'text-[#00FF94]'} w-5 h-5 mb-2`} />
-          <div className="text-2xl font-black">
-              {isGodMode ? "∞" : formatHours(stats.totalSeconds || 0)}
+      <div className="relative z-10 p-8 pt-20 max-w-2xl mx-auto space-y-8">
+        {/* Header */}
+        <div className="text-center space-y-4">
+          <div className="w-24 h-24 bg-yellow-500/10 border border-yellow-500/20 rounded-full mx-auto flex items-center justify-center">
+             <Shield className={`w-10 h-10 ${role?.isFounder ? 'text-yellow-500' : 'text-gray-600'}`} />
           </div>
-          <div className={`text-[10px] uppercase font-bold ${isGodMode ? 'text-yellow-700' : 'text-[#A1A1AA]'}`}>Total Focus</div>
-        </div>
-        
-        {/* POINTS */}
-        <div className={`border p-4 rounded-2xl ${isGodMode ? 'bg-[#080808]/50 border-yellow-500/30' : 'bg-[#121212] border-[#27272a]'}`}>
-          <Zap className={`${isGodMode ? 'text-orange-500' : 'text-[#FF5C00]'} w-5 h-5 mb-2`} />
-          <div className="text-2xl font-black">
-              {isGodMode ? "∞" : (stats.totalPoints || 0)}
+          <div>
+            <h1 className="text-3xl font-black italic tracking-tighter uppercase text-white">{user?.displayName || 'Agent'}</h1>
+            <p className="text-[10px] text-yellow-500 font-black uppercase tracking-[0.4em]">{role?.rank}</p>
           </div>
-          <div className={`text-[10px] uppercase font-bold ${isGodMode ? 'text-yellow-700' : 'text-[#A1A1AA]'}`}>Points</div>
         </div>
-      </div>
 
-      {/* ACTIONS */}
-      <div className="space-y-4 relative z-10">
-        
-        {/* GOD MODE BUTTON */}
-        {isGodMode && (
-            <button 
-                onClick={() => router.push('/admin')}
-                className="w-full bg-gradient-to-r from-yellow-600 to-yellow-400 text-black py-4 rounded-xl font-black uppercase text-xs tracking-[0.2em] shadow-[0_0_20px_rgba(255,215,0,0.3)] hover:scale-[1.02] transition-transform flex items-center justify-center gap-2 group"
-            >
-                <ShieldCheck className="w-4 h-4 group-hover:rotate-12 transition-transform" /> 
-                Enter Command Deck
-            </button>
-        )}
-
-        {/* MODERATOR BUTTON */}
-        {role === 'moderator' && (
-             <button 
-                onClick={() => router.push('/admin')}
-                className="w-full bg-[#00FF94]/10 border border-[#00FF94]/50 text-[#00FF94] py-4 rounded-xl font-bold uppercase text-xs tracking-widest hover:bg-[#00FF94] hover:text-black transition-all flex items-center justify-center gap-2"
-             >
-                <ShieldCheck className="w-4 h-4" /> 
-                Access Moderator Dashboard
-             </button>
-        )}
-        
-        {/* APPLY FOR MOD (Only for regular Agents) */}
-        {role === 'agent' && (
-             <button 
-                onClick={() => router.push('/apply')}
-                className="w-full bg-[#1A1A1A] border border-[#27272a] text-[#A1A1AA] py-4 rounded-xl font-bold uppercase text-xs tracking-widest hover:bg-[#27272a] hover:text-white transition-colors flex items-center justify-center gap-2"
-             >
-                <ShieldCheck className="w-4 h-4" /> 
-                Apply for Clearance
-             </button>
-        )}
+        {/* Stats Grid */}
+        <div className="grid grid-cols-2 gap-4">
+          <StatCard icon={<Zap className="w-4 h-4" />} label="Focus Points" value={stats?.points || 0} />
+          <StatCard icon={<Trophy className="w-4 h-4" />} label="Rank" value={role?.rank === 'FOUNDER' ? 'TOP 0.1%' : 'BRONZE'} />
+        </div>
 
         <button 
-            onClick={handleLogout}
-            className={`w-full border py-4 rounded-xl font-bold uppercase text-xs tracking-widest flex items-center justify-center gap-2 transition-colors ${
-                isGodMode 
-                ? 'bg-[#080808]/50 border-red-900/30 text-red-500 hover:bg-red-900/10' 
-                : 'bg-[#1A1A1A] border-red-900/30 text-red-500 hover:bg-red-900/10'
-            }`}
+          onClick={() => auth.signOut()}
+          className="w-full py-4 border border-red-500/20 rounded-2xl flex items-center justify-center gap-3 text-red-500 font-black text-[10px] uppercase tracking-widest hover:bg-red-500/5 transition-colors"
         >
-            <LogOut className="w-4 h-4" />
-            Disconnect
+          <LogOut className="w-4 h-4" /> Terminate Session
         </button>
       </div>
 
       <BottomNav />
+    </div>
+  );
+}
+
+function StatCard({ icon, label, value }: { icon: any, label: string, value: any }) {
+  return (
+    <div className="bg-white/5 border border-white/5 p-6 rounded-[2rem] space-y-2">
+      <div className="text-yellow-500">{icon}</div>
+      <div className="text-[9px] text-gray-500 uppercase font-black tracking-widest">{label}</div>
+      <div className="text-xl font-black italic">{value}</div>
     </div>
   );
 }
