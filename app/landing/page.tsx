@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { GodModeBackground } from '@/components/GodMode';
 import { db } from '@/lib/firebase';
 import { collection, onSnapshot } from 'firebase/firestore';
-import { Radio, CheckCircle, Zap, ArrowRight } from 'lucide-react';
+import { CheckCircle, Zap } from 'lucide-react';
 
 export default function LandingPage() {
   const [email, setEmail] = useState("");
@@ -12,16 +12,14 @@ export default function LandingPage() {
   const [count, setCount] = useState(0);
   const [loading, setLoading] = useState(false);
 
-  // NEW LAUNCH DATE: FEB 23, 2026, 6:00 PM VIETNAM (ICT/GMT+7)
+  // UPDATED LAUNCH DATE: FEB 23, 2026, 6:00 PM VIETNAM (ICT/GMT+7)
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, mins: 0, secs: 0 });
 
   useEffect(() => {
-    // 1. Live Waitlist Count
     const unsub = onSnapshot(collection(db, 'waitlist'), (snap) => {
       setCount(snap.size);
     });
 
-    // 2. Countdown Timer
     const target = new Date("2026-02-23T18:00:00+07:00").getTime();
     const timer = setInterval(() => {
       const now = new Date().getTime();
@@ -65,12 +63,10 @@ export default function LandingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-black text-white flex flex-col font-mono overflow-x-hidden selection:bg-yellow-500 selection:text-black">
+    <div className="min-h-screen bg-black text-white flex flex-col font-mono overflow-x-hidden">
       <GodModeBackground />
-
       <div className="relative z-10 flex flex-col items-center justify-center min-h-screen p-6 text-center">
-        {/* COUNTER BADGE */}
-        <div className="flex items-center gap-3 bg-yellow-500/10 border border-yellow-500/30 px-6 py-2 rounded-full mb-8 backdrop-blur-md">
+        <div className="flex items-center gap-3 bg-yellow-500/10 border border-yellow-500/30 px-6 py-2 rounded-full mb-8">
             <div className="w-2 h-2 bg-yellow-500 rounded-full animate-pulse" />
             <span className="text-[10px] font-black uppercase tracking-[0.2em] text-yellow-500">
                 {count < 100 ? `${100 - count} Founder Spots Remaining` : `${count} Agents Synchronized`}
@@ -83,7 +79,6 @@ export default function LandingPage() {
         
         <p className="text-xl md:text-2xl font-bold uppercase tracking-[0.3em] mb-12">Don't study alone. Find a team. Grind.</p>
 
-        {/* COUNTDOWN */}
         <div className="grid grid-cols-4 gap-6 md:gap-12 mb-16 border-y border-white/5 py-10 w-full max-w-2xl">
             <TimeUnit value={timeLeft.days} label="Days" />
             <TimeUnit value={timeLeft.hours} label="Hours" />
@@ -103,7 +98,6 @@ export default function LandingPage() {
             ) : (
               <form onSubmit={handleJoin} className="space-y-12">
                 <div className="relative group max-w-md mx-auto">
-                  <div className="absolute -inset-1 bg-yellow-500 rounded-full blur opacity-10 group-focus-within:opacity-20 transition-all"></div>
                   <input 
                     type="email" 
                     required
@@ -112,7 +106,7 @@ export default function LandingPage() {
                     placeholder="Enter student email..." 
                     className="relative w-full bg-black border border-white/10 p-7 rounded-full text-sm focus:border-yellow-500 outline-none transition-all pr-40 placeholder:text-gray-800"
                   />
-                  <button type="submit" disabled={loading} className="absolute right-3 top-3 bottom-3 bg-white text-black px-10 rounded-full font-black text-[11px] uppercase tracking-widest hover:bg-yellow-500 transition-all active:scale-95">
+                  <button type="submit" disabled={loading} className="absolute right-3 top-3 bottom-3 bg-white text-black px-10 rounded-full font-black text-[11px] uppercase tracking-widest hover:bg-yellow-500 transition-all">
                     {loading ? '...' : 'Join'}
                   </button>
                 </div>
@@ -120,10 +114,6 @@ export default function LandingPage() {
             )}
         </div>
       </div>
-
-      <footer className="relative z-10 p-20 border-t border-white/5 text-center text-[10px] text-gray-800 uppercase font-black tracking-[0.5em] italic">
-        A Nguyen Nam Long Project — Deskmates Laboratory 2026
-      </footer>
     </div>
   );
 }

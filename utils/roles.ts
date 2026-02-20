@@ -1,3 +1,4 @@
+// utils/roles.ts
 export type UserRole = {
   isFounder: boolean;      // Displays the aesthetic/background
   canManageRooms: boolean; // Allows creating/deleting rooms

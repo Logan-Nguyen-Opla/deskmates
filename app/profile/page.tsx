@@ -43,7 +43,6 @@ export default function ProfilePage() {
       {role?.isFounder && <GodModeBackground />}
 
       <div className="relative z-10 p-8 pt-20 max-w-2xl mx-auto space-y-8">
-        {/* Header */}
         <div className="text-center space-y-4">
           <div className="w-24 h-24 bg-yellow-500/10 border border-yellow-500/20 rounded-full mx-auto flex items-center justify-center">
              <Shield className={`w-10 h-10 ${role?.isFounder ? 'text-yellow-500' : 'text-gray-600'}`} />
@@ -54,9 +53,8 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        {/* Stats Grid */}
         <div className="grid grid-cols-2 gap-4">
-          <StatCard icon={<Zap className="w-4 h-4" />} label="Focus Points" value={stats?.points || 0} />
+          <StatCard icon={<Zap className="w-4 h-4" />} label="Focus Points" value={stats?.totalPoints || 0} />
           <StatCard icon={<Trophy className="w-4 h-4" />} label="Rank" value={role?.rank === 'FOUNDER' ? 'TOP 0.1%' : 'BRONZE'} />
         </div>
 

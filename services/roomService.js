@@ -3,16 +3,16 @@ import { db } from '../lib/firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 
 export const createDeskmatesRoom = async (title, user) => {
-  // MUST use NEXT_PUBLIC_ for client-side deployment
+  // MUST use NEXT_PUBLIC_ for client-side deployment in the browser
   const API_KEY = process.env.NEXT_PUBLIC_WHEREBY_API_KEY;
   
   if (!API_KEY) {
-    console.error("CRITICAL: WHEREBY_API_KEY is missing from environment.");
+    console.error("CRITICAL: NEXT_PUBLIC_WHEREBY_API_KEY is missing.");
     throw new Error("Configuration Error");
   }
 
   try {
-    const sessionEnd = new Date(Date.now() + 14400000).toISOString(); // 4 hours from now
+    const sessionEnd = new Date(Date.now() + 14400000).toISOString(); // 4 hours
 
     const response = await axios.post(
       'https://api.whereby.dev/v1/meetings',
@@ -45,7 +45,7 @@ export const createDeskmatesRoom = async (title, user) => {
 
     return true;
   } catch (error) {
-    console.error("WHEREBY_ERROR_LOG:", error.response?.data || error.message);
+    console.error("WHEREBY_ERROR:", error.response?.data || error.message);
     throw error;
   }
 };
