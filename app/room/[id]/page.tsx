@@ -2,22 +2,21 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { doc, onSnapshot, getDoc } from 'firebase/firestore';
-import { db, auth } from '@/lib/firebase'; // Corrected path
+import { doc, onSnapshot } from 'firebase/firestore';
+import { db, auth } from '@/lib/firebase';
 import { GodModeBackground } from '@/components/GodMode';
-import { getRole } from '@/utils/roles';
+import { getRole, UserRole } from '@/utils/roles';
 
 export default function RoomPage() {
   const params = useParams();
   const router = useRouter();
   const [room, setRoom] = useState<any>(null);
-  const [role, setRole] = useState('agent');
+  
+  // FIX: Initialize with UserRole | null to match the utility output
+  const [role, setRole] = useState<UserRole | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Path from your Firestore Schema [cite: 5, 7]
   const ROOMS_PATH = 'artifacts/deskmates-online/public/data/rooms';
-  
-  // TypeScript safe access to the URL ID
   const roomId = params?.id as string;
 
   useEffect(() => {
@@ -31,6 +30,7 @@ export default function RoomPage() {
       }
       setRoom(data);
       if (auth.currentUser) {
+        // Now assigning the full object safely
         setRole(getRole(auth.currentUser, data));
       }
       setLoading(false);
@@ -45,13 +45,13 @@ export default function RoomPage() {
     </div>
   );
 
-  // Privileged check: hostUrl for you, userUrl for the press/public
-  const isPrivileged = role === 'founder' || role === 'moderator' || auth.currentUser?.uid === room.moderatorId;
+  // PRIVILEGE CHECK: Use the boolean from our role object
+  const isPrivileged = role?.canManageRooms || auth.currentUser?.uid === room.moderatorId;
   const finalUrl = isPrivileged ? room.hostUrl : room.userUrl;
 
   return (
     <div className="h-screen flex flex-col bg-black overflow-hidden relative">
-      {role === 'founder' && <GodModeBackground />}
+      {role?.isFounder && <GodModeBackground />}
       
       <div className="z-20 flex justify-between items-center px-6 py-4 border-b border-white/10 bg-black/80 backdrop-blur-md">
         <h1 className="text-white font-black italic text-lg">{room.title}</h1>
