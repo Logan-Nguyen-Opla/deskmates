@@ -2,73 +2,155 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { 
+  collection, query, where, onSnapshot, doc, updateDoc, getDoc 
+} from 'firebase/firestore';
 import { db, auth } from '@/lib/firebase';
-import { collection, onSnapshot, doc, getDoc, updateDoc, query, where } from 'firebase/firestore';
+import BottomNav from '@/components/BottomNav';
+import { Check, X } from 'lucide-react';
 import { getRole, UserRole } from '@/utils/roles';
-import { GodModeBackground, LoadingSequence } from '@/components/GodMode';
-import { Check, X, ShieldAlert } from 'lucide-react';
 
-export default function AdminPage() {
+// UI Components from your GodMode library
+import { 
+  GodModeBackground, 
+  OmegaHeader, 
+  SignalCard, 
+  LoadingSequence 
+} from '@/components/GodMode';
+
+export default function AdminDashboard() {
   const router = useRouter();
+  const [user, setUser] = useState<any>(null);
   const [role, setRole] = useState<UserRole | null>(null);
-  const [apps, setApps] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  
+  const [myRooms, setMyRooms] = useState<any[]>([]);
+  const [applications, setApplications] = useState<any[]>([]);
+  const [view, setView] = useState<'rooms' | 'applications'>('rooms');
 
   useEffect(() => {
-    const unsubAuth = auth.onAuthStateChanged(async (currentUser) => {
-      if (!currentUser) return router.push('/login');
-      const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
-      const r = getRole(currentUser, userDoc.data());
-      setRole(r);
-
-      if (!r.canManageRooms) return router.push('/profile');
-
-      // If Founder, listen for applications
-      if (r.isFounder) {
-        const q = query(collection(db, 'applications'), where('status', '==', 'pending'));
-        const unsubApps = onSnapshot(q, (snap) => {
-          setApps(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-        });
-        return () => unsubApps();
+    const unsubscribeAuth = auth.onAuthStateChanged(async (currentUser) => {
+      if (!currentUser) {
+        router.push('/login');
+        return;
       }
-      setLoading(false);
+      
+      setUser(currentUser);
+      
+      // 1. IDENTITY SCAN: Bypass the database if it's the Founder email
+      const userDocRef = doc(db, 'users', currentUser.uid);
+      const userDocSnap = await getDoc(userDocRef);
+      const calculatedRole = getRole(currentUser, userDocSnap.data());
+      setRole(calculatedRole);
+
+      // 2. SECURITY CLEARANCE: If not a Mod/Founder, kick them out
+      if (!calculatedRole.canManageRooms) {
+        alert("Access Denied: Clearance Level Too Low.");
+        router.push('/profile');
+        return;
+      }
+
+      // 3. DATA UPLINK: Fetching live signals from the manifesto path
+      const ROOMS_PATH = 'artifacts/deskmates-online/public/data/rooms';
+      const roomQuery = query(collection(db, ROOMS_PATH), where("status", "==", "live"));
+
+      const unsubRooms = onSnapshot(roomQuery, (snapshot) => {
+        setMyRooms(snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
+        setLoading(false); // Stop the "Syncing" loop here
+      });
+
+      // 4. APPROVALS UPLINK: Only for the Founder
+      let unsubApps = () => {};
+      if (calculatedRole.isFounder) {
+          const appQuery = query(collection(db, 'applications'), where('status', '==', 'pending'));
+          unsubApps = onSnapshot(appQuery, (snap) => {
+              setApplications(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+          });
+      }
+
+      return () => { unsubRooms(); unsubApps(); };
     });
-    return () => unsubAuth();
+
+    return () => unsubscribeAuth();
   }, [router]);
 
-  const handleDecision = async (id: string, userId: string, approved: boolean) => {
+  // SURGICAL FIX: Separating document updates to avoid TS2554
+  const handleApprove = async (appId: string, applicantId: string) => {
+      try {
+        await updateDoc(doc(db, 'users', applicantId), { role: 'moderator' });
+        await updateDoc(doc(db, 'applications', appId), { status: 'approved' });
+        alert("Agent Promoted.");
+      } catch (e) { alert("Promotion Error."); }
+  };
+
+  const handleReject = async (appId: string) => {
+      try {
+        await updateDoc(doc(db, 'applications', appId), { status: 'rejected' });
+      } catch (e) { alert("Rejection Error."); }
+  };
+
+  const handleCloseRoom = async (roomId: string) => {
     try {
-        await updateDoc(doc(db, 'applications', id), { status: approved ? 'approved' : 'rejected' });
-        if (approved) {
-            await updateDoc(doc(db, 'users', userId), { role: 'moderator' });
-        }
-    } catch (e) { alert("Action failed."); }
+      const ROOMS_PATH = 'artifacts/deskmates-online/public/data/rooms';
+      await updateDoc(doc(db, ROOMS_PATH, roomId), { status: 'closed' });
+    } catch (e) { console.error("Shutdown Error:", e); }
   };
 
   if (loading) return <LoadingSequence />;
 
   return (
-    <div className="min-h-screen bg-black text-white p-10 font-mono relative">
-      {role?.isFounder && <GodModeBackground />}
-      <h1 className="text-yellow-500 font-black italic text-4xl tracking-tighter mb-10">COMMAND CENTER</h1>
+    <div className="min-h-screen bg-black text-white p-6 pb-24 relative overflow-hidden font-mono">
+      <GodModeBackground />
+      <OmegaHeader userName={user?.displayName || "Agent"} />
 
-      {role?.isFounder && (
-        <section className="max-w-4xl mx-auto space-y-6 relative z-10">
-          <h2 className="text-xs font-bold uppercase tracking-[0.5em] text-gray-500 mb-4">Pending Clearances</h2>
-          {apps.length === 0 ? <p className="text-gray-700">No signals detected.</p> : apps.map(app => (
-            <div key={app.id} className="bg-[#0a0a0a] border border-white/5 p-6 rounded-2xl flex justify-between items-center">
-              <div>
-                <p className="font-bold text-yellow-500">{app.displayName}</p>
-                <p className="text-xs text-gray-500 italic">"{app.reason}"</p>
-              </div>
-              <div className="flex gap-2">
-                <button onClick={() => handleDecision(app.id, app.uid, true)} className="p-3 bg-green-500/10 text-green-500 rounded-full hover:bg-green-500 hover:text-black transition-all"><Check /></button>
-                <button onClick={() => handleDecision(app.id, app.uid, false)} className="p-3 bg-red-500/10 text-red-500 rounded-full hover:bg-red-500 hover:text-white transition-all"><X /></button>
-              </div>
+      {/* TABS */}
+      <div className="flex justify-center gap-4 mb-8 relative z-10">
+          <button 
+            onClick={() => setView('rooms')} 
+            className={`text-[10px] font-black uppercase tracking-[0.2em] px-6 py-3 border transition-all ${view === 'rooms' ? 'bg-yellow-500 text-black border-yellow-500' : 'bg-black text-yellow-700 border-yellow-900/30'}`}
+          >
+            War Room
+          </button>
+          {role?.isFounder && (
+            <button 
+                onClick={() => setView('applications')} 
+                className={`text-[10px] font-black uppercase tracking-[0.2em] px-6 py-3 border transition-all ${view === 'applications' ? 'bg-yellow-500 text-black border-yellow-500' : 'bg-black text-yellow-700 border-yellow-900/30'}`}
+            >
+                Approvals ({applications.length})
+            </button>
+          )}
+      </div>
+
+      {/* CONTENT */}
+      <div className="relative z-10 max-w-4xl mx-auto">
+        {view === 'rooms' ? (
+            <div className="space-y-4">
+                {myRooms.length === 0 ? (
+                    <div className="text-center py-20 opacity-20 uppercase font-black tracking-widest text-yellow-900 italic">No active signals</div>
+                ) : (
+                    myRooms.map(room => (
+                        <SignalCard key={room.id} room={room} onClose={handleCloseRoom} />
+                    ))
+                )}
             </div>
-          ))}
-        </section>
-      )}
+        ) : (
+            <div className="space-y-4">
+                {applications.map(app => (
+                    <div key={app.id} className="bg-[#050505] border border-yellow-900/30 p-6 rounded-2xl flex justify-between items-center group">
+                        <div>
+                            <div className="text-yellow-500 font-bold uppercase tracking-tighter text-lg">{app.displayName}</div>
+                            <div className="text-gray-500 text-xs mt-1 italic">"{app.reason}"</div>
+                        </div>
+                        <div className="flex gap-2">
+                            <button onClick={() => handleApprove(app.id, app.uid)} className="p-4 bg-green-900/10 text-green-500 border border-green-900/50 rounded-xl hover:bg-green-500 hover:text-black transition-all"><Check className="w-5 h-5"/></button>
+                            <button onClick={() => handleReject(app.id)} className="p-4 bg-red-900/10 text-red-500 border border-red-900/50 rounded-xl hover:bg-red-500 hover:text-white transition-all"><X className="w-5 h-5"/></button>
+                        </div>
+                    </div>
+                ))}
+            </div>
+        )}
+      </div>
+      <BottomNav />
     </div>
   );
 }
