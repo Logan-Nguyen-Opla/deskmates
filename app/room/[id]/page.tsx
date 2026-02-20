@@ -11,8 +11,6 @@ export default function RoomPage() {
   const params = useParams();
   const router = useRouter();
   const [room, setRoom] = useState<any>(null);
-  
-  // FIX: Initialize with UserRole | null to match the utility output
   const [role, setRole] = useState<UserRole | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -30,7 +28,7 @@ export default function RoomPage() {
       }
       setRoom(data);
       if (auth.currentUser) {
-        // Now assigning the full object safely
+        // Correctly assigning the UserRole object
         setRole(getRole(auth.currentUser, data));
       }
       setLoading(false);
@@ -40,30 +38,50 @@ export default function RoomPage() {
   }, [roomId, router]);
 
   if (loading || !room) return (
-    <div className="h-screen bg-black text-yellow-500 flex items-center justify-center font-mono uppercase">
+    <div className="h-screen bg-black text-yellow-500 flex items-center justify-center font-mono uppercase tracking-widest">
         Establishing Secure Uplink...
     </div>
   );
 
-  // PRIVILEGE CHECK: Use the boolean from our role object
+  // FIXED: Proper declaration of isPrivileged
   const isPrivileged = role?.canManageRooms || auth.currentUser?.uid === room.moderatorId;
-  const finalUrl = isPrivileged ? room.hostUrl : room.userUrl;
+  
+  // FIXED: Corrected subdomain to 'deskmate' and handled selection
+  const rawUrl = isPrivileged ? room.hostUrl : room.userUrl;
+  const finalUrl = (rawUrl || "").replace('deskmates.whereby', 'deskmate.whereby');
 
   return (
-    <div className="h-screen flex flex-col bg-black overflow-hidden relative">
+    <div className="h-screen flex flex-col bg-black overflow-hidden relative selection:bg-yellow-500 selection:text-black">
       {role?.isFounder && <GodModeBackground />}
       
-      <div className="z-20 flex justify-between items-center px-6 py-4 border-b border-white/10 bg-black/80 backdrop-blur-md">
-        <h1 className="text-white font-black italic text-lg">{room.title}</h1>
-        <button onClick={() => router.push('/')} className="bg-red-500/20 text-red-500 border border-red-500/50 px-4 py-2 rounded text-[10px] font-black uppercase tracking-widest">Disconnect</button>
+      {/* HEADER SECTION */}
+      <div className="z-20 flex justify-between items-end px-10 py-8 border-b-2 border-yellow-500/10 bg-black/90 backdrop-blur-md">
+        <div className="pr-10">
+          <h1 className="text-4xl font-black italic tracking-tighter text-white drop-shadow-[0_0_15px_rgba(255,215,0,0.3)]">
+            {room.title}
+          </h1>
+          <p className="text-[10px] text-yellow-600 font-black uppercase tracking-[0.4em] mt-1">
+            {isPrivileged ? "Command Authority Active" : "Neural Link Synchronized"}
+          </p>
+        </div>
+        <button 
+          onClick={() => router.push('/')} 
+          className="bg-red-500/10 border border-red-500/20 text-red-500 px-8 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all active:scale-95"
+        >
+          Disconnect
+        </button>
       </div>
 
-      <div className="flex-1 relative z-10">
-        <iframe
-          src={`${finalUrl}?embed&displayNames=on&background=off&chat=on`}
-          allow="camera; microphone; fullscreen; display-capture"
-          className="w-full h-full border-none"
-        />
+      {/* VIDEO ENGINE FRAME */}
+      <div className="flex-1 relative z-10 p-6">
+        <div className="w-full h-full rounded-[3rem] overflow-hidden border-2 border-white/5 shadow-2xl bg-black">
+            <iframe
+              src={`${finalUrl}?embed&displayNames=on&background=off&chat=on`}
+              allow="camera; microphone; fullscreen; display-capture"
+              className="w-full h-full border-none"
+              title="Focus Session"
+            />
+        </div>
       </div>
     </div>
   );
