@@ -59,22 +59,33 @@ export default function ProfilePage() {
         </div>
 
         {/* Action Center */}
-        <div className="space-y-3">
+        <div className="space-y-4 relative z-10">
+            {/* If the role utility confirms you can manage rooms (which it now 
+              will automatically for your email), show the Command Deck.
+            */}
             {role?.canManageRooms ? (
                 <button 
-                  onClick={() => router.push('/admin')} 
-                  className="w-full py-5 bg-yellow-500 text-black font-black text-[10px] uppercase tracking-[0.3em] rounded-2xl hover:scale-[1.02] transition-transform shadow-[0_0_20px_rgba(255,215,0,0.2)]"
+                    onClick={() => router.push('/admin')}
+                    className="w-full bg-gradient-to-r from-yellow-600 to-yellow-400 text-black py-5 rounded-2xl font-black uppercase text-xs tracking-[0.3em] shadow-[0_0_30px_rgba(255,215,0,0.3)] hover:scale-[1.02] transition-transform flex items-center justify-center gap-2 group"
                 >
+                    <Shield className="w-4 h-4 group-hover:rotate-12 transition-transform" /> 
                     Enter Command Deck
                 </button>
             ) : (
                 <button 
-                  onClick={() => router.push('/apply')} 
-                  className="w-full py-5 border border-white/5 bg-white/5 text-gray-400 font-black text-[10px] uppercase tracking-widest rounded-2xl hover:bg-white/10 transition-colors"
+                    onClick={() => router.push('/apply')}
+                    className="w-full bg-[#1A1A1A] border border-[#27272a] text-[#A1A1AA] py-5 rounded-2xl font-bold uppercase text-xs tracking-widest hover:bg-[#27272a] hover:text-white transition-colors flex items-center justify-center gap-2"
                 >
                     Request Moderator Clearance
                 </button>
             )}
+
+            <button 
+                onClick={() => auth.signOut()}
+                className="w-full border border-red-900/30 bg-[#080808]/50 py-5 rounded-2xl font-bold uppercase text-xs tracking-widest text-red-500 hover:bg-red-900/10 transition-colors flex items-center justify-center gap-2"
+            >
+                <LogOut className="w-4 h-4" /> Terminate Session
+            </button>
         </div>
       </div>
       <BottomNav />

@@ -1,20 +1,23 @@
 // utils/roles.ts
 export type UserRole = {
-  isFounder: boolean;      // Displays the aesthetic/background
-  canManageRooms: boolean; // Allows creating/deleting rooms
+  isFounder: boolean;      
+  canManageRooms: boolean; 
   rank: string;
 };
 
 export const getRole = (user: any, userData: any): UserRole => {
   const email = user?.email?.toLowerCase();
   
-  // Visual Founder Status (Aesthetic Only)
+  // THE HARDCODED TRUTH
   const isLogan = email === "logan.nguyen.opla@gmail.com";
   
+  // DB CHECK: For secondary moderators you approve
+  const isApprovedMod = userData?.role === 'admin' || userData?.role === 'moderator';
+
   return {
     isFounder: isLogan || userData?.isFounder === true,
-    // Permissions must be explicitly granted in your database
-    canManageRooms: userData?.role === 'admin' || userData?.role === 'moderator',
+    // GOD MODE: If you are Logan, you don't need "approval"
+    canManageRooms: isLogan || isApprovedMod,
     rank: isLogan ? "FOUNDER" : (userData?.role?.toUpperCase() || "AGENT")
   };
 };

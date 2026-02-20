@@ -1,5 +1,6 @@
+// lib/firebase.ts
 import { initializeApp, getApps, getApp } from "firebase/app";
-import { getAuth, GoogleAuthProvider } from "firebase/auth"; // <--- Added GoogleAuthProvider
+import { getAuth, GoogleAuthProvider } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 
 const firebaseConfig = {
@@ -15,6 +16,9 @@ const firebaseConfig = {
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 const auth = getAuth(app);
 const db = getFirestore(app);
-const googleProvider = new GoogleAuthProvider(); // <--- Create the provider
 
-export { app, auth, db, googleProvider }; // <--- Export it
+// THE FIX: Export the provider so we can call .setCustomParameters on it
+const googleProvider = new GoogleAuthProvider(); 
+googleProvider.setCustomParameters({ prompt: 'select_account' });
+
+export { app, auth, db, googleProvider };
