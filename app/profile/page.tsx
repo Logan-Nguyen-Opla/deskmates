@@ -60,19 +60,21 @@ export default function ProfilePage() {
 
         {/* Action Center */}
         <div className="space-y-3">
-            {isFounder || role?.canManageRooms ? (
-                <button onClick={() => router.push('/admin')} className="w-full py-4 bg-yellow-500 text-black font-black text-[10px] uppercase tracking-widest rounded-2xl hover:scale-[1.02] transition-transform">
-                    Enter Command Center
+            {role?.canManageRooms ? (
+                <button 
+                  onClick={() => router.push('/admin')} 
+                  className="w-full py-5 bg-yellow-500 text-black font-black text-[10px] uppercase tracking-[0.3em] rounded-2xl hover:scale-[1.02] transition-transform shadow-[0_0_20px_rgba(255,215,0,0.2)]"
+                >
+                    Enter Command Deck
                 </button>
             ) : (
-                <button onClick={() => router.push('/apply')} className="w-full py-4 border border-white/10 text-gray-400 font-black text-[10px] uppercase tracking-widest rounded-2xl hover:bg-white/5 transition-colors">
+                <button 
+                  onClick={() => router.push('/apply')} 
+                  className="w-full py-5 border border-white/5 bg-white/5 text-gray-400 font-black text-[10px] uppercase tracking-widest rounded-2xl hover:bg-white/10 transition-colors"
+                >
                     Request Moderator Clearance
                 </button>
             )}
-            
-            <button onClick={() => auth.signOut()} className="w-full py-4 border border-red-500/20 text-red-500 font-black text-[10px] uppercase tracking-widest rounded-2xl hover:bg-red-500/5 transition-colors flex items-center justify-center gap-2">
-                <LogOut className="w-4 h-4" /> Terminate Session
-            </button>
         </div>
       </div>
       <BottomNav />
