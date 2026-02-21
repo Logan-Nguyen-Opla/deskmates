@@ -2,48 +2,36 @@
 
 import { ShieldCheck, Cpu, Crosshair, Trash2, Radio, Zap, Activity } from 'lucide-react';
 
-/**
- * BACKGROUND: The Founder's Laboratory
- * Cleaner, sharper, and more aggressive.
- */
 export const GodModeBackground = () => (
   <div className="fixed inset-0 pointer-events-none z-0 bg-[#020202]">
-    {/* Sharp Gold Core Glow */}
-    <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[80vw] h-[40vh] bg-yellow-500/10 rounded-full blur-[100px]" />
+    {/* Obsidian Corona: Sharp, Deep Gold Glow */}
+    <div className="absolute top-[-10vh] left-1/2 -translate-x-1/2 w-[120vw] h-[50vh] bg-gradient-to-b from-yellow-600/20 to-transparent blur-[120px] opacity-50" />
     
-    {/* Vertical Scanning Beam */}
-    <div className="absolute inset-0 bg-gradient-to-b from-transparent via-yellow-500/5 to-transparent h-40 w-full top-[-200px] animate-[scan_3s_ease-in-out_infinite]" />
+    {/* Tactical Vignette: Darkens the edges for focus */}
+    <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,#000_80%)]" />
     
-    {/* Tactical Grid */}
-    <div className="absolute inset-0 bg-[linear-gradient(rgba(255,215,0,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,215,0,0.03)_1px,transparent_1px)] bg-[size:30px_30px]" />
+    {/* Micro-Grid: Smaller, sharper tactical feel */}
+    <div className="absolute inset-0 bg-[linear-gradient(rgba(255,215,0,0.01)_1px,transparent_1px),linear-gradient(90deg,rgba(255,215,0,0.01)_1px,transparent_1px)] bg-[size:20px_20px]" />
     
-    <style jsx global>{`
-      @keyframes scan {
-        0% { transform: translateY(-20vh); }
-        100% { transform: translateY(120vh); }
-      }
-    `}</style>
+    {/* Particle Stardust Layer */}
+    <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-[0.03]" />
   </div>
 );
 
-/**
- * OMEGA HEADER: The Founder's Mark
- * Fixed: Added PR-8 and heavy font weights to prevent italic clipping.
- */
 export const OmegaHeader = ({ userName }: { userName: string }) => (
-  <div className="relative z-10 mb-16 flex justify-between items-end border-b-2 border-yellow-500/10 pb-8 px-2">
-    <div className="pr-8"> {/* Prevents italic clipping */}
-        <div className="flex items-center gap-3 mb-3">
-            <ShieldCheck className="text-yellow-500 w-5 h-5" />
-            <span className="text-[10px] text-yellow-600 font-black tracking-[0.5em] uppercase italic">System Authority</span>
+  <div className="relative z-10 mb-20 flex justify-between items-end border-b-4 border-yellow-500 pb-10 px-4">
+    <div className="pr-12">
+        <div className="flex items-center gap-4 mb-4">
+            <div className="bg-yellow-500 text-black px-2 py-0.5 text-[9px] font-black uppercase tracking-tighter">Authorized</div>
+            <span className="text-[10px] text-yellow-700 font-black tracking-[0.6em] uppercase italic">Neural Uplink v1.0</span>
         </div>
-        <h1 className="text-7xl font-black italic tracking-tighter text-white drop-shadow-[0_0_20px_rgba(255,215,0,0.3)]">
+        <h1 className="text-8xl font-black italic tracking-tighter text-white uppercase leading-none drop-shadow-[0_10px_30px_rgba(255,215,0,0.4)]">
             {userName}
         </h1>
     </div>
-    <div className="text-right hidden sm:block">
-        <Activity className="text-yellow-500 w-10 h-10 ml-auto mb-2 opacity-50" />
-        <div className="text-[10px] text-yellow-700 uppercase font-black tracking-widest">Neural Link 100%</div>
+    <div className="text-right hidden lg:block">
+        <div className="text-4xl font-black italic text-yellow-500 mb-2">∞ SEC</div>
+        <div className="text-[10px] text-yellow-800 uppercase font-black tracking-[0.4em]">Total Focus indexed</div>
     </div>
   </div>
 );

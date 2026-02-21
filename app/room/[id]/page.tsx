@@ -14,6 +14,7 @@ export default function RoomPage() {
   const [role, setRole] = useState<UserRole | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // PATH CHECK: Matches your manifesto
   const ROOMS_PATH = 'artifacts/deskmates-online/public/data/rooms';
   const roomId = params?.id as string;
 
@@ -28,7 +29,6 @@ export default function RoomPage() {
       }
       setRoom(data);
       if (auth.currentUser) {
-        // Correctly assigning the UserRole object
         setRole(getRole(auth.currentUser, data));
       }
       setLoading(false);
@@ -38,48 +38,42 @@ export default function RoomPage() {
   }, [roomId, router]);
 
   if (loading || !room) return (
-    <div className="h-screen bg-black text-yellow-500 flex items-center justify-center font-mono uppercase tracking-widest">
-        Establishing Secure Uplink...
+    <div className="h-screen bg-black text-yellow-500 flex items-center justify-center font-mono uppercase font-black tracking-[1em] animate-pulse">
+        Linking...
     </div>
   );
 
-  // FIXED: Proper declaration of isPrivileged
   const isPrivileged = role?.canManageRooms || auth.currentUser?.uid === room.moderatorId;
   
-  // FIXED: Corrected subdomain to 'deskmate' and handled selection
-  const rawUrl = isPrivileged ? room.hostUrl : room.userUrl;
+  // THE FIX: Selecting the specific URL and fixing the subdomain
+  const rawUrl = isPrivileged ? (room.hostUrl || room.userUrl) : room.userUrl;
   const finalUrl = (rawUrl || "").replace('deskmates.whereby', 'deskmate.whereby');
 
   return (
-    <div className="h-screen flex flex-col bg-black overflow-hidden relative selection:bg-yellow-500 selection:text-black">
+    <div className="h-screen flex flex-col bg-black overflow-hidden relative font-mono">
       {role?.isFounder && <GodModeBackground />}
       
-      {/* HEADER SECTION */}
-      <div className="z-20 flex justify-between items-end px-10 py-8 border-b-2 border-yellow-500/10 bg-black/90 backdrop-blur-md">
-        <div className="pr-10">
-          <h1 className="text-4xl font-black italic tracking-tighter text-white drop-shadow-[0_0_15px_rgba(255,215,0,0.3)]">
-            {room.title}
-          </h1>
-          <p className="text-[10px] text-yellow-600 font-black uppercase tracking-[0.4em] mt-1">
-            {isPrivileged ? "Command Authority Active" : "Neural Link Synchronized"}
+      <div className="z-20 flex justify-between items-end px-12 py-10 border-b-2 border-white/5 bg-black/95">
+        <div className="pr-12">
+          <h1 className="text-5xl font-black italic tracking-tighter text-white uppercase">{room.title}</h1>
+          <p className="text-[10px] text-yellow-600 font-black uppercase tracking-[0.5em] mt-2">
+            Protocol: {isPrivileged ? "Command" : "Agent"} Link
           </p>
         </div>
         <button 
           onClick={() => router.push('/')} 
-          className="bg-red-500/10 border border-red-500/20 text-red-500 px-8 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all active:scale-95"
+          className="bg-red-600 text-white px-10 py-4 rounded-2xl text-[11px] font-black uppercase tracking-[0.2em] hover:bg-red-700 transition-all active:scale-95 shadow-[0_0_20px_rgba(220,38,38,0.2)]"
         >
           Disconnect
         </button>
       </div>
 
-      {/* VIDEO ENGINE FRAME */}
-      <div className="flex-1 relative z-10 p-6">
-        <div className="w-full h-full rounded-[3rem] overflow-hidden border-2 border-white/5 shadow-2xl bg-black">
+      <div className="flex-1 relative z-10 p-8">
+        <div className="w-full h-full rounded-[4rem] overflow-hidden border-4 border-white/10 shadow-2xl bg-black">
             <iframe
-              src={`${finalUrl}?embed&displayNames=on&background=off&chat=on`}
+              src={`${finalUrl}?embed&displayNames=on&background=off&chat=on&people=off`}
               allow="camera; microphone; fullscreen; display-capture"
               className="w-full h-full border-none"
-              title="Focus Session"
             />
         </div>
       </div>
