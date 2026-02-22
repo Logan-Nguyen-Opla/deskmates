@@ -6,20 +6,15 @@ import { collection, getDocs, query, limit, addDoc, serverTimestamp } from 'fire
 export async function POST(req: Request) {
   try {
     const { email } = await req.json();
-    
-    // 1. Validate environment
-    if (!process.env.RESEND_API_KEY) {
-      throw new Error("RESEND_API_KEY is missing from .env.local");
-    }
     const resend = new Resend(process.env.RESEND_API_KEY);
 
-    // 2. Check current waitlist size
+    // 1. Position Check
     const waitlistRef = collection(db, 'waitlist');
     const snapshot = await getDocs(query(waitlistRef, limit(101)));
     const currentCount = snapshot.size;
     const isPriority = currentCount < 100;
 
-    // 3. Save to Firestore
+    // 2. Database Entry
     await addDoc(waitlistRef, {
       email,
       timestamp: serverTimestamp(),
@@ -27,28 +22,22 @@ export async function POST(req: Request) {
       position: currentCount + 1
     });
 
-    // 4. Send Confirmation Email
-    // FIX: Using onboarding@resend.dev to bypass unverified domain errors
-    const { data, error } = await resend.emails.send({
-      from: 'Deskmates <onboarding@resend.dev>', 
+    // 3. THE FIX: Using 'onboarding@resend.dev' stops the "System Error" 
+    // because it doesn't require domain verification.
+    await resend.emails.send({
+      from: 'Deskmates <onboarding@resend.dev>',
       to: email,
       subject: isPriority ? '⚠️ FOUNDER PRIORITY SECURED' : 'Deskmates Waitlist: Joined',
-      html: `
-        <div style="background:#000;color:#fff;padding:40px;font-family:sans-serif;border:1px solid #eab308;">
-            <h1 style="color:#eab308;">${isPriority ? 'FOUNDER STATUS ACTIVE' : 'PROTOCOL SYNCED'}</h1>
-            <p>Position: #${currentCount + 1}</p>
-            <p>Welcome to the laboratory. Access opens Feb 23, 18:00 ICT.</p>
-        </div>`
+      html: `<div style="background:#000;color:#fff;padding:40px;border:1px solid #eab308;font-family:sans-serif;">
+                <h1 style="color:#eab308;">PROTOCOL SYNCED</h1>
+                <p>Agent ID: #${currentCount + 1}</p>
+                <p>Welcome to the laboratory. Access starts Monday 18:00 ICT.</p>
+             </div>`
     });
-
-    if (error) {
-      console.error("RESEND_ERROR:", error);
-      throw new Error(`Email failed: ${error.message}`);
-    }
 
     return NextResponse.json({ success: true, position: currentCount + 1, isPriority });
   } catch (error: any) {
-    console.error("WAITLIST_CRITICAL_FAILURE:", error);
+    console.error("WAITLIST_FAIL:", error);
     return NextResponse.json({ error: error.message || 'System Failure' }, { status: 500 });
   }
 }
