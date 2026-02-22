@@ -2,36 +2,45 @@
 
 import { ShieldCheck, Cpu, Crosshair, Trash2, Radio, Zap, Activity } from 'lucide-react';
 
+/**
+ * BACKGROUND: The Obsidian Throne
+ * Aggressive, high-contrast, and focused.
+ */
 export const GodModeBackground = () => (
   <div className="fixed inset-0 pointer-events-none z-0 bg-[#020202]">
-    {/* Obsidian Corona: Sharp, Deep Gold Glow */}
-    <div className="absolute top-[-10vh] left-1/2 -translate-x-1/2 w-[120vw] h-[50vh] bg-gradient-to-b from-yellow-600/20 to-transparent blur-[120px] opacity-50" />
+    {/* Obsidian Corona: Deep Gold Pulse */}
+    <div className="absolute top-[-20vh] left-1/2 -translate-x-1/2 w-[140vw] h-[60vh] bg-gradient-to-b from-yellow-600/20 via-yellow-500/5 to-transparent blur-[140px] opacity-60 animate-pulse" />
     
-    {/* Tactical Vignette: Darkens the edges for focus */}
-    <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,#000_80%)]" />
+    {/* Tactical Vignette: Enforces Focus */}
+    <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,#000_85%)]" />
     
-    {/* Micro-Grid: Smaller, sharper tactical feel */}
-    <div className="absolute inset-0 bg-[linear-gradient(rgba(255,215,0,0.01)_1px,transparent_1px),linear-gradient(90deg,rgba(255,215,0,0.01)_1px,transparent_1px)] bg-[size:20px_20px]" />
+    {/* The Laboratory Grid: Sharp and tactical */}
+    <div className="absolute inset-0 bg-[linear-gradient(rgba(255,215,0,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,215,0,0.02)_1px,transparent_1px)] bg-[size:30px_30px] opacity-30" />
     
-    {/* Particle Stardust Layer */}
-    <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-[0.03]" />
+    {/* Stardust Layer: High Contrast */}
+    <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-10 contrast-150" />
   </div>
 );
 
+/**
+ * OMEGA HEADER: The Founder's Mark
+ * Fixed: PR-12 and Black-Italic weights to prevent clipping.
+ */
 export const OmegaHeader = ({ userName }: { userName: string }) => (
-  <div className="relative z-10 mb-20 flex justify-between items-end border-b-4 border-yellow-500 pb-10 px-4">
-    <div className="pr-12">
+  <div className="relative z-10 mb-20 flex justify-between items-end border-b-8 border-yellow-500 pb-12 px-2 group">
+    <div className="pr-12"> {/* Anti-clipping buffer */}
         <div className="flex items-center gap-4 mb-4">
-            <div className="bg-yellow-500 text-black px-2 py-0.5 text-[9px] font-black uppercase tracking-tighter">Authorized</div>
-            <span className="text-[10px] text-yellow-700 font-black tracking-[0.6em] uppercase italic">Neural Uplink v1.0</span>
+            <div className="bg-yellow-500 text-black px-3 py-1 text-[10px] font-black uppercase tracking-tighter italic">Authority Verified</div>
+            <span className="text-[10px] text-yellow-700 font-black tracking-[0.8em] uppercase italic">Neural Uplink v2.0</span>
         </div>
-        <h1 className="text-8xl font-black italic tracking-tighter text-white uppercase leading-none drop-shadow-[0_10px_30px_rgba(255,215,0,0.4)]">
+        <h1 className="text-8xl md:text-9xl font-black italic tracking-tighter text-white uppercase leading-none drop-shadow-[0_20px_50px_rgba(255,215,0,0.5)]">
             {userName}
         </h1>
     </div>
     <div className="text-right hidden lg:block">
-        <div className="text-4xl font-black italic text-yellow-500 mb-2">∞ SEC</div>
-        <div className="text-[10px] text-yellow-800 uppercase font-black tracking-[0.4em]">Total Focus indexed</div>
+        <Activity className="w-16 h-16 text-yellow-500 ml-auto mb-4 animate-pulse opacity-20" />
+        <div className="text-5xl font-black italic text-yellow-500 mb-2 tracking-tighter">∞ FOCUS</div>
+        <div className="text-[10px] text-yellow-800 uppercase font-black tracking-[0.5em]">Sync Status: Eternal</div>
     </div>
   </div>
 );

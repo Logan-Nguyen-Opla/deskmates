@@ -4,40 +4,29 @@ import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 
 export const createDeskmatesRoom = async (title, user) => {
   const API_KEY = process.env.NEXT_PUBLIC_WHEREBY_API_KEY;
-  
-  if (!API_KEY) throw new Error("Missing Key");
+  const ROOMS_PATH = 'artifacts/deskmates-online/public/data/rooms';
 
   try {
     const sessionEnd = new Date(Date.now() + 14400000).toISOString(); 
 
     const response = await axios.post(
       'https://api.whereby.dev/v1/meetings',
-      {
-        endDate: sessionEnd,
-        isLocked: true,
-        roomMode: "normal"
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${API_KEY}`,
-          'Content-Type': 'application/json',
-        },
-      }
+      { endDate: sessionEnd, isLocked: true, roomMode: "normal" },
+      { headers: { Authorization: `Bearer ${API_KEY}`, 'Content-Type': 'application/json' } }
     );
 
     const { hostUrl, roomUrl } = response.data;
-    // FIX: Using "deskmate" (no 's') as the subdomain
-    const finalHost = hostUrl.replace('deskmates.whereby', 'deskmate.whereby');
-    const finalUser = roomUrl.replace('deskmates.whereby', 'deskmate.whereby');
 
-    const ROOMS_PATH = 'artifacts/deskmates-online/public/data/rooms';
-    
+    // THE FIX: Hard-correcting the subdomain to prevent 404s
+    const fixedHost = hostUrl.replace('deskmates.whereby', 'deskmate.whereby');
+    const fixedUser = roomUrl.replace('deskmates.whereby', 'deskmate.whereby');
+
     await addDoc(collection(db, ROOMS_PATH), {
       title: title.toUpperCase(),
-      hostUrl: finalHost,
-      userUrl: finalUser,
+      hostUrl: fixedHost,
+      userUrl: fixedUser,
       moderatorId: user.uid,
-      moderator: user.displayName || user.email,
+      moderator: user.displayName || "★ FOUNDER",
       status: 'live',
       participants: 0,
       createdAt: serverTimestamp(),
@@ -45,7 +34,7 @@ export const createDeskmatesRoom = async (title, user) => {
 
     return true;
   } catch (error) {
-    console.error("WHEREBY_ERROR:", error.message);
+    console.error("WHEREBY_DEPLOY_ERROR:", error.message);
     throw error;
   }
 };
