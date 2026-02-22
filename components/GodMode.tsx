@@ -1,34 +1,29 @@
 "use client";
 
-import { ShieldCheck, Crosshair, Radio, Zap, Activity } from 'lucide-react';
+import { ShieldCheck, Crosshair, Radio, Activity } from 'lucide-react';
 
 export const GodModeBackground = () => (
   <div className="fixed inset-0 pointer-events-none z-0 bg-[#020202]">
-    {/* Obsidian Corona: Pulsing Gold Aura */}
-    <div className="absolute top-[-30vh] left-1/2 -translate-x-1/2 w-[150vw] h-[70vh] bg-gradient-to-b from-yellow-600/30 via-yellow-500/5 to-transparent blur-[140px] opacity-70 animate-pulse" />
-    
-    {/* High-Contrast Vignette */}
+    <div className="absolute top-[-30vh] left-1/2 -translate-x-1/2 w-[150vw] h-[60vh] bg-gradient-to-b from-yellow-600/30 to-transparent blur-[140px] opacity-70 animate-pulse" />
     <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,#000_90%)]" />
-    
-    {/* tactical Grid: Sharp and subtle */}
-    <div className="absolute inset-0 bg-[linear-gradient(rgba(255,215,0,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,215,0,0.02)_1px,transparent_1px)] bg-[size:40px_40px] opacity-40" />
+    <div className="absolute inset-0 bg-[linear-gradient(rgba(255,215,0,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,215,0,0.02)_1px,transparent_1px)] bg-[size:30px_30px] opacity-40" />
   </div>
 );
 
 export const OmegaHeader = ({ userName }: { userName: string }) => (
-  <div className="relative z-10 mb-24 flex justify-between items-end border-b-[12px] border-yellow-500 pb-16 px-4">
+  <div className="relative z-10 mb-24 flex justify-between items-end border-b-[12px] border-yellow-500 pb-12 px-2">
     <div className="pr-16">
-        <div className="flex items-center gap-4 mb-6">
-            <div className="bg-yellow-500 text-black px-4 py-1 text-[11px] font-black uppercase tracking-tighter italic shadow-[0_0_15px_rgba(255,215,0,0.5)]">Uplink: Primary</div>
-            <span className="text-[11px] text-yellow-700 font-black tracking-[0.8em] uppercase italic">Clearance: Omega Founder</span>
+        <div className="flex items-center gap-4 mb-4">
+            <div className="bg-yellow-500 text-black px-4 py-1 text-[11px] font-black uppercase italic shadow-[0_0_15px_rgba(255,215,0,0.5)]">Authority: Omega</div>
+            <span className="text-[11px] text-yellow-700 font-black tracking-[0.5em] uppercase italic">System Authority</span>
         </div>
-        <h1 className="text-8xl md:text-[10rem] font-black italic tracking-tighter text-white uppercase leading-[0.85] drop-shadow-[0_25px_50px_rgba(255,215,0,0.4)]">
+        <h1 className="text-8xl md:text-[10rem] font-black italic tracking-tighter text-white uppercase leading-[0.8] drop-shadow-[0_20px_40px_rgba(255,215,0,0.3)]">
             {userName}
         </h1>
     </div>
     <div className="text-right hidden lg:block">
-        <div className="text-6xl font-black italic text-yellow-500 mb-2 drop-shadow-[0_0_20px_rgba(255,215,0,0.3)]">∞ FOCUS</div>
-        <div className="text-[11px] text-yellow-800 uppercase font-black tracking-[0.6em]">System Authority Established</div>
+        <div className="text-5xl font-black italic text-yellow-500 mb-2 tracking-tighter">∞ FOCUS</div>
+        <div className="text-[11px] text-yellow-800 uppercase font-black tracking-[0.5em]">Neural Link Stable</div>
     </div>
   </div>
 );

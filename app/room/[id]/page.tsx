@@ -16,6 +16,7 @@ export default function RoomPage() {
 
   useEffect(() => {
     if (!id) return;
+    // Hard-coded path from your artifacts screenshot
     const ROOMS_PATH = 'artifacts/deskmates-online/public/data/rooms';
     
     const unsub = onSnapshot(doc(db, ROOMS_PATH, id as string), (snap) => {
@@ -34,27 +35,30 @@ export default function RoomPage() {
   if (loading || !room) return <div className="h-screen bg-black" />;
 
   const isPrivileged = role?.canManageRooms || auth.currentUser?.uid === room.moderatorId;
-  const rawUrl = isPrivileged ? room.hostUrl : room.userUrl;
   
-  // FINAL SUBDOMAIN ENFORCEMENT
-  const finalUrl = rawUrl?.replace('deskmates.whereby', 'deskmate.whereby') || "";
+  /** * THE FIX: Ensure we are pulling the UNIQUE URL
+   * If the DB has "https://deskmates.whereby.com/lobby", it WILL fail.
+   * New rooms created with the Admin panel will have unique IDs.
+   */
+  const rawUrl = isPrivileged ? (room.hostUrl || room.userUrl) : room.userUrl;
+  const finalUrl = (rawUrl || "").replace('deskmates.whereby', 'deskmate.whereby');
 
   return (
-    <div className="h-screen flex flex-col bg-black overflow-hidden relative font-mono">
+    <div className="h-screen flex flex-col bg-black overflow-hidden relative font-sans">
       {role?.isFounder && <GodModeBackground />}
       
-      <div className="z-20 flex justify-between items-end px-12 py-12 border-b-4 border-white/5 bg-black/95">
+      <div className="z-20 flex justify-between items-end px-12 py-10 border-b-8 border-yellow-500 bg-black/95">
         <div className="pr-12">
-          <h1 className="text-6xl font-black italic tracking-tighter text-white uppercase drop-shadow-[0_0_15px_rgba(255,255,255,0.2)]">
+          <h1 className="text-6xl font-black italic tracking-tighter text-white uppercase leading-none drop-shadow-[0_10px_30px_rgba(255,215,0,0.4)]">
             {room.title}
           </h1>
-          <p className="text-[10px] text-yellow-600 font-black uppercase tracking-[0.6em] mt-3">Link Established • {isPrivileged ? "GOD" : "AGENT"} LEVEL</p>
+          <p className="text-[10px] text-yellow-600 font-black uppercase tracking-[0.5em] mt-3">Link Established • Neural ID Verified</p>
         </div>
-        <button onClick={() => router.push('/')} className="bg-red-600 text-white px-12 py-5 rounded-[2rem] text-xs font-black uppercase tracking-widest hover:scale-105 transition-transform active:scale-95">Disconnect</button>
+        <button onClick={() => router.push('/')} className="bg-red-600 text-white px-10 py-4 rounded-2xl text-[11px] font-black uppercase tracking-[0.2em] shadow-[0_0_20px_rgba(220,38,38,0.3)]">Disconnect</button>
       </div>
 
-      <div className="flex-1 relative z-10 p-10">
-        <div className="w-full h-full rounded-[5rem] overflow-hidden border-8 border-white/5 shadow-[0_0_100px_rgba(0,0,0,1)]">
+      <div className="flex-1 relative z-10 p-8">
+        <div className="w-full h-full rounded-[4rem] overflow-hidden border-8 border-white/5 shadow-2xl bg-black">
             <iframe
               src={`${finalUrl}?embed&displayNames=on&background=off&chat=on&people=off`}
               allow="camera; microphone; fullscreen; display-capture"
