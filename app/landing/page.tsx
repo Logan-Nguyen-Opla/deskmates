@@ -44,13 +44,15 @@ export default function LandingPage() {
         body: JSON.stringify({ email })
       });
       const data = await res.json();
+      
       if (res.ok) {
         setStatus({ joined: true, pos: data.position, priority: data.isPriority });
       } else {
-        alert(`Uplink Error: ${data.error}`);
+        // This will now tell you EXACTLY what's wrong (e.g., "Missing API Key")
+        alert(`Uplink Failed: ${data.error}`);
       }
     } catch (err) {
-      alert("Synchronization Failure: Check Network Connection.");
+      alert("Network Timeout: Communication with High Command lost.");
     } finally {
       setLoading(false);
     }
