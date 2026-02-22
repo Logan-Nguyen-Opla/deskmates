@@ -7,8 +7,13 @@ import { collection, getDocs, query, limit, addDoc, serverTimestamp } from 'fire
 export async function POST(req: Request) {
   try {
     const { email } = await req.json();
+    
+    // Validate the key exists before initializing
+    if (!process.env.RESEND_API_KEY) {
+       return NextResponse.json({ error: 'System Configuration Missing: API Key' }, { status: 500 });
+    }
+    
     const resend = new Resend(process.env.RESEND_API_KEY);
-
     const waitlistRef = collection(db, 'waitlist');
     const snapshot = await getDocs(query(waitlistRef, limit(101)));
     const currentCount = snapshot.size;
@@ -19,10 +24,10 @@ export async function POST(req: Request) {
       position: currentCount + 1
     });
 
-    // FIXED: Using onboarding@resend.dev bypasses domain verification
+    // FIXED: Use 'onboarding@resend.dev' until GoDaddy verification is complete
     await resend.emails.send({
       from: 'Deskmates <onboarding@resend.dev>',
-      to: email, // MUST BE YOUR OWN EMAIL ON FREE TIER UNLESS DOMAIN IS VERIFIED
+      to: email, 
       subject: 'Protocol Synchronized',
       html: `<div style="background:#000;color:#fff;padding:40px;border:1px solid #fbbf24;font-family:sans-serif;"><h1>WELCOME</h1><p>Agent ID: #${currentCount + 1}</p></div>`
     });
