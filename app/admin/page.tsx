@@ -2,115 +2,90 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { collection, query, where, onSnapshot, doc, updateDoc, getDoc, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db, auth } from '@/lib/firebase';
-import BottomNav from '@/components/BottomNav';
-import { Check, X, Zap, Plus, Activity } from 'lucide-react';
+import { 
+  collection, query, where, onSnapshot, doc, updateDoc, getDoc, addDoc, serverTimestamp 
+} from 'firebase/firestore';
 import { getRole, UserRole } from '@/utils/roles';
-import { GodModeBackground, OmegaHeader, SignalCard, LoadingSequence, ReactorCore } from '@/components/GodMode';
+import { 
+  GodModeBackground, OmegaHeader, SignalCard, LoadingSequence, ReactorCore 
+} from '@/components/GodMode';
+import BottomNav from '@/components/BottomNav';
 
-export default function AdminDashboard() {
+export default function AdminPage() {
   const router = useRouter();
-  const [user, setUser] = useState<any>(null);
   const [role, setRole] = useState<UserRole | null>(null);
-  const [loading, setLoading] = useState(true);
   const [myRooms, setMyRooms] = useState<any[]>([]);
-  const [applications, setApplications] = useState<any[]>([]);
-  const [view, setView] = useState<'rooms' | 'applications'>('rooms');
-  
-  // Creation State
+  const [loading, setLoading] = useState(true);
   const [title, setTitle] = useState('');
 
+  // THE PATH FROM YOUR SCREENSHOT
+  const ROOMS_PATH = 'artifacts/deskmates-online/public/data/rooms';
+
   useEffect(() => {
-    const unsubscribeAuth = auth.onAuthStateChanged(async (currentUser) => {
-      if (!currentUser) return router.push('/login');
-      setUser(currentUser);
+    const unsubAuth = auth.onAuthStateChanged(async (user) => {
+      if (!user) return router.push('/login');
       
-      const userDocSnap = await getDoc(doc(db, 'users', currentUser.uid));
-      const calculatedRole = getRole(currentUser, userDocSnap.data());
-      setRole(calculatedRole);
+      const docSnap = await getDoc(doc(db, 'users', user.uid));
+      const r = getRole(user, docSnap.data());
+      setRole(r);
 
-      if (!calculatedRole.canManageRooms) return router.push('/profile');
+      if (!r.canManageRooms) return router.push('/profile');
 
-      const ROOMS_PATH = 'artifacts/deskmates-online/public/data/rooms';
+      // Fetch from the deep artifacts path
       const unsubRooms = onSnapshot(query(collection(db, ROOMS_PATH), where("status", "==", "live")), (snap) => {
         setMyRooms(snap.docs.map(d => ({ id: d.id, ...d.data() })));
         setLoading(false);
       });
 
-      let unsubApps = () => {};
-      if (calculatedRole.isFounder) {
-          unsubApps = onSnapshot(query(collection(db, 'applications'), where('status', '==', 'pending')), (snap) => {
-              setApplications(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-          });
-      }
-      return () => { unsubRooms(); unsubApps(); };
+      return () => unsubRooms();
     });
-    return () => unsubscribeAuth();
+    return () => unsubAuth();
   }, [router]);
 
   const handleCreateRoom = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title) return;
     try {
-      const ROOMS_PATH = 'artifacts/deskmates-online/public/data/rooms';
+      // FORCE DEPLOY TO ARTIFACTS PATH
       await addDoc(collection(db, ROOMS_PATH), {
         title: title.toUpperCase(),
-        moderator: role?.isFounder ? "★ FOUNDER" : (user.displayName || "Mod"),
-        moderatorId: user.uid,
+        moderator: role?.isFounder ? "★ FOUNDER" : "MODERATOR",
         status: 'live',
         participants: 0,
         createdAt: serverTimestamp(),
-        hostUrl: "https://deskmates.whereby.com/lobby", // Standard fallback
-        userUrl: "https://deskmates.whereby.com/lobby"
+        // Correcting subdomain to 'deskmate'
+        hostUrl: "https://deskmate.whereby.com/lobby", 
+        userUrl: "https://deskmate.whereby.com/lobby"
       });
       setTitle('');
-      alert("SIGNAL DEPLOYED.");
-    } catch (e) { alert("Deployment Failed."); }
+    } catch (e) { alert("Signal Lost."); }
   };
 
   if (loading) return <LoadingSequence />;
 
   return (
-    <div className="min-h-screen bg-black text-white p-6 pb-24 relative overflow-hidden font-mono">
+    <div className="min-h-screen bg-black text-white p-10 pb-32 relative overflow-hidden font-mono">
       <GodModeBackground />
-      <OmegaHeader userName={role?.isFounder ? "FOUNDER" : "OPERATIVE"} />
-
-      {/* GOD-ONLY ROOM CREATION */}
+      <OmegaHeader userName={role?.rank || "AGENT"} />
+      
       {role?.isFounder && (
-          <ReactorCore>
-              <form onSubmit={handleCreateRoom} className="flex gap-4">
-                  <input 
-                    value={title} onChange={e => setTitle(e.target.value)}
-                    placeholder="ENTER PROTOCOL NAME..."
-                    className="flex-1 bg-black border border-yellow-500/30 p-4 rounded-xl text-yellow-500 outline-none focus:border-yellow-500"
-                  />
-                  <button className="bg-yellow-500 text-black px-8 rounded-xl font-black uppercase text-[10px] flex items-center gap-2 hover:scale-105 transition-transform">
-                      <Plus className="w-4 h-4"/> Deploy
-                  </button>
-              </form>
-          </ReactorCore>
+        <ReactorCore>
+          <form onSubmit={handleCreateRoom} className="flex gap-6">
+            <input 
+              value={title} onChange={e => setTitle(e.target.value)}
+              className="flex-1 bg-black border-2 border-yellow-500/20 p-6 rounded-3xl text-yellow-500 font-black italic outline-none focus:border-yellow-500"
+              placeholder="ENTER MISSION TITLE..."
+            />
+            <button className="bg-yellow-500 text-black px-12 rounded-3xl font-black uppercase text-xs italic hover:scale-105 transition-transform">Deploy</button>
+          </form>
+        </ReactorCore>
       )}
 
-      {/* TABS & LISTING */}
-      <div className="flex justify-center gap-4 mb-8 relative z-10">
-          <button onClick={() => setView('rooms')} className={`text-[10px] font-black uppercase tracking-[0.2em] px-6 py-3 border transition-all ${view === 'rooms' ? 'bg-yellow-500 text-black border-yellow-500' : 'bg-black text-yellow-700 border-yellow-900/30'}`}>Active Signals</button>
-          {role?.isFounder && (
-            <button onClick={() => setView('applications')} className={`text-[10px] font-black uppercase tracking-[0.2em] px-6 py-3 border transition-all ${view === 'applications' ? 'bg-yellow-500 text-black border-yellow-500' : 'bg-black text-yellow-700 border-yellow-900/30'}`}>Approvals ({applications.length})</button>
-          )}
-      </div>
-
-      <div className="relative z-10 max-w-4xl mx-auto space-y-4">
-          {view === 'rooms' ? myRooms.map(room => <SignalCard key={room.id} room={room} onClose={() => updateDoc(doc(db, 'artifacts/deskmates-online/public/data/rooms', room.id), {status: 'closed'})}/>) : 
-          applications.map(app => (
-            <div key={app.id} className="bg-[#050505] border border-yellow-900/30 p-6 rounded-2xl flex justify-between items-center">
-                <div><p className="text-yellow-500 font-bold">{app.displayName}</p><p className="text-gray-500 text-xs italic">"{app.reason}"</p></div>
-                <div className="flex gap-2">
-                    <button onClick={() => {updateDoc(doc(db, 'users', app.uid), {role: 'moderator'}); updateDoc(doc(db, 'applications', app.id), {status: 'approved'});}} className="p-3 bg-green-900/10 text-green-500 border border-green-900/50 rounded"><Check /></button>
-                    <button onClick={() => updateDoc(doc(db, 'applications', app.id), {status: 'rejected'})} className="p-3 bg-red-900/10 text-red-500 border border-red-500/50 rounded"><X /></button>
-                </div>
-            </div>
-          ))}
+      <div className="max-w-5xl mx-auto space-y-6 relative z-10">
+        {myRooms.map(room => (
+          <SignalCard key={room.id} room={room} onClose={(id) => updateDoc(doc(db, ROOMS_PATH, id), { status: 'closed' })} />
+        ))}
       </div>
       <BottomNav />
     </div>

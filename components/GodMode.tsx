@@ -1,59 +1,47 @@
 "use client";
 
-import { ShieldCheck, Cpu, Crosshair, Trash2, Radio, Zap, Activity } from 'lucide-react';
+import { ShieldCheck, Crosshair, Radio, Zap, Activity } from 'lucide-react';
 
-/**
- * BACKGROUND: The Obsidian Throne
- * Aggressive, high-contrast, and focused.
- */
 export const GodModeBackground = () => (
   <div className="fixed inset-0 pointer-events-none z-0 bg-[#020202]">
-    {/* Obsidian Corona: Deep Gold Pulse */}
-    <div className="absolute top-[-20vh] left-1/2 -translate-x-1/2 w-[140vw] h-[60vh] bg-gradient-to-b from-yellow-600/20 via-yellow-500/5 to-transparent blur-[140px] opacity-60 animate-pulse" />
+    {/* Obsidian Corona: Pulsing Gold Aura */}
+    <div className="absolute top-[-30vh] left-1/2 -translate-x-1/2 w-[150vw] h-[70vh] bg-gradient-to-b from-yellow-600/30 via-yellow-500/5 to-transparent blur-[140px] opacity-70 animate-pulse" />
     
-    {/* Tactical Vignette: Enforces Focus */}
-    <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,#000_85%)]" />
+    {/* High-Contrast Vignette */}
+    <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,#000_90%)]" />
     
-    {/* The Laboratory Grid: Sharp and tactical */}
-    <div className="absolute inset-0 bg-[linear-gradient(rgba(255,215,0,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,215,0,0.02)_1px,transparent_1px)] bg-[size:30px_30px] opacity-30" />
-    
-    {/* Stardust Layer: High Contrast */}
-    <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-10 contrast-150" />
+    {/* tactical Grid: Sharp and subtle */}
+    <div className="absolute inset-0 bg-[linear-gradient(rgba(255,215,0,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,215,0,0.02)_1px,transparent_1px)] bg-[size:40px_40px] opacity-40" />
   </div>
 );
 
-/**
- * OMEGA HEADER: The Founder's Mark
- * Fixed: PR-12 and Black-Italic weights to prevent clipping.
- */
 export const OmegaHeader = ({ userName }: { userName: string }) => (
-  <div className="relative z-10 mb-20 flex justify-between items-end border-b-8 border-yellow-500 pb-12 px-2 group">
-    <div className="pr-12"> {/* Anti-clipping buffer */}
-        <div className="flex items-center gap-4 mb-4">
-            <div className="bg-yellow-500 text-black px-3 py-1 text-[10px] font-black uppercase tracking-tighter italic">Authority Verified</div>
-            <span className="text-[10px] text-yellow-700 font-black tracking-[0.8em] uppercase italic">Neural Uplink v2.0</span>
+  <div className="relative z-10 mb-24 flex justify-between items-end border-b-[12px] border-yellow-500 pb-16 px-4">
+    <div className="pr-16">
+        <div className="flex items-center gap-4 mb-6">
+            <div className="bg-yellow-500 text-black px-4 py-1 text-[11px] font-black uppercase tracking-tighter italic shadow-[0_0_15px_rgba(255,215,0,0.5)]">Uplink: Primary</div>
+            <span className="text-[11px] text-yellow-700 font-black tracking-[0.8em] uppercase italic">Clearance: Omega Founder</span>
         </div>
-        <h1 className="text-8xl md:text-9xl font-black italic tracking-tighter text-white uppercase leading-none drop-shadow-[0_20px_50px_rgba(255,215,0,0.5)]">
+        <h1 className="text-8xl md:text-[10rem] font-black italic tracking-tighter text-white uppercase leading-[0.85] drop-shadow-[0_25px_50px_rgba(255,215,0,0.4)]">
             {userName}
         </h1>
     </div>
     <div className="text-right hidden lg:block">
-        <Activity className="w-16 h-16 text-yellow-500 ml-auto mb-4 animate-pulse opacity-20" />
-        <div className="text-5xl font-black italic text-yellow-500 mb-2 tracking-tighter">∞ FOCUS</div>
-        <div className="text-[10px] text-yellow-800 uppercase font-black tracking-[0.5em]">Sync Status: Eternal</div>
+        <div className="text-6xl font-black italic text-yellow-500 mb-2 drop-shadow-[0_0_20px_rgba(255,215,0,0.3)]">∞ FOCUS</div>
+        <div className="text-[11px] text-yellow-800 uppercase font-black tracking-[0.6em]">System Authority Established</div>
     </div>
   </div>
 );
 
 export const ReactorCore = ({ children }: { children: React.ReactNode }) => (
-  <div className="relative z-10 mb-20 max-w-4xl mx-auto">
-    <div className="bg-[#080808] border-2 border-yellow-500/20 p-10 rounded-[2.5rem] relative overflow-hidden shadow-2xl">
-        <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-yellow-500" />
-        <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-yellow-500" />
+  <div className="relative z-10 mb-24 max-w-5xl mx-auto">
+    <div className="bg-[#050505] border-[3px] border-yellow-500/20 p-12 rounded-[4rem] relative overflow-hidden shadow-[0_0_100px_rgba(255,215,0,0.05)]">
+        <div className="absolute top-0 left-0 w-8 h-8 border-t-[3px] border-l-[3px] border-yellow-500" />
+        <div className="absolute bottom-0 right-0 w-8 h-8 border-b-[3px] border-r-[3px] border-yellow-500" />
         <div className="relative">
-            <div className="flex items-center gap-4 mb-8 border-b border-white/5 pb-6">
-                <Crosshair className="w-6 h-6 text-yellow-500 animate-spin-slow" />
-                <h2 className="font-black text-lg uppercase text-white tracking-widest italic">Initialize Protocol</h2>
+            <div className="flex items-center gap-6 mb-10 border-b border-white/10 pb-8">
+                <Crosshair className="w-8 h-8 text-yellow-500 animate-[spin_20s_linear_infinite]" />
+                <h2 className="font-black text-2xl uppercase text-white tracking-[0.3em] italic">Initialize Signal Protocol</h2>
             </div>
             {children}
         </div>
@@ -62,19 +50,19 @@ export const ReactorCore = ({ children }: { children: React.ReactNode }) => (
 );
 
 export const SignalCard = ({ room, onClose }: { room: any, onClose: (id: string) => void }) => (
-  <div className="relative bg-[#0a0a0a] border border-white/5 p-8 rounded-3xl flex justify-between items-center group transition-all hover:border-yellow-500/40">
-      <div className="flex items-center gap-8">
-          <div className="w-12 h-12 bg-yellow-500/5 border border-yellow-500/20 rounded-2xl flex items-center justify-center">
-             <Radio className="w-5 h-5 text-yellow-500" />
+  <div className="relative bg-[#080808] border border-white/5 p-10 rounded-[3rem] flex justify-between items-center group transition-all hover:border-yellow-500/40 hover:bg-[#0a0a0a]">
+      <div className="flex items-center gap-10">
+          <div className="w-16 h-16 bg-yellow-500/10 border border-yellow-500/30 rounded-3xl flex items-center justify-center shadow-[0_0_20px_rgba(255,215,0,0.1)]">
+             <Radio className="w-8 h-8 text-yellow-500" />
           </div>
           <div>
-            <h3 className="font-black text-xl text-white uppercase italic tracking-tighter group-hover:text-yellow-500 transition-colors">{room.title}</h3>
-            <span className="text-[10px] font-bold text-yellow-800 uppercase tracking-widest">Status: {room.status}</span>
+            <h3 className="font-black text-3xl text-white uppercase italic tracking-tighter group-hover:text-yellow-500 transition-colors">{room.title}</h3>
+            <p className="text-[11px] font-black text-yellow-800 uppercase tracking-[0.4em] mt-2">Active Frequency: {room.id.slice(0, 8)}</p>
           </div>
       </div>
       <button 
           onClick={() => onClose(room.id)}
-          className="bg-red-500/10 border border-red-500/20 text-red-500 px-6 py-3 rounded-xl hover:bg-red-500 hover:text-black transition-all text-xs font-black uppercase tracking-widest"
+          className="bg-red-600 text-white px-10 py-5 rounded-2xl hover:scale-105 transition-all text-xs font-black uppercase tracking-widest shadow-[0_0_30px_rgba(220,38,38,0.2)]"
       >
           TERMINATE
       </button>
@@ -82,8 +70,8 @@ export const SignalCard = ({ room, onClose }: { room: any, onClose: (id: string)
 );
 
 export const LoadingSequence = () => (
-    <div className="h-screen bg-[#020202] flex flex-col items-center justify-center gap-6 font-mono">
-        <div className="w-16 h-16 border-t-4 border-yellow-500 rounded-full animate-spin" />
-        <div className="text-yellow-500 font-black text-xs uppercase tracking-[1em] animate-pulse">Uplink...</div>
+    <div className="h-screen bg-[#020202] flex flex-col items-center justify-center gap-8 font-mono">
+        <div className="w-20 h-20 border-t-[5px] border-yellow-500 rounded-full animate-spin shadow-[0_0_40px_rgba(255,215,0,0.3)]" />
+        <div className="text-yellow-500 font-black text-sm uppercase tracking-[1.5em] animate-pulse">Syncing...</div>
     </div>
 );
