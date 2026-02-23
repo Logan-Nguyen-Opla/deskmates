@@ -17,12 +17,19 @@ export default function LandingPage() {
 
   useEffect(() => {
     const unsub = onSnapshot(collection(db, 'waitlist'), (snap) => setCount(snap.size));
-    const target = new Date("2026-02-23T18:00:00+07:00").getTime();
+    
+    // NEW TARGET: Thursday, Feb 26, 2026, 19:00 (7 PM) ICT
+    // The +07:00 suffix ensures it uses Vietnam Time regardless of where the server is.
+    const target = new Date("2026-02-26T19:00:00+07:00").getTime();
+    
     const timer = setInterval(() => {
       const now = new Date().getTime();
       const distance = target - now;
-      if (distance < 0) clearInterval(timer);
-      else {
+      
+      if (distance < 0) {
+        clearInterval(timer);
+        setTimeLeft({ days: 0, hours: 0, mins: 0, secs: 0 });
+      } else {
         setTimeLeft({
           days: Math.floor(distance / (1000 * 60 * 60 * 24)),
           hours: Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
@@ -31,6 +38,7 @@ export default function LandingPage() {
         });
       }
     }, 1000);
+    
     return () => { unsub(); clearInterval(timer); };
   }, []);
 
