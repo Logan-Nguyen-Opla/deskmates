@@ -47,17 +47,12 @@ export default function AdminPage() {
     e.preventDefault();
     if (!title) return;
     try {
-      // FORCE DEPLOY TO ARTIFACTS PATH
-      await addDoc(collection(db, ROOMS_PATH), {
-        title: title.toUpperCase(),
-        moderator: role?.isFounder ? "★ FOUNDER" : "MODERATOR",
-        status: 'live',
-        participants: 0,
-        createdAt: serverTimestamp(),
-        // Correcting subdomain to 'deskmate'
-        hostUrl: "https://deskmate.whereby.com/lobby", 
-        userUrl: "https://deskmate.whereby.com/lobby"
-      });
+      // Use the room creation service to get real URLs
+      const user = auth.currentUser;
+      if (!user) throw new Error('User not authenticated');
+      // Import the service
+      const { createDeskmatesRoom } = await import('@/services/roomService');
+      await createDeskmatesRoom(title, user);
       setTitle('');
     } catch (e) { alert("Signal Lost."); }
   };

@@ -14,7 +14,8 @@ export default function RoomPage() {
   const [role, setRole] = useState<UserRole | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const ROOMS_PATH = 'artifacts/deskmates-online/public/data/rooms'; // Exact path
+  // Exact path from your Firestore screenshot
+  const ROOMS_PATH = 'artifacts/deskmates-online/public/data/rooms';
 
   useEffect(() => {
     if (!id) return;
@@ -33,27 +34,29 @@ export default function RoomPage() {
 
   if (loading || !room) return <div className="h-screen bg-black" />;
 
-  // Accessing the boolean from the role object
+  // THE FIX: role.canManageRooms is a boolean from your utility
   const isPrivileged = role?.canManageRooms || auth.currentUser?.uid === room.moderatorId;
   
-  // Select unique URL and enforce deskmate subdomain
+  // SELECT THE UNIQUE URL: Avoids the generic /lobby fallback
   const rawUrl = isPrivileged ? (room.hostUrl || room.userUrl) : room.userUrl;
   const finalUrl = (rawUrl || "").replace('deskmates.whereby', 'deskmate.whereby');
 
   return (
     <div className="h-screen flex flex-col bg-black overflow-hidden relative font-sans">
       {role?.isFounder && <GodModeBackground />}
+      
       <div className="z-20 flex justify-between items-end px-12 py-10 border-b-[10px] border-yellow-500 bg-black/95">
         <div className="pr-16">
-          <h1 className="text-6xl font-black italic tracking-tighter text-white uppercase drop-shadow-[0_10px_30px_rgba(255,215,0,0.3)]">{room.title}</h1>
-          <p className="text-[10px] text-yellow-600 font-black uppercase tracking-[0.5em] mt-3 italic">Uplink Stable</p>
+          <h1 className="text-6xl font-black italic tracking-tighter text-white uppercase leading-none drop-shadow-[0_10px_30px_rgba(255,215,0,0.3)]">{room.title}</h1>
+          <p className="text-[10px] text-yellow-600 font-black uppercase tracking-[0.6em] mt-3 italic">Uplink Stable</p>
         </div>
-        <button onClick={() => router.push('/')} className="bg-red-600 text-white px-10 py-4 rounded-2xl text-[11px] font-black uppercase tracking-widest">Disconnect</button>
+        <button onClick={() => router.push('/')} className="bg-red-600 text-white px-10 py-4 rounded-2xl text-[11px] font-black uppercase tracking-widest shadow-[0_0_20px_rgba(220,38,38,0.3)]">Disconnect</button>
       </div>
+
       <div className="flex-1 relative z-10 p-10">
         <div className="w-full h-full rounded-[4rem] overflow-hidden border-8 border-white/5 shadow-2xl bg-black">
             <iframe
-              src={`${finalUrl}?embed&displayNames=on&background=off&chat=on`}
+              src={`${finalUrl}?embed&displayNames=on&background=off&chat=on&people=off`}
               allow="camera; microphone; fullscreen; display-capture"
               className="w-full h-full border-none"
             />
