@@ -47,14 +47,18 @@ export default function AdminPage() {
     e.preventDefault();
     if (!title) return;
     try {
-      // Use the room creation service to get real URLs
       const user = auth.currentUser;
       if (!user) throw new Error('User not authenticated');
-      // Import the service
+      
       const { createDeskmatesRoom } = await import('@/services/roomService');
       await createDeskmatesRoom(title, user);
       setTitle('');
-    } catch (e) { alert("Signal Lost."); }
+      alert("Protocol Success: Room Deployed."); // Optional success check
+    } catch (err: any) { 
+      // CHANGE THIS: Show the actual error message
+      alert("Signal Lost: " + (err.message || "Check Browser Console"));
+      console.error("FULL_ERROR_LOG:", err);
+    }
   };
 
   if (loading) return <LoadingSequence />;
