@@ -47,17 +47,29 @@ export default function AdminPage() {
     e.preventDefault();
     if (!title) return;
     try {
-      const user = auth.currentUser;
-      if (!user) throw new Error('User not authenticated');
+      const res = await fetch('/api/rooms/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title })
+      });
       
-      const { createDeskmatesRoom } = await import('@/services/roomService');
-      await createDeskmatesRoom(title, user);
+      const wherebyData = await res.json();
+      if (!res.ok) throw new Error(wherebyData.error);
+
+      // Save to Firestore using the deep artifacts path
+      await addDoc(collection(db, ROOMS_PATH), {
+        title: title.toUpperCase(),
+        moderator: "★ FOUNDER",
+        status: 'live',
+        createdAt: serverTimestamp(),
+        hostUrl: wherebyData.hostRoomUrl.replace('deskmates.whereby', 'deskmate.whereby'),
+        userUrl: wherebyData.roomUrl.replace('deskmates.whereby', 'deskmate.whereby')
+      });
+      
       setTitle('');
-      alert("Protocol Success: Room Deployed."); // Optional success check
-    } catch (err: any) { 
-      // CHANGE THIS: Show the actual error message
-      alert("Signal Lost: " + (err.message || "Check Browser Console"));
-      console.error("FULL_ERROR_LOG:", err);
+      alert("Protocol Synchronized: Room Live.");
+    } catch (err: any) {
+      alert("Signal Lost: " + err.message);
     }
   };
 

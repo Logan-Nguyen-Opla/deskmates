@@ -3,7 +3,7 @@ import { db } from '../lib/firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 
 export const createDeskmatesRoom = async (title, user) => {
-  const API_KEY = process.env.NEXT_PUBLIC_WHEREBY_API_KEY;
+  const API_KEY = process.env.WHEREBY_API_KEY;
   const ROOMS_PATH = 'artifacts/deskmates-online/public/data/rooms';
 
   try {

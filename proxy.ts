@@ -1,3 +1,4 @@
+// proxy.ts
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
@@ -12,7 +13,14 @@ export function proxy(req: NextRequest) {
     return response;
   }
 
-  if (pathname === '/landing' || pathname.startsWith('/_next') || pathname.includes('.')) {
+  // UPDATED: Allow public access to legal pages and landing
+  if (
+    pathname === '/landing' || 
+    pathname === '/privacy' || 
+    pathname === '/terms' || 
+    pathname.startsWith('/_next') || 
+    pathname.includes('.')
+  ) {
     return NextResponse.next();
   }
 
@@ -22,7 +30,3 @@ export function proxy(req: NextRequest) {
 
   return NextResponse.next();
 }
-
-export const config = {
-  matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)'],
-};
