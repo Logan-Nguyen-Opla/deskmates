@@ -54,16 +54,23 @@ export default function AdminPage() {
       });
       
       const wherebyData = await res.json();
-      if (!res.ok) throw new Error(wherebyData.error);
+      
+      // GUARD: Check if the API returned an error or missing fields
+      if (!res.ok || !wherebyData.roomUrl || !wherebyData.hostRoomUrl) {
+        throw new Error(wherebyData.error || "Uplink Failed: Missing Room Data");
+      }
 
-      // Save to Firestore using the deep artifacts path
+      // Now it is safe to use .replace()
+      const fixedHost = wherebyData.hostRoomUrl.replace('deskmates.whereby', 'deskmate.whereby');
+      const fixedUser = wherebyData.roomUrl.replace('deskmates.whereby', 'deskmate.whereby');
+
       await addDoc(collection(db, ROOMS_PATH), {
         title: title.toUpperCase(),
         moderator: "★ FOUNDER",
         status: 'live',
         createdAt: serverTimestamp(),
-        hostUrl: wherebyData.hostRoomUrl.replace('deskmates.whereby', 'deskmate.whereby'),
-        userUrl: wherebyData.roomUrl.replace('deskmates.whereby', 'deskmate.whereby')
+        hostUrl: fixedHost,
+        userUrl: fixedUser
       });
       
       setTitle('');
