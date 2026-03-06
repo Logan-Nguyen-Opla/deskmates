@@ -13,7 +13,7 @@ export async function POST(req: Request) {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        endDate: new Date(Date.now() + 14400000).toISOString(),
+        endDate: "2027-03-07T19:00:00Z",
         isLocked: false,
         roomMode: "normal"
       }),
