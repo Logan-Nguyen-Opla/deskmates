@@ -62,7 +62,7 @@ export default function Lobby() {
           rooms.map((room) => (
             <div 
               key={room.id} 
-              onClick={() => router.push(`/room/${room.id}`)} 
+              onClick={() => router.push(`/room/${room.id}/briefing`)} 
               className="group cursor-pointer border border-white/5 rounded-[2rem] p-6 bg-[#0a0a0a] hover:border-yellow-500/50 transition-all hover:bg-[#111]"
             >
               <div className="flex justify-between items-start mb-6">
