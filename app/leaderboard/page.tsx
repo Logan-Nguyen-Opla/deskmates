@@ -51,11 +51,12 @@ export default function Leaderboard() {
       
       {isGodMode && <GodModeBackground />}
 
-      <header className={`p-6 border-b relative z-10 backdrop-blur-md sticky top-0 ${isGodMode ? 'bg-black/50 border-yellow-500/30' : 'bg-[#121212]/50 border-[#27272a]'}`}>
-        <h1 className={`text-2xl font-black italic tracking-tighter ${isGodMode ? 'text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-orange-500' : 'text-[#00FF94]'}`}>
+      <header className="p-6 border-b border-white/5 relative z-10 backdrop-blur-md sticky top-0 bg-black/50">
+        {/* FIXED: YELLOW COLOR FOR ALL USERS */}
+        <h1 className="text-2xl font-black italic tracking-tighter text-yellow-500">
           RANKINGS
         </h1>
-        <p className={`text-xs uppercase tracking-widest mt-1 ${isGodMode ? 'text-yellow-700 font-bold' : 'text-[#A1A1AA]'}`}>
+        <p className="text-xs uppercase tracking-widest mt-1 text-yellow-900 font-bold">
           Top Focus Agents
         </p>
       </header>

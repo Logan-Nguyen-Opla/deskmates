@@ -4,14 +4,17 @@ import { ShieldCheck, Radio, Activity, Crosshair } from 'lucide-react';
 
 export const GodModeBackground = () => (
   <div className="fixed inset-0 pointer-events-none z-0 bg-[#020202]">
+    {/* Atmospheric Top Glow */}
     <div className="absolute top-[-30vh] left-1/2 -translate-x-1/2 w-[150vw] h-[70vh] bg-gradient-to-b from-yellow-600/30 via-yellow-500/5 to-transparent blur-[140px] opacity-70 animate-pulse" />
-    <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,#000_85%)]" />
     
-    {/* BRIGHTER GRID SYSTEM */}
-    <div className="absolute inset-0 bg-[linear-gradient(rgba(255,215,0,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(255,215,0,0.1)_1px,transparent_1px)] bg-[size:40px_40px] opacity-60" />
+    {/* HIGH-VISIBILITY GRID SYSTEM */}
+    <div className="absolute inset-0 bg-[linear-gradient(rgba(255,215,0,0.15)_1.5px,transparent_1.5px),linear-gradient(90deg,rgba(255,215,0,0.15)_1.5px,transparent_1.5px)] bg-[size:50px_50px] opacity-70" />
     
-    {/* SCANLINE OVERLAY */}
-    <div className="absolute inset-0 bg-[linear-gradient(transparent_0%,rgba(255,215,0,0.01)_50%,transparent_100%)] bg-[size:100%_4px] pointer-events-none" />
+    {/* Radial Vignette */}
+    <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,#000_90%)]" />
+    
+    {/* Intersectional Bloom */}
+    <div className="absolute inset-0 bg-[radial-gradient(circle,rgba(255,215,0,0.05)_1px,transparent_1px)] bg-[size:50px_50px]" />
   </div>
 );
 
