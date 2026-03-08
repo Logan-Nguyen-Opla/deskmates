@@ -26,11 +26,12 @@ export default function Lobby() {
 
         const roomsRef = collection(db, ROOMS_PATH);
         const unsubscribeRooms = onSnapshot(roomsRef, (snapshot) => {
-          const liveRooms = snapshot.docs
+          const allRooms = snapshot.docs
             .map(doc => ({ id: doc.id, ...doc.data() } as any))
-            .filter((room) => room.status === 'live');
+            // THE FIX: Allow both Scheduled and Live rooms to appear in the Lobby
+            .filter((room) => room.status === 'live' || room.status === 'scheduled');
           
-          setRooms(liveRooms);
+          setRooms(allRooms);
           setLoading(false);
         });
         return () => unsubscribeRooms();

@@ -4,7 +4,8 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { db, auth } from '@/lib/firebase';
 import { 
-  collection, query, where, onSnapshot, doc, updateDoc, getDoc, addDoc, serverTimestamp, Timestamp, deleteDoc 
+  collection, query, where, onSnapshot, doc, updateDoc, getDoc, addDoc, serverTimestamp, Timestamp, deleteDoc, 
+  arrayUnion
 } from 'firebase/firestore';
 import { getRole, UserRole } from '@/utils/roles';
 import { GodModeBackground, OmegaHeader, LoadingSequence, ReactorCore } from '@/components/GodMode';
@@ -49,12 +50,38 @@ export default function AdminPage() {
     return () => unsubAuth();
   }, [router]);
 
+  const issueViolation = async (agent: any, rule: any) => {
+    if (!confirm(`DEDUCT ${rule.deduction} REP FROM ${agent.displayName.toUpperCase()}?`)) return;
+    
+    const currentRep = agent.reputation ?? 100;
+    await updateDoc(doc(db, 'users', agent.uid), {
+      reputation: Math.max(0, currentRep - rule.deduction),
+      violationHistory: arrayUnion({
+        type: rule.label,
+        deduction: rule.deduction,
+        timestamp: new Date().toISOString(),
+        issuedBy: auth.currentUser?.uid
+      })
+    });
+    alert("PENALTY ENFORCED.");
+  };
+
   const handleCreateReservation = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      // 1. Establish Vietnam Baseline (GMT+7)
+      const now = new Date();
+      const vietnamNow = new Date(now.getTime() + (7 * 60 * 60 * 1000));
+      
       const targetDate = new Date();
       targetDate.setDate(targetDate.getDate() + parseInt(form.dateOffset));
       targetDate.setHours(parseInt(form.hour), parseInt(form.min), 0, 0);
+
+      // 2. THE PAST LOCK: Prevent scheduling earlier than right now
+      if (targetDate.getTime() <= now.getTime()) {
+        alert("ERROR: Protocol cannot be scheduled in the past. Synchronize to future time.");
+        return;
+      }
 
       const res = await fetch('/api/rooms/create', {
         method: 'POST',
@@ -66,11 +93,11 @@ export default function AdminPage() {
       await addDoc(collection(db, ROOMS_PATH), {
         title: form.title.toUpperCase(),
         description: form.desc,
-        startTime: Timestamp.fromDate(targetDate),
+        startTime: Timestamp.fromDate(targetDate), // Corrected temporal anchor
         grade: form.grade,
         reqs: form.reqs,
         moderatorId: auth.currentUser?.uid,
-        status: 'scheduled',
+        status: 'scheduled', // Must match Lobby filter
         approvedAgents: [auth.currentUser?.uid],
         pendingRequests: [],
         hostUrl: data.hostRoomUrl.replace('deskmates.whereby', 'deskmate.whereby'),
@@ -78,7 +105,6 @@ export default function AdminPage() {
         createdAt: serverTimestamp()
       });
       alert("RESERVATION LOGGED.");
-      setForm({ title: '', desc: '', dateOffset: '0', hour: '09', min: '00', grade: '', reqs: '' });
     } catch (e) { alert("Deployment Failed."); }
   };
 
