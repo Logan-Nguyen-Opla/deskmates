@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { db, auth } from '@/lib/firebase';
-import { collection, query, where, onSnapshot, doc, updateDoc, getDoc, addDoc, serverTimestamp, arrayUnion, arrayRemove, Timestamp, deleteDoc } from 'firebase/firestore';
+import { collection, onSnapshot, doc, updateDoc, getDoc, addDoc, serverTimestamp, arrayUnion, arrayRemove, Timestamp } from 'firebase/firestore';
 import { getRole, UserRole } from '@/utils/roles';
 import { ACADEMIC_SUBJECTS } from '@/utils/reputation';
 import { GodModeBackground, OmegaHeader, LoadingSequence, ReactorCore } from '@/components/GodMode';
@@ -13,11 +13,11 @@ import { Check, X, Users, Trash2, Clock, Mic, Video, Loader2 } from 'lucide-reac
 export default function AdminPage() {
   const router = useRouter();
   const [role, setRole] = useState<UserRole | null>(null);
-  const [currentUser, setCurrentUser] = useState<any>(null); // THE FIX: Stable user state
+  const [currentUser, setCurrentUser] = useState<any>(null);
   const [scheduledRooms, setScheduledRooms] = useState<any[]>([]);
   const [apps, setApps] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [isDeploying, setIsDeploying] = useState(false); // THE FIX: Prevent double clicks
+  const [isDeploying, setIsDeploying] = useState(false);
   const [view, setView] = useState<'rooms' | 'apps'>('rooms');
 
   const [form, setForm] = useState({ title: '', desc: '', dateOffset: '0', hour: '09', min: '00', subject: ACADEMIC_SUBJECTS[0], reqMic: false, reqCamera: false });
@@ -33,16 +33,23 @@ export default function AdminPage() {
 
       if (!r.canManageRooms) return router.push('/profile');
 
-      // THE FIX: Query uses stable user.uid
-      const unsubRooms = onSnapshot(query(collection(db, ROOMS_PATH), where("moderatorId", "==", user.uid)), (snap) => {
-        const activeRooms = snap.docs.map(d => ({ id: d.id, ...d.data() })).filter((room: any) => room.status !== 'closed');
+      // THE CRITICAL FIX: Fetch all, filter client-side to bypass indexing/query silent failures
+      const unsubRooms = onSnapshot(collection(db, ROOMS_PATH), (snap) => {
+        const activeRooms = snap.docs
+          .map(d => ({ id: d.id, ...d.data() }))
+          .filter((room: any) => room.status !== 'closed') // Ignore deleted rooms
+          .filter((room: any) => r.isFounder || room.moderatorId === user.uid); // Ensure visibility
+          
         setScheduledRooms(activeRooms);
         setLoading(false);
       });
 
       let unsubApps = () => {};
       if (r.isFounder) {
-        unsubApps = onSnapshot(query(collection(db, 'applications'), where('status', '==', 'pending')), (snap) => setApps(snap.docs.map(d => ({ id: d.id, ...d.data() }))));
+        unsubApps = onSnapshot(collection(db, 'applications'), (snap) => {
+            const pendingApps = snap.docs.map(d => ({ id: d.id, ...d.data() })).filter((a: any) => a.status === 'pending');
+            setApps(pendingApps);
+        });
       }
       return () => { unsubRooms(); unsubApps(); };
     });
@@ -51,7 +58,7 @@ export default function AdminPage() {
 
   const handleCreateReservation = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (isDeploying || !currentUser) return; // THE FIX: Prevent double creation
+    if (isDeploying || !currentUser) return;
     setIsDeploying(true);
     
     try {
@@ -141,7 +148,7 @@ export default function AdminPage() {
                 </div>
                 <div className="space-y-4">
                   <h4 className="text-[10px] text-gray-500 font-black uppercase tracking-[0.4em] mb-4 flex items-center gap-2"><Users className="w-3 h-3"/> Pending Clearances</h4>
-                  {room.pendingRequests?.length === 0 ? <p className="text-[10px] text-gray-700 italic">No incoming transmissions...</p> : 
+                  {(!room.pendingRequests || room.pendingRequests.length === 0) ? <p className="text-[10px] text-gray-700 italic">No incoming transmissions...</p> : 
                     room.pendingRequests?.map((req: any) => (
                       <div key={req.uid} className="flex justify-between items-center bg-white/5 p-6 rounded-3xl border border-white/5 group hover:border-[#00FF94]/30 transition-all">
                         <div><p className="font-black text-white uppercase text-sm">{req.displayName}</p></div>

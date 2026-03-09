@@ -13,6 +13,7 @@ export default function BriefingPage() {
   const [room, setRoom] = useState<any>(null);
   const [userStats, setUserStats] = useState<any>(null);
   const [isSyncing, setIsSyncing] = useState(false);
+  const [isRequesting, setIsRequesting] = useState(false); // NEW: UI feedback state
 
   const ROOMS_PATH = 'rooms';
 
@@ -22,22 +23,37 @@ export default function BriefingPage() {
         if (!snap.exists()) router.push('/');
         else setRoom(snap.data());
     });
-    const unsubUser = onSnapshot(doc(db, 'users', auth.currentUser?.uid || 'none'), (snap) => setUserStats(snap.data()));
-    return () => { unsubRoom(); unsubUser(); };
+    
+    const unsubAuth = auth.onAuthStateChanged((user) => {
+      if (user) {
+        onSnapshot(doc(db, 'users', user.uid), (snap) => setUserStats(snap.data() || {}));
+      }
+    });
+
+    return () => { unsubRoom(); unsubAuth(); };
   }, [id, router]);
 
   const requestAccess = async () => {
-    await updateDoc(doc(db, ROOMS_PATH, id as string), {
-      pendingRequests: arrayUnion({
-        uid: auth.currentUser?.uid,
-        displayName: auth.currentUser?.displayName,
-        academic: userStats
-      })
-    });
-    alert("TRANSMISSION SENT. AWAITING MODERATOR APPROVAL.");
+    if (!auth.currentUser) return;
+    setIsRequesting(true);
+    try {
+      // THE CRITICAL FIX: Sanitize the object. Firestore crashes if this contains 'undefined'
+      const safeStats = userStats || { subjects: [], reputation: 100 };
+      
+      await updateDoc(doc(db, ROOMS_PATH, id as string), {
+        pendingRequests: arrayUnion({
+          uid: auth.currentUser.uid,
+          displayName: auth.currentUser.displayName || "Agent",
+          academic: safeStats 
+        })
+      });
+      alert("TRANSMISSION SENT. AWAITING MODERATOR APPROVAL.");
+    } catch (error: any) {
+      alert("Error sending request: " + error.message);
+    }
+    setIsRequesting(false);
   };
 
-  // THE FIX: Create the Session Handshake before joining
   const handleJoin = async () => {
     if (!auth.currentUser) return router.push('/login');
     setIsSyncing(true);
@@ -74,6 +90,7 @@ export default function BriefingPage() {
 
   return (
     <div className="min-h-screen bg-black text-white font-mono p-4 md:p-8 flex flex-col items-center justify-center">
+      {/* THE FIX: Universal Background so UI isn't jarring */}
       <GodModeBackground />
       <div className="max-w-3xl w-full space-y-8 relative z-10 pt-10">
         <div className="bg-[#0a0a0a] border border-white/5 p-8 md:p-12 rounded-[4rem] space-y-12 shadow-2xl">
@@ -117,8 +134,9 @@ export default function BriefingPage() {
                   {isSyncing ? <Loader2 className="w-5 h-5 animate-spin" /> : <>Synchronize Link <ArrowRight className="w-5 h-5" /></>}
               </button>
             ) : (
-              <button onClick={requestAccess} disabled={hasRequested} className="w-full border border-white/20 text-gray-400 py-8 rounded-[2.5rem] font-black uppercase text-sm tracking-[0.5em] hover:text-white hover:border-white transition-all">
-                {hasRequested ? 'Clearance Pending...' : 'Request Operation Access'}
+              <button onClick={requestAccess} disabled={hasRequested || isRequesting} className="w-full border border-white/20 text-gray-400 py-8 rounded-[2.5rem] font-black uppercase text-sm tracking-[0.5em] hover:text-white hover:border-white transition-all flex items-center justify-center gap-4">
+                {isRequesting ? <Loader2 className="w-5 h-5 animate-spin" /> : null}
+                {isRequesting ? 'TRANSMITTING...' : (hasRequested ? 'Clearance Pending...' : 'Request Operation Access')}
               </button>
             )}
         </div>
