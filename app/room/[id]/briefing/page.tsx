@@ -2,18 +2,19 @@
 
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { doc, onSnapshot, updateDoc, arrayUnion } from 'firebase/firestore';
+import { doc, onSnapshot, updateDoc, arrayUnion, collection, query, where, getDocs, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db, auth } from '@/lib/firebase';
 import { GodModeBackground } from '@/components/GodMode';
-import { ShieldCheck, ArrowRight, Clock, BookOpen, Mic, Video, MicOff, VideoOff } from 'lucide-react';
+import { ShieldCheck, ArrowRight, Clock, BookOpen, Mic, Video, MicOff, VideoOff, Loader2 } from 'lucide-react';
 
 export default function BriefingPage() {
   const { id } = useParams();
   const router = useRouter();
   const [room, setRoom] = useState<any>(null);
   const [userStats, setUserStats] = useState<any>(null);
+  const [isSyncing, setIsSyncing] = useState(false);
 
-  const ROOMS_PATH = 'rooms'; // UNIFIED PATH
+  const ROOMS_PATH = 'rooms';
 
   useEffect(() => {
     if (!id) return;
@@ -36,19 +37,38 @@ export default function BriefingPage() {
     alert("TRANSMISSION SENT. AWAITING MODERATOR APPROVAL.");
   };
 
+  // THE FIX: Create the Session Handshake before joining
+  const handleJoin = async () => {
+    if (!auth.currentUser) return router.push('/login');
+    setIsSyncing(true);
+    try {
+      const q = query(collection(db, 'sessions'), where("userId", "==", auth.currentUser.uid), where("roomId", "==", id), where("status", "==", "active"));
+      const snapshot = await getDocs(q);
+      
+      let sessionId;
+      if (!snapshot.empty) {
+        sessionId = snapshot.docs[0].id;
+      } else {
+        const sessionRef = await addDoc(collection(db, 'sessions'), {
+          userId: auth.currentUser.uid, roomId: id, startTime: serverTimestamp(), status: 'active', pointsEarned: 0
+        });
+        sessionId = sessionRef.id;
+      }
+      router.push(`/room/${id}?sessionId=${sessionId}`);
+    } catch (e) {
+      alert("Handshake Failed. Try again.");
+      setIsSyncing(false);
+    }
+  };
+
   if (!room) return <div className="h-screen bg-black" />;
 
   const isApproved = room.approvedAgents?.includes(auth.currentUser?.uid);
   const hasRequested = room.pendingRequests?.some((r: any) => r.uid === auth.currentUser?.uid);
 
-  // THE FIX: Decodes Firestore Timestamp safely to Vietnam Time
   const formatTime = (timestamp: any) => {
     if (!timestamp) return 'AWAITING DEPLOYMENT';
-    if (timestamp.toDate) {
-      return timestamp.toDate().toLocaleString('en-GB', { 
-        timeZone: 'Asia/Ho_Chi_Minh', dateStyle: 'long', timeStyle: 'short' 
-      });
-    }
+    if (timestamp.toDate) return timestamp.toDate().toLocaleString('en-GB', { timeZone: 'Asia/Ho_Chi_Minh', dateStyle: 'long', timeStyle: 'short' });
     return 'TIME FORMAT ERROR';
   };
 
@@ -68,9 +88,7 @@ export default function BriefingPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="bg-white/5 p-6 rounded-3xl border border-white/5">
                     <p className="text-[9px] text-gray-500 uppercase font-black tracking-widest mb-2 flex items-center gap-2"><Clock className="w-3 h-3"/> Session Time</p>
-                    <p className="text-sm font-black text-yellow-500 italic uppercase">
-                      {formatTime(room.startTime)}
-                    </p>
+                    <p className="text-sm font-black text-yellow-500 italic uppercase">{formatTime(room.startTime)}</p>
                 </div>
                 <div className="bg-white/5 p-6 rounded-3xl border border-white/5">
                     <p className="text-[9px] text-gray-500 uppercase font-black tracking-widest mb-2 flex items-center gap-2"><BookOpen className="w-3 h-3"/> Target Subject</p>
@@ -82,8 +100,6 @@ export default function BriefingPage() {
                 <p className="text-gray-400 text-sm leading-relaxed italic border-l-4 border-yellow-500 pl-8 py-4 bg-white/5 rounded-r-3xl">
                     {room.description || "Standard study session initiated. Complete focus is required."}
                 </p>
-                
-                {/* THE HARDWARE CHECKLIST UI */}
                 <div className="grid grid-cols-2 gap-4">
                   <div className={`p-4 rounded-2xl flex items-center gap-4 border ${room.reqMic ? 'bg-red-600/10 border-red-600/20 text-red-600' : 'bg-[#00FF94]/10 border-[#00FF94]/20 text-[#00FF94]'}`}>
                       {room.reqMic ? <Mic className="w-5 h-5" /> : <MicOff className="w-5 h-5" />}
@@ -97,7 +113,9 @@ export default function BriefingPage() {
             </div>
 
             {isApproved ? (
-              <button onClick={() => router.push(`/room/${id}`)} className="w-full bg-yellow-500 text-black py-8 rounded-[2.5rem] font-black uppercase text-sm tracking-[0.5em] flex items-center justify-center gap-6 hover:scale-[1.02] transition-transform shadow-[0_0_40px_rgba(255,215,0,0.2)]">Synchronize Link <ArrowRight className="w-5 h-5" /></button>
+              <button disabled={isSyncing} onClick={handleJoin} className="w-full bg-yellow-500 text-black py-8 rounded-[2.5rem] font-black uppercase text-sm tracking-[0.5em] flex items-center justify-center gap-6 hover:scale-[1.02] transition-transform shadow-[0_0_40px_rgba(255,215,0,0.2)]">
+                  {isSyncing ? <Loader2 className="w-5 h-5 animate-spin" /> : <>Synchronize Link <ArrowRight className="w-5 h-5" /></>}
+              </button>
             ) : (
               <button onClick={requestAccess} disabled={hasRequested} className="w-full border border-white/20 text-gray-400 py-8 rounded-[2.5rem] font-black uppercase text-sm tracking-[0.5em] hover:text-white hover:border-white transition-all">
                 {hasRequested ? 'Clearance Pending...' : 'Request Operation Access'}
