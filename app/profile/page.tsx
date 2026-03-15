@@ -164,11 +164,13 @@ export default function ProfilePage() {
 
         {/* ADMIN ACTIONS & LOGOUT */}
         <div className="space-y-4">
+            {/* RESTORED: Only Admins see this button */}
             {role?.canManageRooms && (
               <button onClick={() => router.push('/admin')} className="w-full bg-yellow-500 text-black py-6 rounded-[2rem] font-black uppercase text-xs tracking-widest shadow-[0_0_30px_rgba(255,215,0,0.2)]">
                 Enter Command Deck
               </button>
             )}
+            
             <button onClick={() => auth.signOut()} className="w-full border border-red-900/30 text-red-500 py-6 rounded-[2rem] font-black text-xs uppercase tracking-widest hover:bg-red-900/10 transition-colors flex items-center justify-center gap-2">
               <LogOut className="w-4 h-4" /> Terminate Session
             </button>

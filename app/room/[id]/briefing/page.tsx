@@ -13,7 +13,7 @@ export default function BriefingPage() {
   const [room, setRoom] = useState<any>(null);
   const [userStats, setUserStats] = useState<any>(null);
   const [isSyncing, setIsSyncing] = useState(false);
-  const [isRequesting, setIsRequesting] = useState(false); // NEW: UI feedback state
+  const [isRequesting, setIsRequesting] = useState(false);
 
   const ROOMS_PATH = 'rooms';
 
@@ -29,27 +29,29 @@ export default function BriefingPage() {
         onSnapshot(doc(db, 'users', user.uid), (snap) => setUserStats(snap.data() || {}));
       }
     });
-
     return () => { unsubRoom(); unsubAuth(); };
   }, [id, router]);
 
+  // THE CRITICAL FIX: Explicitly strip out undefined values so the request works for Normal Users
   const requestAccess = async () => {
-    if (!auth.currentUser) return;
+    if (!auth.currentUser) return router.push('/login');
     setIsRequesting(true);
     try {
-      // THE CRITICAL FIX: Sanitize the object. Firestore crashes if this contains 'undefined'
-      const safeStats = userStats || { subjects: [], reputation: 100 };
-      
+      const payload = {
+        uid: auth.currentUser.uid,
+        displayName: auth.currentUser.displayName || "Unknown Agent",
+        academic: {
+            reputation: userStats?.reputation ?? 100,
+            subjects: userStats?.subjects || []
+        }
+      };
+
       await updateDoc(doc(db, ROOMS_PATH, id as string), {
-        pendingRequests: arrayUnion({
-          uid: auth.currentUser.uid,
-          displayName: auth.currentUser.displayName || "Agent",
-          academic: safeStats 
-        })
+        pendingRequests: arrayUnion(payload)
       });
-      alert("TRANSMISSION SENT. AWAITING MODERATOR APPROVAL.");
+      alert("TRANSMISSION SENT. AWAITING ROOM ADMIN APPROVAL.");
     } catch (error: any) {
-      alert("Error sending request: " + error.message);
+      alert("Error sending request. Signal Lost.");
     }
     setIsRequesting(false);
   };
@@ -61,15 +63,8 @@ export default function BriefingPage() {
       const q = query(collection(db, 'sessions'), where("userId", "==", auth.currentUser.uid), where("roomId", "==", id), where("status", "==", "active"));
       const snapshot = await getDocs(q);
       
-      let sessionId;
-      if (!snapshot.empty) {
-        sessionId = snapshot.docs[0].id;
-      } else {
-        const sessionRef = await addDoc(collection(db, 'sessions'), {
-          userId: auth.currentUser.uid, roomId: id, startTime: serverTimestamp(), status: 'active', pointsEarned: 0
-        });
-        sessionId = sessionRef.id;
-      }
+      let sessionId = snapshot.empty ? (await addDoc(collection(db, 'sessions'), { userId: auth.currentUser.uid, roomId: id, startTime: serverTimestamp(), status: 'active', pointsEarned: 0 })).id : snapshot.docs[0].id;
+      
       router.push(`/room/${id}?sessionId=${sessionId}`);
     } catch (e) {
       alert("Handshake Failed. Try again.");
@@ -82,15 +77,8 @@ export default function BriefingPage() {
   const isApproved = room.approvedAgents?.includes(auth.currentUser?.uid);
   const hasRequested = room.pendingRequests?.some((r: any) => r.uid === auth.currentUser?.uid);
 
-  const formatTime = (timestamp: any) => {
-    if (!timestamp) return 'AWAITING DEPLOYMENT';
-    if (timestamp.toDate) return timestamp.toDate().toLocaleString('en-GB', { timeZone: 'Asia/Ho_Chi_Minh', dateStyle: 'long', timeStyle: 'short' });
-    return 'TIME FORMAT ERROR';
-  };
-
   return (
     <div className="min-h-screen bg-black text-white font-mono p-4 md:p-8 flex flex-col items-center justify-center">
-      {/* THE FIX: Universal Background so UI isn't jarring */}
       <GodModeBackground />
       <div className="max-w-3xl w-full space-y-8 relative z-10 pt-10">
         <div className="bg-[#0a0a0a] border border-white/5 p-8 md:p-12 rounded-[4rem] space-y-12 shadow-2xl">
@@ -105,7 +93,9 @@ export default function BriefingPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="bg-white/5 p-6 rounded-3xl border border-white/5">
                     <p className="text-[9px] text-gray-500 uppercase font-black tracking-widest mb-2 flex items-center gap-2"><Clock className="w-3 h-3"/> Session Time</p>
-                    <p className="text-sm font-black text-yellow-500 italic uppercase">{formatTime(room.startTime)}</p>
+                    <p className="text-sm font-black text-yellow-500 italic uppercase">
+                      {room.startTime?.toDate ? room.startTime.toDate().toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh', dateStyle: 'short', timeStyle: 'short' }) : 'ASAP'}
+                    </p>
                 </div>
                 <div className="bg-white/5 p-6 rounded-3xl border border-white/5">
                     <p className="text-[9px] text-gray-500 uppercase font-black tracking-widest mb-2 flex items-center gap-2"><BookOpen className="w-3 h-3"/> Target Subject</p>

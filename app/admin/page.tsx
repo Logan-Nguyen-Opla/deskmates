@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { db, auth } from '@/lib/firebase';
-import { collection, onSnapshot, doc, updateDoc, getDoc, addDoc, serverTimestamp, arrayUnion, arrayRemove, Timestamp } from 'firebase/firestore';
+import { collection, onSnapshot, doc, updateDoc, getDoc, addDoc, serverTimestamp, arrayUnion, Timestamp } from 'firebase/firestore';
 import { getRole, UserRole } from '@/utils/roles';
 import { ACADEMIC_SUBJECTS } from '@/utils/reputation';
 import { GodModeBackground, OmegaHeader, LoadingSequence, ReactorCore } from '@/components/GodMode';
@@ -31,14 +31,14 @@ export default function AdminPage() {
       const r = getRole(user, docSnap.data());
       setRole(r);
 
+      // RESTORED: Kick out normal users. Only Admins/Founders allowed.
       if (!r.canManageRooms) return router.push('/profile');
-
-      // THE CRITICAL FIX: Fetch all, filter client-side to bypass indexing/query silent failures
+      
       const unsubRooms = onSnapshot(collection(db, ROOMS_PATH), (snap) => {
         const activeRooms = snap.docs
           .map(d => ({ id: d.id, ...d.data() }))
-          .filter((room: any) => room.status !== 'closed') // Ignore deleted rooms
-          .filter((room: any) => r.isFounder || room.moderatorId === user.uid); // Ensure visibility
+          .filter((room: any) => room.status !== 'closed')
+          .filter((room: any) => r.isFounder || room.moderatorId === user.uid);
           
         setScheduledRooms(activeRooms);
         setLoading(false);
@@ -62,12 +62,11 @@ export default function AdminPage() {
     setIsDeploying(true);
     
     try {
-      const now = new Date();
       const targetDate = new Date();
       targetDate.setDate(targetDate.getDate() + parseInt(form.dateOffset));
       targetDate.setHours(parseInt(form.hour), parseInt(form.min), 0, 0);
 
-      if (targetDate.getTime() <= now.getTime()) {
+      if (targetDate.getTime() <= new Date().getTime()) {
         alert("ERROR: Protocol cannot be scheduled in the past.");
         setIsDeploying(false);
         return;
@@ -87,14 +86,30 @@ export default function AdminPage() {
         pendingRequests: [],
         createdAt: serverTimestamp()
       });
-      alert("RESERVATION LOGGED.");
+      alert("RESERVATION DEPLOYED.");
       setForm({ ...form, title: '', desc: '' });
     } catch (e) { alert("Deployment Failed."); }
     setIsDeploying(false);
   };
 
+  // THE CRITICAL FIX: Bypass `arrayRemove` to guarantee the approval works
   const handleApproveAgent = async (roomId: string, agent: any) => {
-    await updateDoc(doc(db, ROOMS_PATH, roomId), { approvedAgents: arrayUnion(agent.uid), pendingRequests: arrayRemove(agent) });
+    try {
+      const roomRef = doc(db, ROOMS_PATH, roomId);
+      const roomSnap = await getDoc(roomRef);
+      if (!roomSnap.exists()) return;
+      
+      const roomData = roomSnap.data();
+      // Manually filter out the approved user from the pending array
+      const newPending = (roomData.pendingRequests || []).filter((r: any) => r.uid !== agent.uid);
+      
+      await updateDoc(roomRef, { 
+        approvedAgents: arrayUnion(agent.uid), 
+        pendingRequests: newPending 
+      });
+    } catch (e) {
+      alert("Approval Failed.");
+    }
   };
 
   if (loading) return <LoadingSequence />;
@@ -105,8 +120,8 @@ export default function AdminPage() {
       <OmegaHeader userName={role?.rank || "AGENT"} />
 
       <div className="flex gap-4 mb-10 relative z-20 max-w-xl mx-auto">
-        <button onClick={() => setView('rooms')} className={`flex-1 py-4 rounded-2xl font-black text-[10px] uppercase border transition-all ${view === 'rooms' ? 'bg-yellow-500 text-black border-yellow-500' : 'border-white/10 text-gray-600'}`}>War Room</button>
-        {role?.isFounder && <button onClick={() => setView('apps')} className={`flex-1 py-4 rounded-2xl font-black text-[10px] uppercase border transition-all ${view === 'apps' ? 'bg-[#00FF94] text-black border-[#00FF94]' : 'border-white/10 text-gray-600'}`}>Clearance {apps.length > 0 && <span className="ml-2 bg-red-600 text-white px-2 py-0.5 rounded-full text-[8px]">{apps.length}</span>}</button>}
+        <button onClick={() => setView('rooms')} className={`flex-1 py-4 rounded-2xl font-black text-[10px] uppercase border transition-all ${view === 'rooms' ? 'bg-yellow-500 text-black border-yellow-500' : 'border-white/10 text-gray-600'}`}>My Protocols</button>
+        {role?.isFounder && <button onClick={() => setView('apps')} className={`flex-1 py-4 rounded-2xl font-black text-[10px] uppercase border transition-all ${view === 'apps' ? 'bg-[#00FF94] text-black border-[#00FF94]' : 'border-white/10 text-gray-600'}`}>Global Clearance {apps.length > 0 && <span className="ml-2 bg-red-600 text-white px-2 py-0.5 rounded-full text-[8px]">{apps.length}</span>}</button>}
       </div>
 
       {view === 'rooms' ? (
@@ -125,8 +140,8 @@ export default function AdminPage() {
               <div className="flex gap-4 p-2">
                 <select value={form.subject} onChange={e => setForm({...form, subject: e.target.value})} className="flex-1 bg-black border-2 border-white/5 p-4 rounded-xl text-[10px] font-black uppercase focus:border-yellow-500 outline-none">{ACADEMIC_SUBJECTS.map(s => <option key={s} value={s}>{s}</option>)}</select>
                 <div className="flex flex-col justify-center gap-2 px-4">
-                  <label className="flex items-center gap-2 text-[10px] font-black uppercase text-gray-400 cursor-pointer hover:text-white"><input type="checkbox" checked={form.reqMic} onChange={e => setForm({...form, reqMic: e.target.checked})} className="accent-yellow-500 w-4 h-4" /> <Mic className="w-3 h-3" /> Mic Required</label>
-                  <label className="flex items-center gap-2 text-[10px] font-black uppercase text-gray-400 cursor-pointer hover:text-white"><input type="checkbox" checked={form.reqCamera} onChange={e => setForm({...form, reqCamera: e.target.checked})} className="accent-yellow-500 w-4 h-4" /> <Video className="w-3 h-3" /> Cam Required</label>
+                  <label className="flex items-center gap-2 text-[10px] font-black uppercase text-gray-400 cursor-pointer hover:text-white"><input type="checkbox" checked={form.reqMic} onChange={e => setForm({...form, reqMic: e.target.checked})} className="accent-yellow-500 w-4 h-4" /> <Mic className="w-3 h-3" /> Mic Req</label>
+                  <label className="flex items-center gap-2 text-[10px] font-black uppercase text-gray-400 cursor-pointer hover:text-white"><input type="checkbox" checked={form.reqCamera} onChange={e => setForm({...form, reqCamera: e.target.checked})} className="accent-yellow-500 w-4 h-4" /> <Video className="w-3 h-3" /> Cam Req</label>
                 </div>
               </div>
 
