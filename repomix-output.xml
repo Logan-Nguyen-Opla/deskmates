@@ -40,112 +40,106 @@ The content is organized as follows:
 </file_summary>
 
 <directory_structure>
+app/
+  admin/
+    page.tsx
+  api/
+    rooms/
+      create/
+        route.ts
+    waitlist/
+      route.ts
+  apply/
+    page.tsx
+  landing/
+    page.tsx
+  leaderboard/
+    page.tsx
+  login/
+    page.tsx
+  privacy/
+    page.tsx
+  profile/
+    page.tsx
+  room/
+    [id]/
+      briefing/
+        page.tsx
+      page.tsx
+  terms/
+    page.tsx
+  favicon.ico
+  globals.css
+  layout.tsx
+  page.tsx
+components/
+  BottomNav.tsx
+  GodMode.tsx
+  MeetingRoom.js
+  Roomlist.js
+  StandardAdmin.tsx
+lib/
+  firebase.ts
+public/
+  file.svg
+  globe.svg
+  next.svg
+  vercel.svg
+  window.svg
+services/
+  MeetingRoom.js
+  roomService.js
+  wherebyService.js
+utils/
+  badges.ts
+  reputation.ts
+  roles.ts
+.env.local
 .gitignore
-app/admin/page.tsx
-app/apply/page.tsx
-app/favicon.ico
-app/globals.css
-app/layout.tsx
-app/leaderboard/page.tsx
-app/login/page.tsx
-app/page.tsx
-app/profile/page.tsx
-app/room/[id]/page.tsx
-components/BottomNav.tsx
-components/GodMode.tsx
-components/MeetingRoom.js
-components/Roomlist.js
-components/StandardAdmin.tsx
 eslint.config.mjs
-lib/firebase.ts
 next-env.d.ts
 next.config.ts
 package.json
-pages/CreateRoomPage.js
-pages/RoomPage.js
 postcss.config.mjs
-public/file.svg
-public/globe.svg
-public/next.svg
-public/vercel.svg
-public/window.svg
+proxy.ts
 README.md
-services/MeetingRoom.js
-services/roomService.js
-services/wherebyService.js
 tsconfig.json
-utils/roles.ts
 </directory_structure>
 
 <files>
 This section contains the contents of the repository's files.
 
-<file path="app/apply/page.tsx">
-"use client";
-
-import { useState } from 'react';
-import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
-import { db, auth } from '@/lib/firebase';
-import { useRouter } from 'next/navigation';
-import { Shield, ChevronLeft } from 'lucide-react';
-
-export default function ApplyForMod() {
-  const [reason, setReason] = useState('');
-  const [loading, setLoading] = useState(false);
-  const router = useRouter();
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!auth.currentUser) return router.push('/login');
-    
-    setLoading(true);
-    try {
-      await addDoc(collection(db, 'applications'), {
-        uid: auth.currentUser.uid,
-        email: auth.currentUser.email,
-        displayName: auth.currentUser.displayName,
-        reason,
-        status: 'pending',
-        createdAt: serverTimestamp()
-      });
-      alert("Application sent to High Command.");
-      router.push('/profile');
-    } catch (error) {
-      alert("Transmission failed.");
-    }
-    setLoading(false);
-  };
-
+<file path="app/terms/page.tsx">
+export default function TermsPage() {
   return (
-    <div className="min-h-screen bg-[#050505] text-white flex flex-col items-center justify-center p-6 font-mono">
-      <div className="max-w-md w-full border border-[#27272a] bg-[#121212] p-8 rounded-xl relative overflow-hidden">
-        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#00FF94] to-transparent opacity-50" />
-        
-        <div className="flex items-center gap-3 mb-6">
-            <Shield className="w-6 h-6 text-[#00FF94]" />
-            <h1 className="text-xl font-bold uppercase tracking-widest">Request Clearance</h1>
-        </div>
+    <div className="min-h-screen bg-black text-white p-12 font-sans">
+      <h1 className="text-6xl font-black mb-12 italic border-b-8 border-yellow-500 pb-6 tracking-tighter">TERMS OF ENGAGEMENT</h1>
+      
+      <div className="space-y-12 max-w-4xl text-gray-400 leading-relaxed">
+        <section>
+          <h2 className="text-2xl text-white font-black uppercase tracking-tighter mb-4 italic">1.0 Acceptance of Protocol</h2>
+          <p>By accessing Deskmates, you agree to abide by the high-intensity focus protocols established by the Founder. If you do not agree to these terms, you are prohibited from synchronizing with the lobby.</p>
+        </section>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-            <div>
-                <label className="text-xs uppercase text-[#52525B] font-bold block mb-2">Why do you want to moderate?</label>
-                <textarea 
-                    value={reason}
-                    onChange={(e) => setReason(e.target.value)}
-                    className="w-full bg-black border border-[#27272a] p-4 rounded-lg text-sm focus:border-[#00FF94] outline-none h-32 resize-none transition-colors"
-                    placeholder="I want to keep the focus high..."
-                    required
-                />
-            </div>
+        <section>
+          <h2 className="text-2xl text-white font-black uppercase tracking-tighter mb-4 italic">2.0 Agent Conduct (Rules of the Room)</h2>
+          <p>To maintain the focus environment, every Agent must adhere to the following:</p>
+          <ul className="list-disc ml-6 space-y-2 text-yellow-500/80 font-bold uppercase italic text-sm">
+            <li>Strict focus: No disruptive background noise or visuals.</li>
+            <li>Neural Integrity: No harassment, bullying, or inappropriate content in video feeds or chat.</li>
+            <li>Protocol Silence: Microphones must remain muted unless otherwise authorized by a Moderator.</li>
+          </ul>
+        </section>
 
-            <button disabled={loading} className="w-full bg-[#00FF94] text-black font-bold uppercase py-4 rounded hover:bg-[#00cc76] transition-colors tracking-widest text-xs">
-                {loading ? "Transmitting..." : "Submit Application"}
-            </button>
-        </form>
+        <section>
+          <h2 className="text-2xl text-white font-black uppercase tracking-tighter mb-4 italic">3.0 System Limitations & Liability</h2>
+          <p>Deskmates is provided as a study tool "as is." We are not liable for any technical failures, data loss, or "signal drops" during study sessions. Participation is at the Agent's own risk.</p>
+        </section>
 
-        <button onClick={() => router.back()} className="mt-6 flex items-center gap-2 text-xs text-[#52525B] hover:text-white transition-colors mx-auto">
-            <ChevronLeft className="w-3 h-3" /> Cancel
-        </button>
+        <section>
+          <h2 className="text-2xl text-white font-black uppercase tracking-tighter mb-4 italic">4.0 Founder Authority (Omega Clearance)</h2>
+          <p>The Founder reserves the right to terminate any room session, reset Agent ranks, or ban any user who violates the core focus protocols without prior notice.</p>
+        </section>
       </div>
     </div>
   );
@@ -181,40 +175,262 @@ body {
 }
 </file>
 
-<file path="app/layout.tsx">
-import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
-import "./globals.css";
+<file path="components/MeetingRoom.js">
+import React from 'react';
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
+const MeetingRoom = ({ roomData, role, onNuke }) => {
+  // Logic: Mods and Godmode get the powerful Host URL
+  const isPrivileged = role === 'moderator' || role === 'godmode';
+  const finalUrl = isPrivileged ? roomData.hostUrl : roomData.userUrl;
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+  // These parameters make the UI look clean and integrated
+  const params = new URLSearchParams({
+    embed: 'true',
+    displayNames: 'on',
+    background: 'off',
+    chat: 'on',
+    people: 'on'
+  }).toString();
 
-export const metadata: Metadata = {
-  title: "Create Next App",
-  description: "Generated by create next app",
+  return (
+    <div style={{ width: '100%', height: '85vh', position: 'relative' }}>
+      <iframe
+        src={`${finalUrl}?${params}`}
+        allow="camera; microphone; fullscreen; display-capture"
+        style={{ width: '100%', height: '100%', border: 'none', borderRadius: '12px' }}
+      />
+      
+      {isPrivileged && (
+        <button 
+          onClick={() => onNuke(roomData.meetingId)}
+          style={{ position: 'absolute', top: '10px', right: '10px', background: 'red', color: 'white', border: 'none', padding: '10px', cursor: 'pointer', borderRadius: '5px' }}
+        >
+          FORCE END SESSION
+        </button>
+      )}
+    </div>
+  );
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+export default MeetingRoom;
+</file>
+
+<file path="public/file.svg">
+<svg fill="none" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><path d="M14.5 13.5V5.41a1 1 0 0 0-.3-.7L9.8.29A1 1 0 0 0 9.08 0H1.5v13.5A2.5 2.5 0 0 0 4 16h8a2.5 2.5 0 0 0 2.5-2.5m-1.5 0v-7H8v-5H3v12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1M9.5 5V2.12L12.38 5zM5.13 5h-.62v1.25h2.12V5zm-.62 3h7.12v1.25H4.5zm.62 3h-.62v1.25h7.12V11z" clip-rule="evenodd" fill="#666" fill-rule="evenodd"/></svg>
+</file>
+
+<file path="public/globe.svg">
+<svg fill="none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><g clip-path="url(#a)"><path fill-rule="evenodd" clip-rule="evenodd" d="M10.27 14.1a6.5 6.5 0 0 0 3.67-3.45q-1.24.21-2.7.34-.31 1.83-.97 3.1M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16m.48-1.52a7 7 0 0 1-.96 0H7.5a4 4 0 0 1-.84-1.32q-.38-.89-.63-2.08a40 40 0 0 0 3.92 0q-.25 1.2-.63 2.08a4 4 0 0 1-.84 1.31zm2.94-4.76q1.66-.15 2.95-.43a7 7 0 0 0 0-2.58q-1.3-.27-2.95-.43a18 18 0 0 1 0 3.44m-1.27-3.54a17 17 0 0 1 0 3.64 39 39 0 0 1-4.3 0 17 17 0 0 1 0-3.64 39 39 0 0 1 4.3 0m1.1-1.17q1.45.13 2.69.34a6.5 6.5 0 0 0-3.67-3.44q.65 1.26.98 3.1M8.48 1.5l.01.02q.41.37.84 1.31.38.89.63 2.08a40 40 0 0 0-3.92 0q.25-1.2.63-2.08a4 4 0 0 1 .85-1.32 7 7 0 0 1 .96 0m-2.75.4a6.5 6.5 0 0 0-3.67 3.44 29 29 0 0 1 2.7-.34q.31-1.83.97-3.1M4.58 6.28q-1.66.16-2.95.43a7 7 0 0 0 0 2.58q1.3.27 2.95.43a18 18 0 0 1 0-3.44m.17 4.71q-1.45-.12-2.69-.34a6.5 6.5 0 0 0 3.67 3.44q-.65-1.27-.98-3.1" fill="#666"/></g><defs><clipPath id="a"><path fill="#fff" d="M0 0h16v16H0z"/></clipPath></defs></svg>
+</file>
+
+<file path="public/next.svg">
+<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 394 80"><path fill="#000" d="M262 0h68.5v12.7h-27.2v66.6h-13.6V12.7H262V0ZM149 0v12.7H94v20.4h44.3v12.6H94v21h55v12.6H80.5V0h68.7zm34.3 0h-17.8l63.8 79.4h17.9l-32-39.7 32-39.6h-17.9l-23 28.6-23-28.6zm18.3 56.7-9-11-27.1 33.7h17.8l18.3-22.7z"/><path fill="#000" d="M81 79.3 17 0H0v79.3h13.6V17l50.2 62.3H81Zm252.6-.4c-1 0-1.8-.4-2.5-1s-1.1-1.6-1.1-2.6.3-1.8 1-2.5 1.6-1 2.6-1 1.8.3 2.5 1a3.4 3.4 0 0 1 .6 4.3 3.7 3.7 0 0 1-3 1.8zm23.2-33.5h6v23.3c0 2.1-.4 4-1.3 5.5a9.1 9.1 0 0 1-3.8 3.5c-1.6.8-3.5 1.3-5.7 1.3-2 0-3.7-.4-5.3-1s-2.8-1.8-3.7-3.2c-.9-1.3-1.4-3-1.4-5h6c.1.8.3 1.6.7 2.2s1 1.2 1.6 1.5c.7.4 1.5.5 2.4.5 1 0 1.8-.2 2.4-.6a4 4 0 0 0 1.6-1.8c.3-.8.5-1.8.5-3V45.5zm30.9 9.1a4.4 4.4 0 0 0-2-3.3 7.5 7.5 0 0 0-4.3-1.1c-1.3 0-2.4.2-3.3.5-.9.4-1.6 1-2 1.6a3.5 3.5 0 0 0-.3 4c.3.5.7.9 1.3 1.2l1.8 1 2 .5 3.2.8c1.3.3 2.5.7 3.7 1.2a13 13 0 0 1 3.2 1.8 8.1 8.1 0 0 1 3 6.5c0 2-.5 3.7-1.5 5.1a10 10 0 0 1-4.4 3.5c-1.8.8-4.1 1.2-6.8 1.2-2.6 0-4.9-.4-6.8-1.2-2-.8-3.4-2-4.5-3.5a10 10 0 0 1-1.7-5.6h6a5 5 0 0 0 3.5 4.6c1 .4 2.2.6 3.4.6 1.3 0 2.5-.2 3.5-.6 1-.4 1.8-1 2.4-1.7a4 4 0 0 0 .8-2.4c0-.9-.2-1.6-.7-2.2a11 11 0 0 0-2.1-1.4l-3.2-1-3.8-1c-2.8-.7-5-1.7-6.6-3.2a7.2 7.2 0 0 1-2.4-5.7 8 8 0 0 1 1.7-5 10 10 0 0 1 4.3-3.5c2-.8 4-1.2 6.4-1.2 2.3 0 4.4.4 6.2 1.2 1.8.8 3.2 2 4.3 3.4 1 1.4 1.5 3 1.5 5h-5.8z"/></svg>
+</file>
+
+<file path="public/vercel.svg">
+<svg fill="none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1155 1000"><path d="m577.3 0 577.4 1000H0z" fill="#fff"/></svg>
+</file>
+
+<file path="public/window.svg">
+<svg fill="none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path fill-rule="evenodd" clip-rule="evenodd" d="M1.5 2.5h13v10a1 1 0 0 1-1 1h-11a1 1 0 0 1-1-1zM0 1h16v11.5a2.5 2.5 0 0 1-2.5 2.5h-11A2.5 2.5 0 0 1 0 12.5zm3.75 4.5a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5M7 4.75a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0m1.75.75a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5" fill="#666"/></svg>
+</file>
+
+<file path="services/MeetingRoom.js">
+import React from 'react';
+
+const MeetingRoom = ({ room, role, onEndSession }) => {
+  // If the user is a Moderator or in Godmode, give them the hostUrl [cite: 1, 7]
+  // This prevents the "Waiting for Moderator" screen you saw earlier.
+  const isPrivileged = role === 'moderator' || role === 'godmode';
+  const finalLink = isPrivileged ? room.hostUrl : room.userUrl;
+
+  const uiParams = new URLSearchParams({
+    embed: 'true',
+    displayNames: 'on',
+    background: 'off',
+    chat: 'on'
+  }).toString();
+
   return (
-    <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        {children}
-      </body>
-    </html>
+    <div style={{ width: '100%', height: '100%', position: 'relative' }}>
+      <iframe
+        src={`${finalLink}?${uiParams}`}
+        allow="camera; microphone; fullscreen; display-capture"
+        style={{ width: '100%', height: '100%', border: 'none', borderRadius: '12px' }}
+        title={room.title}
+      />
+      
+      {isPrivileged && (
+        <button 
+          onClick={() => onEndSession(room)}
+          style={{
+            position: 'absolute', bottom: '20px', right: '20px',
+            backgroundColor: '#ff4444', color: 'white', padding: '10px 20px',
+            borderRadius: '8px', border: 'none', cursor: 'pointer', zIndex: 10
+          }}
+        >
+          END SESSION
+        </button>
+      )}
+    </div>
   );
+};
+
+export default MeetingRoom;
+</file>
+
+<file path="utils/badges.ts">
+// utils/badges.ts
+
+export type BadgeData = { id: string; label: string; color: string; desc: string };
+
+export const calculateBadges = (stats: any, role: string): BadgeData[] => {
+  const badges: BadgeData[] = [];
+  
+  // ROLE-BASED
+  if (role === 'founder') badges.push({ id: 'founder', label: 'FOUNDER', color: '#fbbf24', desc: "Project Creator. Omega Clearance." });
+  if (role === 'moderator') badges.push({ id: 'admin', label: 'ADMIN', color: '#00FF94', desc: "Verified Platform Operative." });
+
+  // LOYALTY (Launched March 8, 2026)
+  const joinDate = stats.createdAt?.toDate() || new Date();
+  if (joinDate.toDateString() === new Date("2026-03-08").toDateString()) {
+    badges.push({ id: 'veteran', label: '1ST DAY-ER', color: '#8b5cf6', desc: "Synchronized on Launch Day." });
+  }
+
+  // ACADEMIC
+  const avg = stats.subjects?.length > 0 
+    ? stats.subjects.reduce((acc: number, s: any) => {
+        const score = parseFloat(s.grade);
+        return acc + (isNaN(score) ? 10 : score); // Xuất sắc = 10 fallback
+      }, 0) / stats.subjects.length 
+    : 0;
+  if (avg >= 9.0) badges.push({ id: 'weapon', label: 'ACADEMIC WEAPON', color: '#ef4444', desc: "Neural Transcript Average ≥ 9.0." });
+
+  // FOCUS TIME
+  const hours = (stats.totalSeconds || 0) / 3600;
+  if (hours >= 1) badges.push({ id: 'init', label: 'INITIATE', color: '#94a3b8', desc: "1+ Hour of Focus." });
+  if (hours >= 10) badges.push({ id: 'spec', label: 'SPECIALIST', color: '#fbbf24', desc: "10+ Hours of Focus." });
+  if (hours >= 50) badges.push({ id: 'elite', label: 'ELITE', color: '#00FF94', desc: "50+ Hours of Focus." });
+  if (hours >= 100) badges.push({ id: 'omega', label: 'OMEGA', color: '#ffffff', desc: "100+ Hours of Focus." });
+
+  return badges;
+};
+</file>
+
+<file path="eslint.config.mjs">
+import { defineConfig, globalIgnores } from "eslint/config";
+import nextVitals from "eslint-config-next/core-web-vitals";
+import nextTs from "eslint-config-next/typescript";
+
+const eslintConfig = defineConfig([
+  ...nextVitals,
+  ...nextTs,
+  // Override default ignores of eslint-config-next.
+  globalIgnores([
+    // Default ignores of eslint-config-next:
+    ".next/**",
+    "out/**",
+    "build/**",
+    "next-env.d.ts",
+  ]),
+]);
+
+export default eslintConfig;
+</file>
+
+<file path="next.config.ts">
+import type { NextConfig } from "next";
+
+const nextConfig: NextConfig = {
+  /* config options here */
+};
+
+export default nextConfig;
+</file>
+
+<file path="postcss.config.mjs">
+const config = {
+  plugins: {
+    "@tailwindcss/postcss": {},
+  },
+};
+
+export default config;
+</file>
+
+<file path="README.md">
+This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+
+## Getting Started
+
+First, run the development server:
+
+```bash
+npm run dev
+# or
+yarn dev
+# or
+pnpm dev
+# or
+bun dev
+```
+
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+
+You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+
+This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+
+## Learn More
+
+To learn more about Next.js, take a look at the following resources:
+
+- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
+- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+
+You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+
+## Deploy on Vercel
+
+The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+
+Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+</file>
+
+<file path="tsconfig.json">
+{
+  "compilerOptions": {
+    "target": "ES2017",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "react-jsx",
+    "incremental": true,
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    "paths": {
+      "@/*": ["./*"]
+    }
+  },
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts",
+    ".next/dev/types/**/*.ts",
+    "**/*.mts"
+  ],
+  "exclude": ["node_modules"]
 }
 </file>
 
@@ -272,11 +488,12 @@ export default function Leaderboard() {
       
       {isGodMode && <GodModeBackground />}
 
-      <header className={`p-6 border-b relative z-10 backdrop-blur-md sticky top-0 ${isGodMode ? 'bg-black/50 border-yellow-500/30' : 'bg-[#121212]/50 border-[#27272a]'}`}>
-        <h1 className={`text-2xl font-black italic tracking-tighter ${isGodMode ? 'text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-orange-500' : 'text-[#00FF94]'}`}>
+      <header className="p-6 border-b border-white/5 relative z-10 backdrop-blur-md sticky top-0 bg-black/50">
+        {/* FIXED: YELLOW COLOR FOR ALL USERS */}
+        <h1 className="text-2xl font-black italic tracking-tighter text-yellow-500">
           RANKINGS
         </h1>
-        <p className={`text-xs uppercase tracking-widest mt-1 ${isGodMode ? 'text-yellow-700 font-bold' : 'text-[#A1A1AA]'}`}>
+        <p className="text-xs uppercase tracking-widest mt-1 text-yellow-900 font-bold">
           Top Focus Agents
         </p>
       </header>
@@ -362,10 +579,10 @@ export default function Leaderboard() {
 "use client";
 
 import { useState } from 'react';
-import { signInWithPopup } from 'firebase/auth';
+import { signInWithPopup, GoogleAuthProvider } from 'firebase/auth'; // Added provider
 import { auth, googleProvider } from '@/lib/firebase';
 import { useRouter } from 'next/navigation';
-import { Chrome } from 'lucide-react'; // Simulating Google Icon
+import { Chrome } from 'lucide-react';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -373,51 +590,123 @@ export default function LoginPage() {
 
   const handleGoogleLogin = async () => {
     try {
+      // THE FIX: Force Google to show the account picker
+      googleProvider.setCustomParameters({ prompt: 'select_account' });
       await signInWithPopup(auth, googleProvider);
-      router.push('/'); // Teleport to Lobby on success
+      router.push('/'); 
     } catch (err: any) {
       setError("Access Denied: " + err.message);
     }
   };
 
   return (
-    <div className="min-h-screen bg-[#050505] flex flex-col items-center justify-center p-6 text-white relative overflow-hidden">
-      {/* Background Decor */}
-      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#7000FF] via-[#00FF94] to-[#00D4FF]" />
+    <div className="min-h-screen bg-[#050505] flex flex-col items-center justify-center p-6 text-white font-mono">
+      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-yellow-500 via-[#00FF94] to-yellow-500 opacity-30" />
       
       <div className="z-10 w-full max-w-sm text-center space-y-8">
-        <div>
-          <h1 className="text-4xl font-black italic tracking-tighter text-[#00FF94] mb-2">DESKMATES</h1>
-          <p className="text-xs text-[#52525B] uppercase tracking-[0.3em]">Neural Link Interface</p>
-        </div>
-
-        <div className="bg-[#121212] border border-[#27272a] p-8 rounded-3xl shadow-2xl shadow-[#00FF94]/5 space-y-6">
+        <h1 className="text-4xl font-black italic tracking-tighter text-yellow-500">DESKMATES</h1>
+        
+        <div className="bg-[#121212] border border-[#27272a] p-8 rounded-[3rem] space-y-6 shadow-2xl">
           <div className="space-y-2">
-            <h2 className="text-lg font-bold">Identity Verification</h2>
-            <p className="text-xs text-[#A1A1AA]">Connect your Google Neural ID to proceed.</p>
+            <h2 className="text-lg font-bold uppercase tracking-widest">Neural ID Link</h2>
+            <p className="text-[10px] text-[#A1A1AA] uppercase font-bold tracking-widest">Establish biometric uplink via Google</p>
           </div>
 
           <button 
             onClick={handleGoogleLogin}
-            className="w-full flex items-center justify-center gap-3 bg-white text-black py-4 rounded-xl font-bold hover:bg-[#e4e4e4] transition-all hover:scale-[1.02]"
+            className="w-full flex items-center justify-center gap-3 bg-white text-black py-5 rounded-2xl font-black uppercase text-xs tracking-widest hover:bg-yellow-500 transition-all active:scale-95"
           >
-            <Chrome className="w-5 h-5" /> {/* Using Chrome icon as proxy for Google */}
-            Sign in with Google
+            <Chrome className="w-5 h-5" /> Sign in with Google
           </button>
           
-          {error && <p className="text-red-500 text-xs mt-4 border border-red-500/20 p-2 rounded bg-red-500/10">{error}</p>}
+          {error && <p className="text-red-500 text-[10px] font-bold uppercase tracking-widest">{error}</p>}
         </div>
-
-        <p className="text-[10px] text-[#27272a] uppercase">Secure Connection • V1.0.0</p>
       </div>
     </div>
   );
 }
 </file>
 
+<file path="app/privacy/page.tsx">
+export default function PrivacyPage() {
+  return (
+    <div className="min-h-screen bg-black text-white p-12 font-sans selection:bg-yellow-500 selection:text-black">
+      <div className="max-w-4xl mx-auto">
+        <h1 className="text-6xl font-black mb-12 italic border-b-8 border-yellow-500 pb-6 tracking-tighter uppercase">Privacy Protocol v1.0</h1>
+        
+        <div className="space-y-12 text-gray-400 leading-relaxed">
+          <section>
+            <h2 className="text-2xl text-white font-black uppercase tracking-tighter mb-4 italic">1.0 Control Identification</h2>
+            <p>This study platform is operated by the Deskmates Development Team. We are committed to protecting the digital privacy of every student synchronized with our study network. This policy outlines how we handle data during your study sessions.</p>
+          </section>
+
+          <section>
+            <h2 className="text-2xl text-white font-black uppercase tracking-tighter mb-4 italic">2.0 Data Synchronization (Collection)</h2>
+            <p>We only collect the minimum data necessary to maintain your study rank and session stability:</p>
+            <ul className="list-disc ml-6 mt-4 space-y-4">
+              <li><strong className="text-yellow-500">Google Identity:</strong> We collect your name and email address via Google OAuth to verify your identity and prevent duplicate accounts.</li>
+              <li><strong className="text-yellow-500">Technical Metadata:</strong> We record session timestamps and room participation durations to calculate your "Stronghold Rank."</li>
+              <li><strong className="text-yellow-500">Authentication Logs:</strong> IP addresses are logged temporarily by Firebase to protect against brute-force attacks.</li>
+            </ul>
+          </section>
+
+          <section>
+            <h2 className="text-2xl text-white font-black uppercase tracking-tighter mb-4 italic">3.0 Protocol Usage (How we use data)</h2>
+            <p>Your data is used strictly for internal platform functions. We do not engage in data mining, sell user information to third parties, or use your data for advertising. The data ensures you are placed correctly in the Study Lobby and can access privileged rooms based on your rank.</p>
+          </section>
+
+          <section>
+            <h2 className="text-2xl text-white font-black uppercase tracking-tighter mb-4 italic">4.0 Neural Security (Data Protection)</h2>
+            <p>All authentication and database storage is handled via the <strong className="text-white">Google Firebase ecosystem</strong>. We do not store passwords on our local servers. Data transmission is encrypted via SSL/TLS protocols to ensure your uplink remains private.</p>
+          </section>
+
+          <section>
+            <h2 className="text-2xl text-white font-black uppercase tracking-tighter mb-4 italic">5.0 Agent Rights</h2>
+            <p>You have the right to request a full purge of your data at any time. To request account deletion, contact the system founder. Upon verification, your identity will be removed from our active waitlist and user databases within 30 days.</p>
+          </section>
+
+          <footer className="pt-20 border-t border-white/5 text-[10px] uppercase tracking-widest text-gray-600">
+            Last Updated: February 26, 2026 • Deskmates Labs • Vietnam
+          </footer>
+        </div>
+      </div>
+    </div>
+  );
+}
+</file>
+
+<file path="app/layout.tsx">
+import type { Metadata } from "next";
+import { Inter } from "next/font/google"; 
+import "./globals.css";
+
+const inter = Inter({
+  variable: "--font-inter",
+  subsets: ["latin", "vietnamese"], // Essential for Vietnamese characters
+});
+
+export const metadata: Metadata = {
+  title: "DESKMATES | Neural Link Interface",
+  description: "A Nguyen Nam Long Project",
+};
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <html lang="vi">
+      <body className={`${inter.variable} antialiased font-sans`}>
+        {children}
+      </body>
+    </html>
+  );
+}
+</file>
+
 <file path="components/BottomNav.tsx">
-// components/BottomNav.tsx
-"use client"; // Required for client-side interactivity
+"use client";
 
 import Link from "next/link";
 import { Hash, Trophy, User } from "lucide-react";
@@ -425,195 +714,30 @@ import { usePathname } from "next/navigation";
 
 export default function BottomNav() {
   const pathname = usePathname();
-
   const isActive = (path: string) => pathname === path;
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-[#121212]/80 backdrop-blur-xl border-t border-[#27272a] flex justify-around py-4 px-6 z-50">
-      <Link href="/" className={`flex flex-col items-center gap-1 ${isActive('/') ? "text-[#00FF94]" : "text-[#52525B]"}`}>
+    <nav className="fixed bottom-0 left-0 right-0 bg-black/80 backdrop-blur-xl border-t border-white/5 flex justify-around py-4 px-6 z-50">
+      <Link href="/" className={`flex flex-col items-center gap-1 transition-colors ${isActive('/') ? "text-yellow-500" : "text-gray-600"}`}>
         <Hash className="w-5 h-5" />
-        <span className="text-[8px] font-black uppercase">Lobby</span>
+        <span className="text-[8px] font-black uppercase tracking-widest">Lobby</span>
       </Link>
-      <Link href="/leaderboard" className={`flex flex-col items-center gap-1 ${isActive('/leaderboard') ? "text-[#00FF94]" : "text-[#52525B]"}`}>
+      <Link href="/leaderboard" className={`flex flex-col items-center gap-1 transition-colors ${isActive('/leaderboard') ? "text-yellow-500" : "text-gray-600"}`}>
         <Trophy className="w-5 h-5" />
-        <span className="text-[8px] font-black uppercase">Rank</span>
+        <span className="text-[8px] font-black uppercase tracking-widest">Rank</span>
       </Link>
-      <Link href="/profile" className={`flex flex-col items-center gap-1 ${isActive('/profile') ? "text-[#00FF94]" : "text-[#52525B]"}`}>
+      <Link href="/profile" className={`flex flex-col items-center gap-1 transition-colors ${isActive('/profile') ? "text-yellow-500" : "text-gray-600"}`}>
         <User className="w-5 h-5" />
-        <span className="text-[8px] font-black uppercase">Me</span>
+        <span className="text-[8px] font-black uppercase tracking-widest">Profile</span>
       </Link>
     </nav>
   );
 }
 </file>
 
-<file path="components/GodMode.tsx">
-"use client";
-
-import { ShieldCheck, Cpu, Crosshair, AlertTriangle, Trash2, Radio, Zap } from 'lucide-react';
-
-/**
- * BACKGROUND: The "Cool" Atmosphere
- * Applied to: Admin, Lobby, Room, Profile
- */
-export const GodModeBackground = () => (
-  <div className="fixed inset-0 pointer-events-none z-0 bg-[#020202]">
-    {/* Deep Space Gold Fog */}
-    <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[100vw] h-[60vh] bg-yellow-600/10 rounded-full blur-[120px] animate-pulse" />
-    <div className="absolute bottom-0 right-0 w-[80vw] h-[50vh] bg-orange-900/10 rounded-full blur-[100px]" />
-    
-    {/* Falling Gold Dust */}
-    <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-30 animate-pulse" />
-    
-    {/* Subtle Grid */}
-    <div className="absolute inset-0 bg-[linear-gradient(rgba(255,215,0,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,215,0,0.02)_1px,transparent_1px)] bg-[size:40px_40px] opacity-20" />
-  </div>
-);
-
-/**
- * HEADER: Clean & Infinite
- */
-export const OmegaHeader = ({ userName }: { userName: string }) => (
-  <div className="relative z-10 mb-12 group">
-    {/* Glowing Underline */}
-    <div className="absolute bottom-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-yellow-500/50 to-transparent" />
-    
-    <div className="relative flex justify-between items-end pb-6 px-2">
-        <div>
-            <div className="flex items-center gap-3 mb-2">
-                <ShieldCheck className="text-yellow-400 w-5 h-5 animate-bounce" />
-                <span className="text-[10px] text-yellow-600 font-bold tracking-[0.4em] uppercase">Pax Deskmates</span>
-            </div>
-            <h1 className="text-6xl font-black italic tracking-tighter text-transparent bg-clip-text bg-gradient-to-b from-yellow-100 via-yellow-500 to-yellow-800 drop-shadow-[0_0_20px_rgba(255,215,0,0.3)]">
-                GOD MODE
-            </h1>
-        </div>
-        <div className="text-right hidden sm:block">
-            <div className="text-[9px] text-yellow-800 uppercase tracking-widest mb-1">Total Focus</div>
-            <div className="text-3xl font-bold text-yellow-500 font-mono">
-                ∞
-            </div>
-        </div>
-    </div>
-  </div>
-);
-
-/**
- * CORE: Clean Deployment Frame
- */
-export const ReactorCore = ({ children }: { children: React.ReactNode }) => (
-  <div className="relative z-10 mb-16 max-w-4xl mx-auto">
-    <div className="bg-[#050505]/50 backdrop-blur-sm border border-yellow-500/20 p-8 rounded-2xl relative overflow-hidden shadow-[0_0_50px_rgba(255,200,0,0.05)]">
-        
-        {/* Corner Accents */}
-        <div className="absolute top-0 left-0 w-2 h-2 border-t border-l border-yellow-500" />
-        <div className="absolute top-0 right-0 w-2 h-2 border-t border-r border-yellow-500" />
-        <div className="absolute bottom-0 left-0 w-2 h-2 border-b border-l border-yellow-500" />
-        <div className="absolute bottom-0 right-0 w-2 h-2 border-b border-r border-yellow-500" />
-
-        <div className="relative">
-            <div className="flex items-center gap-4 mb-8 border-b border-yellow-900/20 pb-4">
-                <Crosshair className="w-5 h-5 text-yellow-500 animate-[spin_10s_linear_infinite]" />
-                <div>
-                    <h2 className="font-bold text-sm uppercase text-yellow-500 tracking-[0.2em]">Deploy Signal</h2>
-                </div>
-            </div>
-            {children}
-        </div>
-    </div>
-  </div>
-);
-
-/**
- * LIST ITEM: Clean Signal Card
- */
-export const SignalCard = ({ room, onClose }: { room: any, onClose: (id: string) => void }) => (
-  <div className={`relative bg-[#080808] border-l-2 ${room.status === 'closed' ? 'border-red-900 opacity-50 grayscale' : 'border-yellow-500'} p-6 flex justify-between items-center group overflow-hidden transition-all hover:bg-[#0A0A0A]`}>
-      
-      {/* Golden Shine on Hover */}
-      <div className="absolute inset-0 bg-gradient-to-r from-yellow-500/5 to-transparent translate-x-[-100%] group-hover:translate-x-0 transition-transform duration-700 ease-out" />
-
-      <div className="relative z-10 flex items-center gap-6">
-          <div className="flex flex-col items-center justify-center w-10 h-10 border border-yellow-900/30 rounded bg-black/50">
-             <Radio className="w-4 h-4 text-yellow-600" />
-          </div>
-          <div>
-            <div className="font-bold text-lg text-gray-200 group-hover:text-yellow-200 transition-colors uppercase tracking-tight">{room.title}</div>
-            <div className="flex items-center gap-3 mt-1">
-                <span className={`text-[9px] font-black uppercase tracking-widest ${room.status === 'closed' ? 'text-red-500' : 'text-yellow-600'}`}>
-                    {room.status}
-                </span>
-            </div>
-          </div>
-      </div>
-      
-      {room.status !== 'closed' && (
-      <button 
-          onClick={() => onClose(room.id)}
-          className="relative z-10 bg-[#120505] border border-red-900/30 text-red-600 px-4 py-3 rounded hover:bg-red-900 hover:text-white transition-all uppercase text-[10px] font-black tracking-widest"
-      >
-          TERMINATE
-      </button>
-      )}
-  </div>
-);
-
-/**
- * LOADING
- */
-export const LoadingSequence = () => (
-    <div className="h-screen bg-black flex flex-col items-center justify-center gap-8 relative overflow-hidden font-mono">
-        <div className="w-24 h-24 border-t-2 border-yellow-500 rounded-full animate-spin shadow-[0_0_30px_#FFD700]" />
-        <div className="text-yellow-500 font-black text-xl uppercase tracking-[0.5em] animate-pulse">
-            SYNCING...
-        </div>
-    </div>
-);
-</file>
-
-<file path="components/MeetingRoom.js">
-import React from 'react';
-
-const MeetingRoom = ({ roomData, role, onNuke }) => {
-  // Logic: Mods and Godmode get the powerful Host URL
-  const isPrivileged = role === 'moderator' || role === 'godmode';
-  const finalUrl = isPrivileged ? roomData.hostUrl : roomData.userUrl;
-
-  // These parameters make the UI look clean and integrated
-  const params = new URLSearchParams({
-    embed: 'true',
-    displayNames: 'on',
-    background: 'off',
-    chat: 'on',
-    people: 'on'
-  }).toString();
-
-  return (
-    <div style={{ width: '100%', height: '85vh', position: 'relative' }}>
-      <iframe
-        src={`${finalUrl}?${params}`}
-        allow="camera; microphone; fullscreen; display-capture"
-        style={{ width: '100%', height: '100%', border: 'none', borderRadius: '12px' }}
-      />
-      
-      {isPrivileged && (
-        <button 
-          onClick={() => onNuke(roomData.meetingId)}
-          style={{ position: 'absolute', top: '10px', right: '10px', background: 'red', color: 'white', border: 'none', padding: '10px', cursor: 'pointer', borderRadius: '5px' }}
-        >
-          FORCE END SESSION
-        </button>
-      )}
-    </div>
-  );
-};
-
-export default MeetingRoom;
-</file>
-
 <file path="components/Roomlist.js">
 import React, { useEffect, useState } from 'react';
-import { db, auth } from '../firebaseConfig'; // Your Firebase init file
+import { db, auth } from '../lib/firebase';
 import { collection, onSnapshot, query, where } from 'firebase/firestore';
 
 const RoomList = () => {
@@ -687,684 +811,6 @@ const RoomList = () => {
 };
 
 export default RoomList;
-</file>
-
-<file path="eslint.config.mjs">
-import { defineConfig, globalIgnores } from "eslint/config";
-import nextVitals from "eslint-config-next/core-web-vitals";
-import nextTs from "eslint-config-next/typescript";
-
-const eslintConfig = defineConfig([
-  ...nextVitals,
-  ...nextTs,
-  // Override default ignores of eslint-config-next.
-  globalIgnores([
-    // Default ignores of eslint-config-next:
-    ".next/**",
-    "out/**",
-    "build/**",
-    "next-env.d.ts",
-  ]),
-]);
-
-export default eslintConfig;
-</file>
-
-<file path="next-env.d.ts">
-/// <reference types="next" />
-/// <reference types="next/image-types/global" />
-import "./.next/dev/types/routes.d.ts";
-
-// NOTE: This file should not be edited
-// see https://nextjs.org/docs/app/api-reference/config/typescript for more information.
-</file>
-
-<file path="next.config.ts">
-import type { NextConfig } from "next";
-
-const nextConfig: NextConfig = {
-  /* config options here */
-};
-
-export default nextConfig;
-</file>
-
-<file path="pages/CreateRoomPage.js">
-// src/pages/CreateRoomPage.js
-import { createDeskmatesRoom } from '../services/roomService';
-
-const handleCreateClick = async () => {
-  const roomTitle = "My New Study Room"; // Get this from your input field
-  const currentUser = { displayName: "YourName", uid: "123" }; // Get this from your Auth
-
-  try {
-    // This is the "Hook": It calls the service, creates the Whereby room, 
-    // and saves everything to /artifacts/deskmates-online/public/data/rooms[cite: 5, 7].
-    const roomId = await createDeskmatesRoom(roomTitle, currentUser);
-    
-    console.log("Room Created! ID is:", roomId);
-    // Redirect user to the new room page or close the modal
-  } catch (error) {
-    alert("Creation failed. Check console.");
-  }
-};
-</file>
-
-<file path="pages/RoomPage.js">
-// src/pages/RoomPage.js
-import React, { useEffect, useState } from 'react';
-import { db } from '../firebaseConfig';
-import { doc, getDoc } from 'firebase/firestore';
-import MeetingRoom from '../components/MeetingRoom';
-
-const RoomPage = ({ roomId, currentUserId }) => {
-  const [roomData, setRoomData] = useState(null);
-
-  useEffect(() => {
-    // Fetch the room data from the path in your schema [cite: 5, 6]
-    const fetchRoom = async () => {
-      const docRef = doc(db, 'artifacts/deskmates-online/public/data/rooms', roomId);
-      const snap = await getDoc(docRef);
-      if (snap.exists()) setRoomData(snap.data());
-    };
-    fetchRoom();
-  }, [roomId]);
-
-  if (!roomData) return <div>Loading...</div>;
-
-  // This is the "Hook": Pass the hostUrl/userUrl logic to the iframe component
-  // Use 'moderator' if the current user created it, otherwise 'user'
-  const role = currentUserId === roomData.moderatorId ? 'moderator' : 'user';
-
-  return (
-    <div className="room-container">
-      <h1>{roomData.title}</h1>
-      <MeetingRoom 
-        room={roomData} 
-        role={role} 
-        onEndSession={() => console.log("Nuking...")} 
-      />
-    </div>
-  );
-};
-</file>
-
-<file path="postcss.config.mjs">
-const config = {
-  plugins: {
-    "@tailwindcss/postcss": {},
-  },
-};
-
-export default config;
-</file>
-
-<file path="public/file.svg">
-<svg fill="none" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><path d="M14.5 13.5V5.41a1 1 0 0 0-.3-.7L9.8.29A1 1 0 0 0 9.08 0H1.5v13.5A2.5 2.5 0 0 0 4 16h8a2.5 2.5 0 0 0 2.5-2.5m-1.5 0v-7H8v-5H3v12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1M9.5 5V2.12L12.38 5zM5.13 5h-.62v1.25h2.12V5zm-.62 3h7.12v1.25H4.5zm.62 3h-.62v1.25h7.12V11z" clip-rule="evenodd" fill="#666" fill-rule="evenodd"/></svg>
-</file>
-
-<file path="public/globe.svg">
-<svg fill="none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><g clip-path="url(#a)"><path fill-rule="evenodd" clip-rule="evenodd" d="M10.27 14.1a6.5 6.5 0 0 0 3.67-3.45q-1.24.21-2.7.34-.31 1.83-.97 3.1M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16m.48-1.52a7 7 0 0 1-.96 0H7.5a4 4 0 0 1-.84-1.32q-.38-.89-.63-2.08a40 40 0 0 0 3.92 0q-.25 1.2-.63 2.08a4 4 0 0 1-.84 1.31zm2.94-4.76q1.66-.15 2.95-.43a7 7 0 0 0 0-2.58q-1.3-.27-2.95-.43a18 18 0 0 1 0 3.44m-1.27-3.54a17 17 0 0 1 0 3.64 39 39 0 0 1-4.3 0 17 17 0 0 1 0-3.64 39 39 0 0 1 4.3 0m1.1-1.17q1.45.13 2.69.34a6.5 6.5 0 0 0-3.67-3.44q.65 1.26.98 3.1M8.48 1.5l.01.02q.41.37.84 1.31.38.89.63 2.08a40 40 0 0 0-3.92 0q.25-1.2.63-2.08a4 4 0 0 1 .85-1.32 7 7 0 0 1 .96 0m-2.75.4a6.5 6.5 0 0 0-3.67 3.44 29 29 0 0 1 2.7-.34q.31-1.83.97-3.1M4.58 6.28q-1.66.16-2.95.43a7 7 0 0 0 0 2.58q1.3.27 2.95.43a18 18 0 0 1 0-3.44m.17 4.71q-1.45-.12-2.69-.34a6.5 6.5 0 0 0 3.67 3.44q-.65-1.27-.98-3.1" fill="#666"/></g><defs><clipPath id="a"><path fill="#fff" d="M0 0h16v16H0z"/></clipPath></defs></svg>
-</file>
-
-<file path="public/next.svg">
-<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 394 80"><path fill="#000" d="M262 0h68.5v12.7h-27.2v66.6h-13.6V12.7H262V0ZM149 0v12.7H94v20.4h44.3v12.6H94v21h55v12.6H80.5V0h68.7zm34.3 0h-17.8l63.8 79.4h17.9l-32-39.7 32-39.6h-17.9l-23 28.6-23-28.6zm18.3 56.7-9-11-27.1 33.7h17.8l18.3-22.7z"/><path fill="#000" d="M81 79.3 17 0H0v79.3h13.6V17l50.2 62.3H81Zm252.6-.4c-1 0-1.8-.4-2.5-1s-1.1-1.6-1.1-2.6.3-1.8 1-2.5 1.6-1 2.6-1 1.8.3 2.5 1a3.4 3.4 0 0 1 .6 4.3 3.7 3.7 0 0 1-3 1.8zm23.2-33.5h6v23.3c0 2.1-.4 4-1.3 5.5a9.1 9.1 0 0 1-3.8 3.5c-1.6.8-3.5 1.3-5.7 1.3-2 0-3.7-.4-5.3-1s-2.8-1.8-3.7-3.2c-.9-1.3-1.4-3-1.4-5h6c.1.8.3 1.6.7 2.2s1 1.2 1.6 1.5c.7.4 1.5.5 2.4.5 1 0 1.8-.2 2.4-.6a4 4 0 0 0 1.6-1.8c.3-.8.5-1.8.5-3V45.5zm30.9 9.1a4.4 4.4 0 0 0-2-3.3 7.5 7.5 0 0 0-4.3-1.1c-1.3 0-2.4.2-3.3.5-.9.4-1.6 1-2 1.6a3.5 3.5 0 0 0-.3 4c.3.5.7.9 1.3 1.2l1.8 1 2 .5 3.2.8c1.3.3 2.5.7 3.7 1.2a13 13 0 0 1 3.2 1.8 8.1 8.1 0 0 1 3 6.5c0 2-.5 3.7-1.5 5.1a10 10 0 0 1-4.4 3.5c-1.8.8-4.1 1.2-6.8 1.2-2.6 0-4.9-.4-6.8-1.2-2-.8-3.4-2-4.5-3.5a10 10 0 0 1-1.7-5.6h6a5 5 0 0 0 3.5 4.6c1 .4 2.2.6 3.4.6 1.3 0 2.5-.2 3.5-.6 1-.4 1.8-1 2.4-1.7a4 4 0 0 0 .8-2.4c0-.9-.2-1.6-.7-2.2a11 11 0 0 0-2.1-1.4l-3.2-1-3.8-1c-2.8-.7-5-1.7-6.6-3.2a7.2 7.2 0 0 1-2.4-5.7 8 8 0 0 1 1.7-5 10 10 0 0 1 4.3-3.5c2-.8 4-1.2 6.4-1.2 2.3 0 4.4.4 6.2 1.2 1.8.8 3.2 2 4.3 3.4 1 1.4 1.5 3 1.5 5h-5.8z"/></svg>
-</file>
-
-<file path="public/vercel.svg">
-<svg fill="none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1155 1000"><path d="m577.3 0 577.4 1000H0z" fill="#fff"/></svg>
-</file>
-
-<file path="public/window.svg">
-<svg fill="none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path fill-rule="evenodd" clip-rule="evenodd" d="M1.5 2.5h13v10a1 1 0 0 1-1 1h-11a1 1 0 0 1-1-1zM0 1h16v11.5a2.5 2.5 0 0 1-2.5 2.5h-11A2.5 2.5 0 0 1 0 12.5zm3.75 4.5a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5M7 4.75a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0m1.75.75a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5" fill="#666"/></svg>
-</file>
-
-<file path="README.md">
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
-
-## Getting Started
-
-First, run the development server:
-
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
-
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
-</file>
-
-<file path="services/MeetingRoom.js">
-import React from 'react';
-
-const MeetingRoom = ({ room, role, onEndSession }) => {
-  // If the user is a Moderator or in Godmode, give them the hostUrl [cite: 1, 7]
-  // This prevents the "Waiting for Moderator" screen you saw earlier.
-  const isPrivileged = role === 'moderator' || role === 'godmode';
-  const finalLink = isPrivileged ? room.hostUrl : room.userUrl;
-
-  const uiParams = new URLSearchParams({
-    embed: 'true',
-    displayNames: 'on',
-    background: 'off',
-    chat: 'on'
-  }).toString();
-
-  return (
-    <div style={{ width: '100%', height: '100%', position: 'relative' }}>
-      <iframe
-        src={`${finalLink}?${uiParams}`}
-        allow="camera; microphone; fullscreen; display-capture"
-        style={{ width: '100%', height: '100%', border: 'none', borderRadius: '12px' }}
-        title={room.title}
-      />
-      
-      {isPrivileged && (
-        <button 
-          onClick={() => onEndSession(room)}
-          style={{
-            position: 'absolute', bottom: '20px', right: '20px',
-            backgroundColor: '#ff4444', color: 'white', padding: '10px 20px',
-            borderRadius: '8px', border: 'none', cursor: 'pointer', zIndex: 10
-          }}
-        >
-          END SESSION
-        </button>
-      )}
-    </div>
-  );
-};
-
-export default MeetingRoom;
-</file>
-
-<file path="services/roomService.js">
-import { db } from '../firebaseConfig'; // Ensure this points to your Firebase init file
-import { WherebyService } from './wherebyService';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
-
-// THIS IS THE EXACT PATH FROM YOUR WORD DOC 
-const ROOMS_COLLECTION_PATH = 'artifacts/deskmates-online/public/data/rooms';
-
-export const createDeskmatesRoom = async (roomTitle, user) => {
-  // 1. Generate the unique Whereby URLs
-  const wherebyData = await WherebyService.createMeeting();
-
-  // 2. Prepare the payload based on your Firestore Schema [cite: 7]
-  const roomPayload = {
-    title: roomTitle,                  // [cite: 7]
-    moderator: user.displayName,       // [cite: 7]
-    moderatorId: user.uid,             // [cite: 7]
-    status: 'live',                    // [cite: 7]
-    participants: 1,                   // [cite: 7]
-    maxParticipants: 20,               // [cite: 7]
-    isHot: false,                      // [cite: 7]
-    createdAt: serverTimestamp(),      // [cite: 7]
-    // Add these new fields to handle the video [cite: 7]
-    meetingId: wherebyData.meetingId,
-    userUrl: wherebyData.userUrl,
-    hostUrl: wherebyData.hostUrl
-  };
-
-  // 3. Save to the path specified in your docs 
-  const docRef = await addDoc(collection(db, ROOMS_COLLECTION_PATH), roomPayload);
-  return docRef.id;
-};
-</file>
-
-<file path="services/wherebyService.js">
-import axios from 'axios';
-
-const API_BASE = 'https://api.whereby.dev/v1/meetings';
-
-export const WherebyService = {
-  /**
-   * Creates a persistent room and returns both host and viewer URLs.
-   */
-  async createMeeting() {
-    try {
-      const response = await axios.post(API_BASE, {
-        endDate: "2099-12-31T23:59:59Z", // Persistent
-        isLocked: false,
-        fields: ["hostRoomUrl"] // Essential for Moderator/Godmode access
-      }, {
-        headers: {
-          'Authorization': `Bearer ${process.env.WHEREBY_API_KEY}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      return {
-        meetingId: response.data.meetingId,
-        userUrl: response.data.roomUrl,     // For regular participants
-        hostUrl: response.data.hostRoomUrl  // For Moderators & Godmode
-      };
-    } catch (err) {
-      console.error("Whereby Room Creation Error:", err.response?.data || err.message);
-      throw err;
-    }
-  },
-
-  /**
-   * Deletes the meeting from Whereby's servers.
-   */
-  async deleteMeeting(meetingId) {
-    await axios.delete(`${API_BASE}/${meetingId}`, {
-      headers: { 'Authorization': `Bearer ${process.env.WHEREBY_API_KEY}` }
-    });
-  }
-};
-</file>
-
-<file path="tsconfig.json">
-{
-  "compilerOptions": {
-    "target": "ES2017",
-    "lib": ["dom", "dom.iterable", "esnext"],
-    "allowJs": true,
-    "skipLibCheck": true,
-    "strict": true,
-    "noEmit": true,
-    "esModuleInterop": true,
-    "module": "esnext",
-    "moduleResolution": "bundler",
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "jsx": "react-jsx",
-    "incremental": true,
-    "plugins": [
-      {
-        "name": "next"
-      }
-    ],
-    "paths": {
-      "@/*": ["./*"]
-    }
-  },
-  "include": [
-    "next-env.d.ts",
-    "**/*.ts",
-    "**/*.tsx",
-    ".next/types/**/*.ts",
-    ".next/dev/types/**/*.ts",
-    "**/*.mts"
-  ],
-  "exclude": ["node_modules"]
-}
-</file>
-
-<file path="utils/roles.ts">
-// utils/roles.ts
-export const FOUNDER_EMAILS = ["logan.nguyen.opla@gmail.com"];
-export const BASE_MODERATORS = ["logan.namlongnguyen@gmail.com"];
-
-export const getRole = (user: any, userDoc?: any) => {
-  if (!user || !user.email) return 'agent';
-
-  // 1. Check Hardcoded Founder
-  if (FOUNDER_EMAILS.includes(user.email.toLowerCase())) return 'founder';
-
-  // 2. Check Hardcoded Mods (Your test account)
-  if (BASE_MODERATORS.includes(user.email.toLowerCase())) return 'moderator';
-
-  // 3. Check Database Role (The "Approved" Mods)
-  if (userDoc && userDoc.role === 'moderator') return 'moderator';
-
-  return 'agent';
-};
-</file>
-
-<file path=".gitignore">
-# Dependencies
-node_modules
-.pnp
-.pnp.js
-
-# Testing
-coverage
-
-# Next.js
-.next/
-.next_OLD/
-out/
-
-# Production
-build
-
-# Misc
-.DS_Store
-*.pem
-
-# Debug
-npm-debug.log*
-yarn-debug.log*
-pnpm-debug.log*
-
-# Local Env Files (Secrets)
-.env*.local
-.env
-</file>
-
-<file path="app/page.tsx">
-"use client";
-
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { 
-  collection, onSnapshot, addDoc, serverTimestamp, query, where, getDocs, getDoc, doc 
-} from 'firebase/firestore'; 
-import { db, auth } from '@/lib/firebase';
-import BottomNav from '@/components/BottomNav';
-import { Radio, Crown, ShieldCheck } from 'lucide-react';
-import { GodModeBackground } from '@/components/GodMode';
-
-const FOUNDER_EMAIL = "logan.nguyen.opla@gmail.com";
-const FOUNDER_NAME = "Logan Ng";
-
-export default function Lobby() {
-  const router = useRouter();
-  const [rooms, setRooms] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [isGodMode, setIsGodMode] = useState(false);
-
-  useEffect(() => {
-    const unsubscribeAuth = auth.onAuthStateChanged((user) => {
-      if (!user) {
-        router.push('/login');
-      } else {
-        const isFounder = user.email?.toLowerCase() === FOUNDER_EMAIL || user.displayName === FOUNDER_NAME;
-        setIsGodMode(isFounder);
-
-        const roomsRef = collection(db, 'rooms');
-        const unsubscribeRooms = onSnapshot(roomsRef, (snapshot) => {
-          // --- FIX: FILTER OUT CLOSED ROOMS ---
-          const liveRooms = snapshot.docs
-            .map(doc => ({ id: doc.id, ...doc.data() }))
-            .filter((room: any) => room.status !== 'closed'); // <--- CRITICAL FIX
-          
-          setRooms(liveRooms);
-          setLoading(false);
-        });
-        return () => unsubscribeRooms();
-      }
-    });
-    return () => unsubscribeAuth();
-  }, [router]);
-
-  const handleJoinRoom = async (roomId: string) => {
-    if (!auth.currentUser) return router.push('/login');
-    try {
-      // --- FIX: CHECK IF ROOM IS ACTUALLY OPEN FIRST ---
-      const roomRef = doc(db, 'rooms', roomId);
-      const roomSnap = await getDoc(roomRef);
-      if (!roomSnap.exists() || roomSnap.data().status === 'closed') {
-        alert("This room has ended.");
-        return;
-      }
-
-      // Check for existing session
-      const q = query(collection(db, 'sessions'), where("userId", "==", auth.currentUser.uid), where("roomId", "==", roomId), where("status", "==", "active"));
-      const snapshot = await getDocs(q);
-
-      if (!snapshot.empty) {
-        router.push(`/room/${roomId}?sessionId=${snapshot.docs[0].id}`);
-      } else {
-        const sessionRef = await addDoc(collection(db, 'sessions'), {
-          userId: auth.currentUser.uid, roomId: roomId, startTime: serverTimestamp(), status: 'active', pointsEarned: 0
-        });
-        router.push(`/room/${roomId}?sessionId=${sessionRef.id}`);
-      }
-    } catch (error) { alert("Connection Error."); }
-  };
-
-  if (loading) return (
-    <div className="h-screen bg-[#050505] flex flex-col items-center justify-center gap-4">
-      <div className={`w-12 h-12 border-4 ${isGodMode ? 'border-yellow-500' : 'border-[#00FF94]'} border-t-transparent rounded-full animate-spin`} />
-    </div>
-  );
-
-  return (
-    <div className={`min-h-screen font-sans pb-24 relative overflow-hidden transition-colors duration-1000 ${isGodMode ? 'bg-black text-white selection:bg-yellow-500 selection:text-black' : 'bg-[#050505] text-white'}`}>
-      
-      {isGodMode && <GodModeBackground />}
-
-      <header className={`p-6 border-b relative z-10 backdrop-blur-md sticky top-0 flex justify-between items-center ${isGodMode ? 'bg-black/50 border-yellow-500/30' : 'bg-[#121212]/50 border-[#27272a]'}`}>
-        <div>
-          <div className="flex items-center gap-2">
-             {isGodMode && <ShieldCheck className="w-5 h-5 text-yellow-500 animate-pulse" />}
-             <h1 className={`text-2xl font-black italic tracking-tighter ${isGodMode ? 'text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-orange-500' : 'text-[#00FF94]'}`}>
-                {isGodMode ? "GOD MODE" : "DESKMATES"}
-             </h1>
-          </div>
-          <p className={`text-xs uppercase tracking-widest mt-1 ${isGodMode ? 'text-yellow-700 font-bold' : 'text-[#A1A1AA]'}`}>
-            {isGodMode ? "Founder Clearance: Omega" : "Study Together"}
-          </p>
-        </div>
-        <div className={`flex items-center gap-2 px-3 py-1 rounded-full border ${isGodMode ? 'bg-yellow-900/20 border-yellow-500/30' : 'bg-[#00FF94]/10 border-[#00FF94]/20'}`}>
-            <Radio className={`w-3 h-3 animate-pulse ${isGodMode ? 'text-yellow-500' : 'text-[#00FF94]'}`} />
-            <span className={`text-[10px] font-bold ${isGodMode ? 'text-yellow-500' : 'text-[#00FF94]'}`}>
-                {rooms.reduce((acc, r) => acc + (r.participants || 0), 0)} Online
-            </span>
-        </div>
-      </header>
-
-      <div className="p-4 space-y-4 relative z-10">
-        {rooms.length === 0 && (
-          <div className={`text-center py-20 font-black text-2xl opacity-20 ${isGodMode ? 'text-yellow-900' : 'text-[#27272a]'}`}>
-            NO ACTIVE SIGNALS
-          </div>
-        )}
-
-        {rooms.map((room) => (
-          <div key={room.id} onClick={() => handleJoinRoom(room.id)} className={`group cursor-pointer border rounded-2xl p-5 transition-all hover:-translate-y-1 relative overflow-hidden ${isGodMode ? 'bg-[#080808]/50 border-yellow-500/30 hover:border-yellow-400' : 'bg-[#121212] border-[#27272a] hover:border-[#00FF94]'}`}>
-            <div className={`absolute inset-0 bg-gradient-to-r translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000 ${isGodMode ? 'from-yellow-500/0 via-yellow-500/10 to-yellow-500/0' : 'from-[#00FF94]/0 via-[#00FF94]/5 to-[#00FF94]/0'}`} />
-            <div className="flex justify-between items-start mb-3 relative z-10">
-              <h3 className={`font-bold text-lg transition-colors ${isGodMode ? 'group-hover:text-yellow-400' : 'group-hover:text-[#00FF94]'}`}>{room.title}</h3>
-              {room.isHot && <span className={`text-[10px] px-2 py-0.5 rounded font-black uppercase border ${isGodMode ? 'bg-yellow-500/20 text-yellow-500 border-yellow-500/20' : 'bg-[#FF5C00]/20 text-[#FF5C00] border-[#FF5C00]/20'}`}>HOT</span>}
-            </div>
-            <div className={`flex items-center justify-between text-xs relative z-10 ${isGodMode ? 'text-yellow-900/80' : 'text-[#A1A1AA]'}`}>
-              <div className="flex items-center gap-2"><div className={`w-2 h-2 rounded-full animate-pulse ${isGodMode ? 'bg-yellow-500' : 'bg-[#00FF94]'}`} /><span>{room.participants || 0} online</span></div>
-              <span className="font-mono text-[10px] opacity-70 flex items-center gap-1">{room.moderator?.includes('★') && <Crown className="w-3 h-3 text-yellow-500" />} MOD: {room.moderator?.split(' ')[0]}</span>
-            </div>
-          </div>
-        ))}
-      </div>
-      <BottomNav />
-    </div>
-  );
-}
-</file>
-
-<file path="app/profile/page.tsx">
-"use client";
-
-import { useEffect, useState } from 'react';
-import { auth, db } from '@/lib/firebase';
-import { onAuthStateChanged, signOut } from 'firebase/auth';
-import { doc, onSnapshot } from 'firebase/firestore'; 
-import { useRouter } from 'next/navigation';
-import { Settings, Clock, Zap, LogOut, ShieldCheck, Crown } from 'lucide-react';
-import BottomNav from '@/components/BottomNav';
-import { GodModeBackground } from '@/components/GodMode';
-import { getRole } from '@/utils/roles'; // <--- IMPORT THIS
-
-export default function Profile() {
-  const [user, setUser] = useState<any>(null);
-  const [stats, setStats] = useState<any>({ totalPoints: 0, totalSeconds: 0 }); 
-  const [role, setRole] = useState('agent'); // 'agent', 'moderator', 'founder'
-  const router = useRouter();
-
-  useEffect(() => {
-    const unsubscribeAuth = onAuthStateChanged(auth, (currentUser) => {
-      if (!currentUser) {
-        router.push('/login');
-      } else {
-        setUser(currentUser);
-        
-        // 1. Listen to User Data & Determine Role
-        const userRef = doc(db, 'users', currentUser.uid);
-        const unsubscribeFirestore = onSnapshot(userRef, (docSnap) => {
-          if (docSnap.exists()) {
-            const data = docSnap.data();
-            setStats(data);
-            // Calculate Role using the utility (checks hardcoded emails + DB role)
-            setRole(getRole(currentUser, data)); 
-          } else {
-             // Fallback if no DB record yet
-             setRole(getRole(currentUser, {}));
-          }
-        });
-        return () => unsubscribeFirestore();
-      }
-    });
-    return () => unsubscribeAuth();
-  }, [router]);
-
-  const handleLogout = async () => {
-    try {
-      await signOut(auth);
-      router.push('/login');
-    } catch (error) { console.error(error); }
-  };
-
-  const formatHours = (seconds: number) => (seconds / 3600).toFixed(1) + 'h';
-  const isGodMode = role === 'founder';
-
-  return (
-    <div className={`min-h-screen p-6 pb-24 relative overflow-hidden font-mono ${isGodMode ? 'bg-black text-white selection:bg-yellow-500 selection:text-black' : 'bg-[#050505] text-white'}`}>
-      
-      {/* GOD MODE BACKGROUND (Founder Only) */}
-      {isGodMode && <GodModeBackground />}
-
-      {/* HEADER */}
-      <div className="flex justify-between items-center mb-8 relative z-10">
-        <h2 className={`text-sm font-black uppercase tracking-[0.2em] ${isGodMode ? 'text-yellow-600' : 'text-[#A1A1AA]'}`}>
-            {isGodMode ? "FOUNDER CLEARANCE" : (role === 'moderator' ? "MODERATOR PROFILE" : "INTELLIGENCE PROFILE")}
-        </h2>
-        <Settings className={`${isGodMode ? 'text-yellow-500' : 'text-[#52525B]'} w-5 h-5 cursor-pointer`} />
-      </div>
-
-      {/* IDENTITY CARD */}
-      <div className="text-center mb-10 relative z-10 group">
-        <div className={`w-24 h-24 rounded-full mx-auto flex items-center justify-center text-3xl font-black mb-4 overflow-hidden border-4 ${isGodMode ? 'border-yellow-500 shadow-[0_0_30px_rgba(255,215,0,0.4)]' : (role === 'moderator' ? 'border-[#00FF94] shadow-[0_0_20px_rgba(0,255,148,0.2)]' : 'bg-gradient-to-br from-[#7000FF] to-[#00FF94] border-transparent')}`}>
-          {user?.photoURL ? (
-             <img src={user.photoURL} alt="Avatar" className="w-full h-full object-cover" />
-          ) : (
-             user?.uid?.slice(0, 2).toUpperCase() || "??"
-          )}
-        </div>
-        
-        <div className="flex items-center justify-center gap-2">
-            {isGodMode && <Crown className="w-5 h-5 text-yellow-500 animate-bounce" />}
-            {role === 'moderator' && <ShieldCheck className="w-5 h-5 text-[#00FF94]" />}
-            <h3 className={`text-xl font-bold ${isGodMode ? 'text-yellow-400 drop-shadow-[0_0_10px_rgba(255,215,0,0.5)]' : 'text-white'}`}>
-                {user?.displayName || "Deskmate Agent"}
-            </h3>
-        </div>
-        
-        <p className={`text-xs font-mono mt-1 ${isGodMode ? 'text-yellow-700' : 'text-[#52525B]'}`}>
-          {isGodMode ? "STATUS: OMNIPOTENT" : (role === 'moderator' ? "STATUS: OPERATIVE" : "STATUS: ONLINE")}
-        </p>
-      </div>
-
-      {/* STATS GRID */}
-      <div className="grid grid-cols-2 gap-4 mb-8 relative z-10">
-        {/* TIME */}
-        <div className={`border p-4 rounded-2xl ${isGodMode ? 'bg-[#080808]/50 border-yellow-500/30' : 'bg-[#121212] border-[#27272a]'}`}>
-          <Clock className={`${isGodMode ? 'text-yellow-400' : 'text-[#00FF94]'} w-5 h-5 mb-2`} />
-          <div className="text-2xl font-black">
-              {isGodMode ? "∞" : formatHours(stats.totalSeconds || 0)}
-          </div>
-          <div className={`text-[10px] uppercase font-bold ${isGodMode ? 'text-yellow-700' : 'text-[#A1A1AA]'}`}>Total Focus</div>
-        </div>
-        
-        {/* POINTS */}
-        <div className={`border p-4 rounded-2xl ${isGodMode ? 'bg-[#080808]/50 border-yellow-500/30' : 'bg-[#121212] border-[#27272a]'}`}>
-          <Zap className={`${isGodMode ? 'text-orange-500' : 'text-[#FF5C00]'} w-5 h-5 mb-2`} />
-          <div className="text-2xl font-black">
-              {isGodMode ? "∞" : (stats.totalPoints || 0)}
-          </div>
-          <div className={`text-[10px] uppercase font-bold ${isGodMode ? 'text-yellow-700' : 'text-[#A1A1AA]'}`}>Points</div>
-        </div>
-      </div>
-
-      {/* ACTIONS */}
-      <div className="space-y-4 relative z-10">
-        
-        {/* GOD MODE BUTTON */}
-        {isGodMode && (
-            <button 
-                onClick={() => router.push('/admin')}
-                className="w-full bg-gradient-to-r from-yellow-600 to-yellow-400 text-black py-4 rounded-xl font-black uppercase text-xs tracking-[0.2em] shadow-[0_0_20px_rgba(255,215,0,0.3)] hover:scale-[1.02] transition-transform flex items-center justify-center gap-2 group"
-            >
-                <ShieldCheck className="w-4 h-4 group-hover:rotate-12 transition-transform" /> 
-                Enter Command Deck
-            </button>
-        )}
-
-        {/* MODERATOR BUTTON */}
-        {role === 'moderator' && (
-             <button 
-                onClick={() => router.push('/admin')}
-                className="w-full bg-[#00FF94]/10 border border-[#00FF94]/50 text-[#00FF94] py-4 rounded-xl font-bold uppercase text-xs tracking-widest hover:bg-[#00FF94] hover:text-black transition-all flex items-center justify-center gap-2"
-             >
-                <ShieldCheck className="w-4 h-4" /> 
-                Access Moderator Dashboard
-             </button>
-        )}
-        
-        {/* APPLY FOR MOD (Only for regular Agents) */}
-        {role === 'agent' && (
-             <button 
-                onClick={() => router.push('/apply')}
-                className="w-full bg-[#1A1A1A] border border-[#27272a] text-[#A1A1AA] py-4 rounded-xl font-bold uppercase text-xs tracking-widest hover:bg-[#27272a] hover:text-white transition-colors flex items-center justify-center gap-2"
-             >
-                <ShieldCheck className="w-4 h-4" /> 
-                Apply for Clearance
-             </button>
-        )}
-
-        <button 
-            onClick={handleLogout}
-            className={`w-full border py-4 rounded-xl font-bold uppercase text-xs tracking-widest flex items-center justify-center gap-2 transition-colors ${
-                isGodMode 
-                ? 'bg-[#080808]/50 border-red-900/30 text-red-500 hover:bg-red-900/10' 
-                : 'bg-[#1A1A1A] border-red-900/30 text-red-500 hover:bg-red-900/10'
-            }`}
-        >
-            <LogOut className="w-4 h-4" />
-            Disconnect
-        </button>
-      </div>
-
-      <BottomNav />
-    </div>
-  );
-}
 </file>
 
 <file path="components/StandardAdmin.tsx">
@@ -1519,9 +965,151 @@ export const StandardAdminUI = ({
 };
 </file>
 
+<file path="utils/reputation.ts">
+// utils/reputation.ts
+
+export const REPUTATION_RULES = {
+  VIOLATIONS: [
+    { label: "No-Show (Reservation)", deduction: 10, desc: "Missing a session you signed up for." },
+    { label: "Inappropriate Talk", deduction: 25, desc: "Disruptive or offensive communication." },
+    { label: "Visual Violation", deduction: 50, desc: "Displaying prohibited content on camera." },
+    { label: "Mic/Cam Bypass", deduction: 15, desc: "Attempting to use restricted hardware." },
+    { label: "Protocol Abandonment", deduction: 5, desc: "Leaving session repeatedly within 10m." },
+  ],
+  RECOVERY: "Gain +1 Rep per 30 mins of clean focus (Max 6/day).",
+  GATING: [
+    { threshold: 95, restriction: "Microphone Access Terminated" },
+    { threshold: 90, restriction: "Camera Access Terminated" },
+    { threshold: 85, restriction: "0.5x Focus Point Multiplier" },
+  ]
+};
+
+export const getReputationStatus = (rep: number) => {
+  return {
+    canMic: rep >= 95,
+    canCamera: rep >= 90,
+    multiplier: rep < 85 ? 0.5 : 1.0,
+    label: rep < 85 ? "RESTRICTED" : (rep < 95 ? "CAUTION" : "OPTIMAL")
+  };
+};
+
+export const VIETNAMESE_GRADES = ["Xuất sắc", "Giỏi", "Khá", "Trung bình", "Yếu"];
+export const ACADEMIC_SUBJECTS = ["Math", "Literature", "English", "ComSci", "Physics", "Chemistry", "Biology"];
+
+export const formatScore = (val: string): string => {
+  if (VIETNAMESE_GRADES.includes(val)) return val;
+  const num = parseFloat(val.replace(',', '.'));
+  return isNaN(num) ? "0.0" : num.toFixed(1);
+};
+</file>
+
+<file path=".env.local">
+# --- PROJECT DESKMATES: SYSTEM ENVIRONMENT ---
+
+# Email Service (Server-side only)
+# No prefix here so it stays hidden from the browser
+RESEND_API_KEY=re_DVinYg1p_4khmNh84xLi456n8WE96ghCW
+
+# Video Service (Whereby - Subdomain: deskmate)
+# REMOVE NEXT_PUBLIC_ to fix the Network Error via a server-side route
+WHEREBY_API_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwczovL2FjY291bnRzLmFwcGVhci5pbiIsImF1ZCI6Imh0dHBzOi8vYXBpLmFwcGVhci5pbi92MSIsImV4cCI6OTAwNzE5OTI1NDc0MDk5MSwiaWF0IjoxNzcxMTQ4ODk2LCJvcmdhbml6YXRpb25JZCI6MzM0MDU2LCJqdGkiOiI2OTBhYTRmNS0wNDQwLTQ3YTctOWJjZi1hMmI1NTgwODIxYjYifQ.cmdFXuKXOFLwyleVo4oq8JhpJ4p7tQbDPjk_XQNLGkA
+
+# Firebase Configuration (Project: deskmates-gaye)
+# NEXT_PUBLIC_ is REQUIRED because these are used in lib/firebase.ts
+NEXT_PUBLIC_FIREBASE_API_KEY=AIzaSyBFFCxLou6Xaj2aH_mhTO9VQ-xWT20FQXM
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=deskmates-gaye.firebaseapp.com
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=deskmates-gaye
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=deskmates-gaye.firebasestorage.app
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=716028559362
+NEXT_PUBLIC_FIREBASE_APP_ID=1:716028559362:web:5673dfa08ee889ac10e71b
+NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID=G-EX85Q6ZZB1
+
+# Access Gateway
+# Used in proxy.ts and landing page
+NEXT_PUBLIC_SECRET_ACCESS_CODE=040412
+</file>
+
+<file path="app/apply/page.tsx">
+"use client";
+
+import { useState } from 'react';
+import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
+import { db, auth } from '@/lib/firebase';
+import { useRouter } from 'next/navigation';
+import { Shield, ChevronLeft, Send, GraduationCap, MessageSquare } from 'lucide-react';
+
+export default function ApplyForMod() {
+  const [loading, setLoading] = useState(false);
+  const [form, setForm] = useState({ reason: '', school: '', contact: '' });
+  const router = useRouter();
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!auth.currentUser) return router.push('/login');
+    
+    setLoading(true);
+    try {
+      await addDoc(collection(db, 'applications'), {
+        uid: auth.currentUser.uid,
+        email: auth.currentUser.email,
+        displayName: auth.currentUser.displayName,
+        ...form,
+        status: 'pending',
+        createdAt: serverTimestamp()
+      });
+      alert("Transmission sent to High Command.");
+      router.push('/profile');
+    } catch (error) {
+      alert("Transmission failed. Uplink unstable.");
+    }
+    setLoading(false);
+  };
+
+  return (
+    <div className="min-h-screen bg-[#050505] text-white flex flex-col items-center justify-center p-6 font-mono">
+      <div className="max-w-md w-full border border-[#27272a] bg-[#121212] p-8 rounded-3xl relative overflow-hidden shadow-2xl">
+        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#00FF94] to-transparent opacity-50" />
+        
+        <div className="flex items-center gap-3 mb-8">
+            <div className="p-2 bg-[#00FF94]/10 rounded-lg">
+                <Shield className="w-6 h-6 text-[#00FF94]" />
+            </div>
+            <div>
+                <h1 className="text-xl font-bold uppercase tracking-widest text-white">Clearance Request</h1>
+                <p className="text-[9px] text-[#52525B] font-bold uppercase tracking-[0.2em]">Moderator Authorization Protocol</p>
+            </div>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="space-y-2">
+                <label className="text-[10px] uppercase text-[#52525B] font-black tracking-widest flex items-center gap-2"><GraduationCap className="w-3 h-3"/> Academic Institution</label>
+                <input required value={form.school} onChange={e => setForm({...form, school: e.target.value})} className="w-full bg-black border border-[#27272a] p-4 rounded-xl text-sm focus:border-[#00FF94] outline-none" placeholder="University / High School..." />
+            </div>
+
+            <div className="space-y-2">
+                <label className="text-[10px] uppercase text-[#52525B] font-black tracking-widest flex items-center gap-2"><MessageSquare className="w-3 h-3"/> Discord / Contact ID</label>
+                <input required value={form.contact} onChange={e => setForm({...form, contact: e.target.value})} className="w-full bg-black border border-[#27272a] p-4 rounded-xl text-sm focus:border-[#00FF94] outline-none" placeholder="Username#0000" />
+            </div>
+
+            <div className="space-y-2">
+                <label className="text-[10px] uppercase text-[#52525B] font-black tracking-widest block ml-1">Statement of Intent</label>
+                <textarea required value={form.reason} onChange={e => setForm({...form, reason: e.target.value})} className="w-full bg-black border border-[#27272a] p-4 rounded-xl text-sm focus:border-[#00FF94] outline-none h-32 resize-none" placeholder="Describe your experience with focus groups..." />
+            </div>
+
+            <button disabled={loading} className="w-full bg-[#00FF94] text-black font-black uppercase py-5 rounded-2xl hover:bg-[#00cc76] transition-all tracking-[0.3em] text-xs">
+                {loading ? "Transmitting..." : "Submit Application"}
+            </button>
+        </form>
+      </div>
+    </div>
+  );
+}
+</file>
+
 <file path="lib/firebase.ts">
+// lib/firebase.ts
 import { initializeApp, getApps, getApp } from "firebase/app";
-import { getAuth, GoogleAuthProvider } from "firebase/auth"; // <--- Added GoogleAuthProvider
+import { getAuth, GoogleAuthProvider } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 
 const firebaseConfig = {
@@ -1537,246 +1125,274 @@ const firebaseConfig = {
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 const auth = getAuth(app);
 const db = getFirestore(app);
-const googleProvider = new GoogleAuthProvider(); // <--- Create the provider
 
-export { app, auth, db, googleProvider }; // <--- Export it
+// THE FIX: Export the provider so we can call .setCustomParameters on it
+const googleProvider = new GoogleAuthProvider(); 
+googleProvider.setCustomParameters({ prompt: 'select_account' });
+
+export { app, auth, db, googleProvider };
 </file>
 
-<file path="app/admin/page.tsx">
+<file path=".gitignore">
+# Dependencies
+node_modules
+.pnp
+.pnp.js
+
+# Testing
+coverage
+
+# Next.js
+.next/
+.next_OLD/
+out/
+
+# Production
+build
+
+# Misc
+.DS_Store
+*.pem
+
+# Debug
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+</file>
+
+<file path="app/api/rooms/create/route.ts">
+// app/api/rooms/create/route.ts
+import { NextResponse } from 'next/server';
+
+export async function POST(req: Request) {
+  try {
+    const { title } = await req.json();
+    const apiKey = process.env.WHEREBY_API_KEY;
+
+    const response = await fetch("https://api.whereby.dev/v1/meetings", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        endDate: "2027-03-07T19:00:00Z",
+        isLocked: false,
+        roomMode: "normal"
+      }),
+    });
+
+    const data = await response.json();
+    
+    // ENSURE THESE FIELD NAMES MATCH WHAT ADMINPAGE EXPECTS
+    return NextResponse.json({
+      roomUrl: data.roomUrl,
+      hostRoomUrl: data.hostRoomUrl || data.roomUrl, // Fallback if host URL isn't returned
+      success: true
+    });
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+}
+</file>
+
+<file path="services/wherebyService.js">
+import axios from 'axios';
+
+export const WherebyService = {
+  async createMeeting() {
+    try {
+      const response = await axios.post('https://api.whereby.dev/v1/meetings', {
+        endDate: "2099-12-31T23:59:59Z", 
+        isLocked: false,
+        fields: ["hostRoomUrl"] 
+      }, {
+        headers: {
+          'Authorization': `Bearer ${process.env.WHEREBY_API_KEY}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      return {
+        meetingId: response.data.meetingId,
+        userUrl: response.data.roomUrl,     
+        hostUrl: response.data.hostRoomUrl  
+      };
+    } catch (err) {
+      console.error("Whereby API Error:", err);
+      throw err;
+    }
+  }
+};
+</file>
+
+<file path="app/room/[id]/briefing/page.tsx">
 "use client";
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { 
-  collection, addDoc, serverTimestamp, 
-  query, where, onSnapshot, doc, updateDoc, getDoc 
-} from 'firebase/firestore';
+import { useParams, useRouter } from 'next/navigation';
+import { doc, onSnapshot, updateDoc, arrayUnion, collection, query, where, getDocs, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db, auth } from '@/lib/firebase';
-import BottomNav from '@/components/BottomNav';
-import { Check, X, Zap } from 'lucide-react';
-import { getRole } from '@/utils/roles';
+import { GodModeBackground } from '@/components/GodMode';
+import { ShieldCheck, ArrowRight, Clock, BookOpen, Mic, Video, MicOff, VideoOff, Loader2 } from 'lucide-react';
 
-// UI Components
-import { 
-  GodModeBackground, 
-  OmegaHeader, 
-  ReactorCore, 
-  SignalCard, 
-  LoadingSequence 
-} from '@/components/GodMode';
-import { StandardAdminUI } from '@/components/StandardAdmin'; // <--- THIS WAS MISSING
-
-export default function AdminDashboard() {
+export default function BriefingPage() {
+  const { id } = useParams();
   const router = useRouter();
-  const [user, setUser] = useState<any>(null);
-  const [role, setRole] = useState('agent');
-  const [loading, setLoading] = useState(true);
-  
-  const [myRooms, setMyRooms] = useState<any[]>([]);
-  const [applications, setApplications] = useState<any[]>([]);
-  const [view, setView] = useState<'rooms' | 'applications'>('rooms');
-  
-  const [title, setTitle] = useState('');
-  const [meetLink, setMeetLink] = useState('');
-  const [tags, setTags] = useState('');
+  const [room, setRoom] = useState<any>(null);
+  const [userStats, setUserStats] = useState<any>(null);
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [isRequesting, setIsRequesting] = useState(false);
 
-  // 1. INITIALIZATION & AUTH
+  const ROOMS_PATH = 'rooms';
+
   useEffect(() => {
-    const unsubscribeAuth = auth.onAuthStateChanged(async (currentUser) => {
-      if (!currentUser) {
-        router.push('/login');
-        return;
-      }
-      setUser(currentUser);
-
-      const userDocRef = doc(db, 'users', currentUser.uid);
-      const userDocSnap = await getDoc(userDocRef);
-      const calculatedRole = getRole(currentUser, userDocSnap.data());
-      
-      setRole(calculatedRole);
-
-      if (calculatedRole === 'agent') {
-        alert("Access Denied: Clearance Level Too Low.");
-        router.push('/profile');
-        return;
-      }
-
-      const roomQuery = query(
-          collection(db, 'rooms'), 
-          where("status", "==", "active"),
-          where("moderatorId", "==", currentUser.uid) 
-      );
-
-      const unsubRooms = onSnapshot(roomQuery, (snapshot) => {
-        setMyRooms(snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
-      });
-
-      let unsubApps = () => {};
-      if (calculatedRole === 'founder') {
-          const appQuery = query(collection(db, 'applications'), where('status', '==', 'pending'));
-          unsubApps = onSnapshot(appQuery, (snap) => {
-              setApplications(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-          });
-      }
-
-      setLoading(false);
-      return () => { unsubRooms(); unsubApps(); };
+    if (!id) return;
+    const unsubRoom = onSnapshot(doc(db, ROOMS_PATH, id as string), (snap) => {
+        if (!snap.exists()) router.push('/');
+        else setRoom(snap.data());
     });
+    
+    const unsubAuth = auth.onAuthStateChanged((user) => {
+      if (user) {
+        onSnapshot(doc(db, 'users', user.uid), (snap) => setUserStats(snap.data() || {}));
+      }
+    });
+    return () => { unsubRoom(); unsubAuth(); };
+  }, [id, router]);
 
-    return () => unsubscribeAuth();
-  }, [router]);
-
-  // 2. ACTIONS
-  const handleCreateRoom = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!user) return;
+  // THE CRITICAL FIX: Explicitly strip out undefined values so the request works for Normal Users
+  const requestAccess = async () => {
+    if (!auth.currentUser) return router.push('/login');
+    setIsRequesting(true);
     try {
-      await addDoc(collection(db, 'rooms'), {
-        title,
-        meetLink: meetLink || 'jitsi-embedded',
-        tags: tags.split(',').map(t => t.trim()).filter(Boolean),
-        moderator: role === 'founder' ? "★ FOUNDER" : (user.displayName || "Moderator"),
-        moderatorId: user.uid,
-        participants: 0,
-        status: 'active',
-        createdAt: serverTimestamp(),
-        isHot: role === 'founder'
+      const payload = {
+        uid: auth.currentUser.uid,
+        displayName: auth.currentUser.displayName || "Unknown Agent",
+        academic: {
+            reputation: userStats?.reputation ?? 100,
+            subjects: userStats?.subjects || []
+        }
+      };
+
+      await updateDoc(doc(db, ROOMS_PATH, id as string), {
+        pendingRequests: arrayUnion(payload)
       });
-      setTitle('');
-      setTags('');
-      alert("Protocol Initiated.");
-    } catch (error) {
-      alert("System Error: Could not deploy room.");
+      alert("TRANSMISSION SENT. AWAITING ROOM ADMIN APPROVAL.");
+    } catch (error: any) {
+      alert("Error sending request. Signal Lost.");
+    }
+    setIsRequesting(false);
+  };
+
+  const handleJoin = async () => {
+    if (!auth.currentUser) return router.push('/login');
+    setIsSyncing(true);
+    try {
+      const q = query(collection(db, 'sessions'), where("userId", "==", auth.currentUser.uid), where("roomId", "==", id), where("status", "==", "active"));
+      const snapshot = await getDocs(q);
+      
+      let sessionId = snapshot.empty ? (await addDoc(collection(db, 'sessions'), { userId: auth.currentUser.uid, roomId: id, startTime: serverTimestamp(), status: 'active', pointsEarned: 0 })).id : snapshot.docs[0].id;
+      
+      router.push(`/room/${id}?sessionId=${sessionId}`);
+    } catch (e) {
+      alert("Handshake Failed. Try again.");
+      setIsSyncing(false);
     }
   };
 
-  const handleCloseRoom = async (roomId: string) => {
-    const message = role === 'founder'
-        ? "EXECUTE SOLAR FLARE? (Terminates Protocol)" 
-        : "Are you sure you want to close this room?";
-    
-    if (!confirm(message)) return;
-    try {
-      await updateDoc(doc(db, 'rooms', roomId), { status: 'closed' });
-    } catch (error) { console.error(error); }
-  };
+  if (!room) return <div className="h-screen bg-black" />;
 
-  const handleApprove = async (appId: string, applicantId: string) => {
-      if (!confirm("Promote this Agent to Moderator?")) return;
-      try {
-        await updateDoc(doc(db, 'users', applicantId), { role: 'moderator' });
-        await updateDoc(doc(db, 'applications', appId), { status: 'approved' });
-        alert("Promotion Successful.");
-      } catch (e) { alert("Error promoting agent."); }
-  };
+  const isApproved = room.approvedAgents?.includes(auth.currentUser?.uid);
+  const hasRequested = room.pendingRequests?.some((r: any) => r.uid === auth.currentUser?.uid);
 
-  const handleReject = async (appId: string) => {
-      if (!confirm("Reject application?")) return;
-      await updateDoc(doc(db, 'applications', appId), { status: 'rejected' });
-  };
-
-  if (loading) return <LoadingSequence />;
-
-  // VIEW: MODERATOR
-  if (role === 'moderator') {
-    return (
-      <>
-        <StandardAdminUI 
-            rooms={myRooms} 
-            onCloseRoom={handleCloseRoom}
-            // 👇 THIS IS THE NEW PART THAT CONNECTS THE LOGIC
-            onCreateRoom={(e, newTitle, newTags) => {
-                // We manually trigger the create event with the data from the child component
-                setTitle(newTitle);
-                setTags(newTags);
-                // We need to wrap it in a synthetic event or just call logic directly
-                // To keep it simple, let's just reuse the logic but adaptable:
-                const fakeEvent = { preventDefault: () => {} } as React.FormEvent;
-                
-                // We need to set state first, then call. 
-                // ACTUALLY, React state updates are async, so calling handleCreateRoom immediately 
-                // with empty state won't work.
-                
-                // Let's call the DB directly here for Mods to avoid state sync issues:
-                addDoc(collection(db, 'rooms'), {
-                    title: newTitle,
-                    meetLink: 'jitsi-embedded',
-                    tags: newTags.split(',').map(t => t.trim()).filter(Boolean),
-                    moderator: user.displayName || "Moderator",
-                    moderatorId: user.uid,
-                    participants: 0,
-                    status: 'active',
-                    createdAt: serverTimestamp(),
-                    isHot: false // Mods don't get "HOT" status automatically
-                }).then(() => alert("Room Deployed Successfully."));
-            }}
-            userName={user?.displayName || "Moderator"} 
-        />
-        <BottomNav />
-      </>
-    );
-  }
-
-  // VIEW: FOUNDER
   return (
-    <div className="min-h-screen bg-black text-white p-6 pb-24 relative overflow-hidden font-mono selection:bg-yellow-500 selection:text-black">
+    <div className="min-h-screen bg-black text-white font-mono p-4 md:p-8 flex flex-col items-center justify-center">
       <GodModeBackground />
-      <OmegaHeader userName="Founder" />
+      <div className="max-w-3xl w-full space-y-8 relative z-10 pt-10">
+        <div className="bg-[#0a0a0a] border border-white/5 p-8 md:p-12 rounded-[4rem] space-y-12 shadow-2xl">
+            <div className="space-y-4">
+                <div className="flex items-center gap-3 text-yellow-500">
+                    <ShieldCheck className="w-5 h-5" />
+                    <span className="text-[10px] font-black uppercase tracking-[0.5em]">Neural Briefing Protocol</span>
+                </div>
+                <h1 className="text-5xl md:text-6xl font-black italic text-white uppercase tracking-tighter leading-none">{room.title}</h1>
+            </div>
 
-      <div className="flex justify-center gap-4 mb-8 relative z-10">
-          <button onClick={() => setView('rooms')} className={`text-xs font-black uppercase tracking-[0.2em] px-6 py-3 border transition-all ${view === 'rooms' ? 'bg-yellow-500 text-black border-yellow-500 shadow-[0_0_20px_rgba(255,215,0,0.3)]' : 'bg-black text-yellow-700 border-yellow-900/30 hover:text-yellow-500'}`}>War Room</button>
-          <button onClick={() => setView('applications')} className={`text-xs font-black uppercase tracking-[0.2em] px-6 py-3 border transition-all ${view === 'applications' ? 'bg-yellow-500 text-black border-yellow-500 shadow-[0_0_20px_rgba(255,215,0,0.3)]' : 'bg-black text-yellow-700 border-yellow-900/30 hover:text-yellow-500'}`}>
-            Approvals {applications.length > 0 && <span className="ml-2 bg-red-600 text-white px-1.5 py-0.5 rounded-full text-[9px]">{applications.length}</span>}
-          </button>
-      </div>
-
-      {view === 'rooms' ? (
-          <>
-            <ReactorCore>
-                <form onSubmit={handleCreateRoom} className="space-y-8">
-                    <div className="space-y-2 group">
-                        <label className="text-[10px] uppercase font-bold text-yellow-800 tracking-widest">Protocol Name</label>
-                        <input type="text" value={title} onChange={e => setTitle(e.target.value)} className="w-full bg-[#050505]/50 border border-yellow-900/30 p-5 text-base focus:border-yellow-400 outline-none text-yellow-100 font-bold rounded-lg" placeholder="OMEGA SESSION" required />
-                    </div>
-                    <div className="space-y-2 group">
-                        <label className="text-[10px] uppercase font-bold text-yellow-800 tracking-widest">Tags</label>
-                        <input type="text" value={tags} onChange={e => setTags(e.target.value)} className="w-full bg-[#050505]/50 border border-yellow-900/30 p-5 text-base focus:border-yellow-400 outline-none text-yellow-100 rounded-lg" placeholder="FOCUS, DEEP WORK" />
-                    </div>
-                    <button type="submit" className="w-full bg-yellow-500 text-black font-black uppercase tracking-[0.3em] text-sm py-6 hover:scale-[1.01] transition-transform shadow-[0_0_40px_rgba(255,215,0,0.3)] rounded-lg mt-4 flex justify-center gap-2 items-center">
-                        <Zap className="w-5 h-5 fill-black" /> DEPLOY
-                    </button>
-                </form>
-            </ReactorCore>
-
-            <div className="relative z-10 max-w-4xl mx-auto mt-12">
-                <div className="space-y-4">
-                    {myRooms.map(room => (
-                    <SignalCard key={room.id} room={room} onClose={handleCloseRoom} />
-                    ))}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="bg-white/5 p-6 rounded-3xl border border-white/5">
+                    <p className="text-[9px] text-gray-500 uppercase font-black tracking-widest mb-2 flex items-center gap-2"><Clock className="w-3 h-3"/> Session Time</p>
+                    <p className="text-sm font-black text-yellow-500 italic uppercase">
+                      {room.startTime?.toDate ? room.startTime.toDate().toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh', dateStyle: 'short', timeStyle: 'short' }) : 'ASAP'}
+                    </p>
+                </div>
+                <div className="bg-white/5 p-6 rounded-3xl border border-white/5">
+                    <p className="text-[9px] text-gray-500 uppercase font-black tracking-widest mb-2 flex items-center gap-2"><BookOpen className="w-3 h-3"/> Target Subject</p>
+                    <p className="text-sm font-black text-yellow-500 italic uppercase">{room.subject || 'GENERAL STUDY'}</p>
                 </div>
             </div>
-          </>
-      ) : (
-          <div className="max-w-4xl mx-auto space-y-4 relative z-10">
-              {applications.map(app => (
-                  <div key={app.id} className="bg-[#050505] border border-yellow-900/30 p-6 rounded-xl flex justify-between items-center group hover:border-yellow-500/50 transition-colors">
-                      <div>
-                          <div className="text-yellow-500 font-bold text-lg">{app.displayName}</div>
-                          <div className="text-yellow-800 text-xs uppercase tracking-widest mb-3">{app.email}</div>
-                          <div className="text-gray-400 text-sm italic bg-[#111] p-3 rounded border border-[#222]">"{app.reason}"</div>
-                      </div>
-                      <div className="flex flex-col gap-2 ml-4">
-                          <button onClick={() => handleApprove(app.id, app.uid)} className="p-3 bg-green-900/10 text-green-500 border border-green-900/50 hover:bg-green-500 hover:text-black transition-all rounded"><Check className="w-5 h-5"/></button>
-                          <button onClick={() => handleReject(app.id)} className="p-3 bg-red-900/10 text-red-500 border border-red-900/50 hover:bg-red-500 hover:text-white transition-all rounded"><X className="w-5 h-5"/></button>
-                      </div>
+
+            <div className="space-y-6">
+                <p className="text-gray-400 text-sm leading-relaxed italic border-l-4 border-yellow-500 pl-8 py-4 bg-white/5 rounded-r-3xl">
+                    {room.description || "Standard study session initiated. Complete focus is required."}
+                </p>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className={`p-4 rounded-2xl flex items-center gap-4 border ${room.reqMic ? 'bg-red-600/10 border-red-600/20 text-red-600' : 'bg-[#00FF94]/10 border-[#00FF94]/20 text-[#00FF94]'}`}>
+                      {room.reqMic ? <Mic className="w-5 h-5" /> : <MicOff className="w-5 h-5" />}
+                      <p className="text-[10px] font-black uppercase tracking-widest">{room.reqMic ? "Mic Required" : "Mic Optional"}</p>
                   </div>
-              ))}
-          </div>
-      )}
-      <BottomNav />
+                  <div className={`p-4 rounded-2xl flex items-center gap-4 border ${room.reqCamera ? 'bg-red-600/10 border-red-600/20 text-red-600' : 'bg-[#00FF94]/10 border-[#00FF94]/20 text-[#00FF94]'}`}>
+                      {room.reqCamera ? <Video className="w-5 h-5" /> : <VideoOff className="w-5 h-5" />}
+                      <p className="text-[10px] font-black uppercase tracking-widest">{room.reqCamera ? "Cam Required" : "Cam Optional"}</p>
+                  </div>
+                </div>
+            </div>
+
+            {isApproved ? (
+              <button disabled={isSyncing} onClick={handleJoin} className="w-full bg-yellow-500 text-black py-8 rounded-[2.5rem] font-black uppercase text-sm tracking-[0.5em] flex items-center justify-center gap-6 hover:scale-[1.02] transition-transform shadow-[0_0_40px_rgba(255,215,0,0.2)]">
+                  {isSyncing ? <Loader2 className="w-5 h-5 animate-spin" /> : <>Synchronize Link <ArrowRight className="w-5 h-5" /></>}
+              </button>
+            ) : (
+              <button onClick={requestAccess} disabled={hasRequested || isRequesting} className="w-full border border-white/20 text-gray-400 py-8 rounded-[2.5rem] font-black uppercase text-sm tracking-[0.5em] hover:text-white hover:border-white transition-all flex items-center justify-center gap-4">
+                {isRequesting ? <Loader2 className="w-5 h-5 animate-spin" /> : null}
+                {isRequesting ? 'TRANSMITTING...' : (hasRequested ? 'Clearance Pending...' : 'Request Operation Access')}
+              </button>
+            )}
+        </div>
+        <button onClick={() => router.push('/')} className="text-[10px] text-gray-700 uppercase font-black tracking-widest mx-auto block hover:text-white transition-colors">Abort Mission</button>
+      </div>
     </div>
   );
 }
+</file>
+
+<file path="utils/roles.ts">
+// utils/roles.ts
+export type UserRole = {
+  isFounder: boolean;
+  canManageRooms: boolean;
+  rank: string;
+};
+
+export const getRole = (user: any, userData: any): UserRole => {
+  const email = user?.email?.toLowerCase();
+  const isLogan = email === "logan.nguyen.opla@gmail.com";
+  
+  return {
+    isFounder: isLogan || userData?.isFounder === true,
+    // GOD MODE: Logan has power regardless of DB role
+    canManageRooms: isLogan || userData?.role === 'admin' || userData?.role === 'moderator',
+    rank: isLogan ? "FOUNDER" : (userData?.role?.toUpperCase() || "AGENT")
+  };
+};
+</file>
+
+<file path="next-env.d.ts">
+/// <reference types="next" />
+/// <reference types="next/image-types/global" />
+import "./.next/dev/types/routes.d.ts";
+
+// NOTE: This file should not be edited
+// see https://nextjs.org/docs/app/api-reference/config/typescript for more information.
 </file>
 
 <file path="package.json">
@@ -1792,11 +1408,14 @@ export default function AdminDashboard() {
   },
   "dependencies": {
     "@jitsi/react-sdk": "^1.4.4",
+    "axios": "^1.13.5",
     "firebase": "^12.7.0",
     "lucide-react": "^0.562.0",
     "next": "16.1.1",
     "react": "19.2.3",
-    "react-dom": "19.2.3"
+    "react-dom": "19.2.3",
+    "resend": "^6.9.2",
+    "t": "^0.5.1"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
@@ -1811,171 +1430,975 @@ export default function AdminDashboard() {
 }
 </file>
 
+<file path="app/api/waitlist/route.ts">
+// app/api/waitlist/route.ts
+import { Resend } from 'resend';
+import { NextResponse } from 'next/server';
+import { db } from '@/lib/firebase';
+import { collection, getDocs, query, limit, addDoc, serverTimestamp } from 'firebase/firestore';
+
+export async function POST(req: Request) {
+  try {
+    const { email } = await req.json();
+    
+    // Validate the key exists before initializing
+    if (!process.env.RESEND_API_KEY) {
+       return NextResponse.json({ error: 'System Configuration Missing: API Key' }, { status: 500 });
+    }
+    
+    const resend = new Resend(process.env.RESEND_API_KEY);
+    const waitlistRef = collection(db, 'waitlist');
+    const snapshot = await getDocs(query(waitlistRef, limit(101)));
+    const currentCount = snapshot.size;
+
+    await addDoc(waitlistRef, {
+      email,
+      timestamp: serverTimestamp(),
+      position: currentCount + 1
+    });
+
+    // FIXED: Use 'onboarding@resend.dev' until GoDaddy verification is complete
+    await resend.emails.send({
+      from: 'Deskmates <onboarding@resend.dev>',
+      to: email, 
+      subject: 'Protocol Synchronized',
+      html: `<div style="background:#000;color:#fff;padding:40px;border:1px solid #fbbf24;font-family:sans-serif;"><h1>WELCOME</h1><p>Agent ID: #${currentCount + 1}</p></div>`
+    });
+
+    return NextResponse.json({ success: true, position: currentCount + 1 });
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+}
+</file>
+
+<file path="app/page.tsx">
+"use client";
+
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { collection, onSnapshot } from 'firebase/firestore'; 
+import { db, auth } from '@/lib/firebase';
+import BottomNav from '@/components/BottomNav';
+import { Radio, ShieldCheck, Crown, Clock } from 'lucide-react'; // FIXED: Added Clock
+import { GodModeBackground } from '@/components/GodMode';
+
+export default function Lobby() {
+  const router = useRouter();
+  const [rooms, setRooms] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [isGodMode, setIsGodMode] = useState(false);
+
+  // UNIFIED PATH
+  const ROOMS_PATH = 'rooms';
+
+  useEffect(() => {
+    const unsubscribeAuth = auth.onAuthStateChanged((user) => {
+      if (!user) {
+        router.push('/login');
+      } else {
+        setIsGodMode(user.email?.toLowerCase() === "logan.nguyen.opla@gmail.com");
+
+        // THE FIX: Fetch all active/scheduled rooms.
+        const roomsRef = collection(db, ROOMS_PATH);
+        const unsubscribeRooms = onSnapshot(roomsRef, (snapshot) => {
+          const liveRooms = snapshot.docs
+            .map(doc => ({ id: doc.id, ...doc.data() } as any))
+            .filter((room) => room.status !== 'closed'); // Ignores terminated rooms
+          
+          setRooms(liveRooms);
+          setLoading(false);
+        });
+        return () => unsubscribeRooms();
+      }
+    });
+    return () => unsubscribeAuth();
+  }, [router]);
+
+  if (loading) return <div className="h-screen bg-black flex items-center justify-center font-mono text-yellow-500"><div className="w-12 h-12 border-4 border-yellow-500 border-t-transparent rounded-full animate-spin" /></div>;
+
+  return (
+    <div className={`min-h-screen font-sans pb-24 relative overflow-hidden transition-colors duration-1000 ${isGodMode ? 'bg-black text-white selection:bg-yellow-500 selection:text-black' : 'bg-[#050505] text-white'}`}>
+      {isGodMode && <GodModeBackground />}
+      
+      <header className={`p-6 border-b relative z-10 backdrop-blur-md sticky top-0 flex justify-between items-center ${isGodMode ? 'bg-black/50 border-yellow-500/30' : 'bg-[#121212]/50 border-[#27272a]'}`}>
+        <div>
+          <div className="flex items-center gap-2">
+             {isGodMode && <ShieldCheck className="w-5 h-5 text-yellow-500 animate-pulse" />}
+             <h1 className={`text-2xl font-black italic tracking-tighter ${isGodMode ? 'text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-orange-500' : 'text-[#00FF94]'}`}>
+                {isGodMode ? "GOD MODE" : "DESKMATES"}
+             </h1>
+          </div>
+          <p className={`text-xs uppercase tracking-widest mt-1 ${isGodMode ? 'text-yellow-700 font-bold' : 'text-[#A1A1AA]'}`}>
+            {isGodMode ? "Founder Clearance: Omega" : "Study Together"}
+          </p>
+        </div>
+      </header>
+
+      <div className="p-4 space-y-4 relative z-10 max-w-2xl mx-auto mt-4">
+        {rooms.length === 0 && (
+          <div className={`text-center py-20 font-black text-2xl opacity-20 ${isGodMode ? 'text-yellow-900' : 'text-[#27272a]'}`}>
+            NO ACTIVE SIGNALS
+          </div>
+        )}
+
+        {rooms.map((room) => (
+          <div key={room.id} onClick={() => router.push(`/room/${room.id}/briefing`)} className={`group cursor-pointer border rounded-3xl p-6 transition-all hover:-translate-y-1 relative overflow-hidden ${isGodMode ? 'bg-[#080808]/50 border-yellow-500/30 hover:border-yellow-400' : 'bg-[#121212] border-[#27272a] hover:border-[#00FF94]'}`}>
+            <div className={`absolute inset-0 bg-gradient-to-r translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000 ${isGodMode ? 'from-yellow-500/0 via-yellow-500/10 to-yellow-500/0' : 'from-[#00FF94]/0 via-[#00FF94]/5 to-[#00FF94]/0'}`} />
+            <div className="flex justify-between items-start mb-4 relative z-10">
+              <h3 className={`font-black text-xl italic uppercase transition-colors ${isGodMode ? 'group-hover:text-yellow-400' : 'group-hover:text-[#00FF94]'}`}>{room.title}</h3>
+              <span className={`text-[9px] px-3 py-1 rounded-full font-black uppercase tracking-widest border ${isGodMode ? 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20' : 'bg-[#00FF94]/10 text-[#00FF94] border-[#00FF94]/20'}`}>
+                {room.subject || "GENERAL"}
+              </span>
+            </div>
+            <div className={`flex items-center justify-between text-[10px] font-black uppercase tracking-widest relative z-10 ${isGodMode ? 'text-yellow-900' : 'text-[#A1A1AA]'}`}>
+              <div className="flex items-center gap-2">
+                <Clock className="w-3 h-3" />
+                <span>{room.startTime?.toDate ? room.startTime.toDate().toLocaleString('vi-VN', { timeStyle: 'short', dateStyle: 'short' }) : 'ASAP'}</span>
+              </div>
+              <span className="flex items-center gap-1">MOD: {room.moderator?.split(' ')[0] || 'ADMIN'}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+      <BottomNav />
+    </div>
+  );
+}
+</file>
+
+<file path="services/roomService.js">
+import axios from 'axios';
+import { db } from '../lib/firebase';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+
+export const createDeskmatesRoom = async (title, user) => {
+  const API_KEY = process.env.WHEREBY_API_KEY;
+  const ROOMS_PATH = 'artifacts/deskmates-online/public/data/rooms';
+
+  try {
+    const sessionEnd = new Date(Date.now() + 14400000).toISOString(); 
+
+    const response = await axios.post(
+      'https://api.whereby.dev/v1/meetings',
+      { endDate: sessionEnd, isLocked: true, roomMode: "normal" },
+      { headers: { Authorization: `Bearer ${API_KEY}`, 'Content-Type': 'application/json' } }
+    );
+
+    const { hostUrl, roomUrl } = response.data;
+
+    // THE FIX: Hard-correcting the subdomain to prevent 404s
+    const fixedHost = hostUrl.replace('deskmates.whereby', 'deskmate.whereby');
+    const fixedUser = roomUrl.replace('deskmates.whereby', 'deskmate.whereby');
+
+    await addDoc(collection(db, ROOMS_PATH), {
+      title: title.toUpperCase(),
+      hostUrl: fixedHost,
+      userUrl: fixedUser,
+      moderatorId: user.uid,
+      moderator: user.displayName || "★ FOUNDER",
+      status: 'live',
+      participants: 0,
+      createdAt: serverTimestamp(),
+    });
+
+    return true;
+  } catch (error) {
+    console.error("WHEREBY_DEPLOY_ERROR:", error.message);
+    throw error;
+  }
+};
+</file>
+
+<file path="proxy.ts">
+// proxy.ts
+import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
+
+export function proxy(req: NextRequest) {
+  const { pathname } = req.nextUrl;
+  const SECRET_CODE = '040412'; 
+  const hasDevCookie = req.cookies.get('dev_access');
+
+  if (pathname === `/${SECRET_CODE}`) {
+    const response = NextResponse.redirect(new URL('/', req.url));
+    response.cookies.set('dev_access', 'true', { maxAge: 60 * 60 * 24 * 7, path: '/' });
+    return response;
+  }
+
+  // UPDATED: Allow public access to legal pages and landing
+  if (
+    pathname === '/landing' || 
+    pathname === '/privacy' || 
+    pathname === '/terms' || 
+    pathname.startsWith('/_next') || 
+    pathname.includes('.')
+  ) {
+    return NextResponse.next();
+  }
+
+  if (!hasDevCookie) {
+    return NextResponse.redirect(new URL('/landing', req.url));
+  }
+
+  return NextResponse.next();
+}
+</file>
+
+<file path="components/GodMode.tsx">
+"use client";
+
+import { ShieldCheck, Radio, Activity, Crosshair } from 'lucide-react';
+
+export const GodModeBackground = () => (
+  <div className="fixed inset-0 pointer-events-none z-0 bg-[#020202]">
+    {/* Atmospheric Top Glow */}
+    <div className="absolute top-[-30vh] left-1/2 -translate-x-1/2 w-[150vw] h-[70vh] bg-gradient-to-b from-yellow-600/30 via-yellow-500/5 to-transparent blur-[140px] opacity-70 animate-pulse" />
+    
+    {/* HIGH-VISIBILITY GRID SYSTEM */}
+    <div className="absolute inset-0 bg-[linear-gradient(rgba(255,215,0,0.15)_1.5px,transparent_1.5px),linear-gradient(90deg,rgba(255,215,0,0.15)_1.5px,transparent_1.5px)] bg-[size:50px_50px] opacity-70" />
+    
+    {/* Radial Vignette */}
+    <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,#000_90%)]" />
+    
+    {/* Intersectional Bloom */}
+    <div className="absolute inset-0 bg-[radial-gradient(circle,rgba(255,215,0,0.05)_1px,transparent_1px)] bg-[size:50px_50px]" />
+  </div>
+);
+
+export const OmegaHeader = ({ userName }: { userName: string }) => (
+  <div className="relative z-10 mb-24 flex justify-between items-end border-b-[12px] border-yellow-500 pb-12 px-4 font-sans">
+    <div className="pr-20"> {/* Prevents italic clipping */}
+        <div className="flex items-center gap-4 mb-6">
+            <div className="bg-yellow-500 text-black px-4 py-1 text-[11px] font-black uppercase italic">Authority: Founder</div>
+            <span className="text-[11px] text-yellow-700 font-black tracking-[0.8em] uppercase italic">System Authority</span>
+        </div>
+        <h1 className="text-8xl md:text-[10rem] font-black italic tracking-tighter text-white uppercase leading-[0.8] drop-shadow-[0_20px_40px_rgba(255,215,0,0.4)]">
+            {userName}
+        </h1>
+    </div>
+    <div className="text-right hidden lg:block">
+        <div className="text-6xl font-black italic text-yellow-500 mb-2 tracking-tighter">∞ FOCUS</div>
+        <div className="text-[11px] text-yellow-800 uppercase font-black tracking-[0.5em]">Neural Link Stable</div>
+    </div>
+  </div>
+);
+
+export const ReactorCore = ({ children }: { children: React.ReactNode }) => (
+  <div className="relative z-10 mb-24 max-w-5xl mx-auto">
+    <div className="bg-[#050505] border-[3px] border-yellow-500/20 p-12 rounded-[4rem] relative overflow-hidden shadow-[0_0_100px_rgba(255,215,0,0.05)]">
+        <div className="absolute top-0 left-0 w-8 h-8 border-t-[3px] border-l-[3px] border-yellow-500" />
+        <div className="absolute bottom-0 right-0 w-8 h-8 border-b-[3px] border-r-[3px] border-yellow-500" />
+        <div className="relative">
+            <div className="flex items-center gap-6 mb-10 border-b border-white/10 pb-8">
+                <Crosshair className="w-8 h-8 text-yellow-500 animate-[spin_20s_linear_infinite]" />
+                <h2 className="font-black text-2xl uppercase text-white tracking-[0.3em] italic">Initialize Signal Protocol</h2>
+            </div>
+            {children}
+        </div>
+    </div>
+  </div>
+);
+
+export const SignalCard = ({ room, onClose }: { room: any, onClose: (id: string) => void }) => (
+  <div className="relative bg-[#080808] border border-white/5 p-10 rounded-[3rem] flex justify-between items-center group transition-all hover:border-yellow-500/40 hover:bg-[#0a0a0a]">
+      <div className="flex items-center gap-10">
+          <div className="w-16 h-16 bg-yellow-500/10 border border-yellow-500/30 rounded-3xl flex items-center justify-center shadow-[0_0_20px_rgba(255,215,0,0.1)]">
+             <Radio className="w-8 h-8 text-yellow-500" />
+          </div>
+          <div>
+            <h3 className="font-black text-3xl text-white uppercase italic tracking-tighter group-hover:text-yellow-500 transition-colors">{room.title}</h3>
+            <p className="text-[11px] font-black text-yellow-800 uppercase tracking-[0.4em] mt-2">Active Frequency: {room.id.slice(0, 8)}</p>
+          </div>
+      </div>
+      <button 
+          onClick={() => onClose(room.id)}
+          className="bg-red-600 text-white px-10 py-5 rounded-2xl hover:scale-105 transition-all text-xs font-black uppercase tracking-widest shadow-[0_0_30px_rgba(220,38,38,0.2)]"
+      >
+          TERMINATE
+      </button>
+  </div>
+);
+
+export const LoadingSequence = () => (
+    <div className="h-screen bg-[#020202] flex flex-col items-center justify-center gap-8 font-mono">
+        <div className="w-20 h-20 border-t-[5px] border-yellow-500 rounded-full animate-spin shadow-[0_0_40px_rgba(255,215,0,0.3)]" />
+        <div className="text-yellow-500 font-black text-sm uppercase tracking-[1.5em] animate-pulse">Syncing...</div>
+    </div>
+);
+</file>
+
+<file path="app/profile/page.tsx">
+"use client";
+
+import { useState, useEffect } from 'react';
+import { auth, db } from '@/lib/firebase';
+import { doc, onSnapshot, updateDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
+import { getReputationStatus, REPUTATION_RULES, ACADEMIC_SUBJECTS, VIETNAMESE_GRADES, formatScore } from '@/utils/reputation';
+import { calculateBadges, BadgeData } from '@/utils/badges';
+import { GodModeBackground, LoadingSequence } from '@/components/GodMode';
+import { getRole, UserRole } from '@/utils/roles';
+import BottomNav from '@/components/BottomNav';
+import { useRouter } from 'next/navigation';
+import { 
+  Zap, Shield, Crown, Plus, Trash2, BookOpen, Star, HelpCircle, X, LogOut 
+} from 'lucide-react';
+
+export default function ProfilePage() {
+  const router = useRouter();
+  const [user, setUser] = useState<any>(null);
+  const [stats, setStats] = useState<any>(null);
+  const [role, setRole] = useState<UserRole | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [helpTab, setHelpTab] = useState<string | null>(null);
+  
+  // State for stable custom score entry
+  const [newSub, setNewSub] = useState({ name: ACADEMIC_SUBJECTS[0], val: '', isCustom: false });
+
+  useEffect(() => {
+    const unsub = auth.onAuthStateChanged((currentUser) => {
+      if (!currentUser) return router.push('/login');
+      setUser(currentUser);
+      
+      return onSnapshot(doc(db, 'users', currentUser.uid), (snap) => {
+        const data = snap.data() || {};
+        setStats(data);
+        setRole(getRole(currentUser, data));
+        setLoading(false);
+      });
+    });
+    return () => unsub();
+  }, [router]);
+
+  const addSubject = async () => {
+    if (!newSub.val || !user) return;
+    const finalVal = formatScore(newSub.val);
+    await updateDoc(doc(db, 'users', user.uid), {
+      subjects: arrayUnion({ name: newSub.name, grade: finalVal, id: Date.now() })
+    });
+    setNewSub({ ...newSub, val: '', isCustom: false });
+  };
+
+  if (loading) return <LoadingSequence />;
+
+  const rep = stats?.reputation ?? 100;
+  const status = getReputationStatus(rep);
+  const hours = Math.floor((stats?.totalSeconds || 0) / 3600);
+  const badges = calculateBadges(stats, role?.rank?.toLowerCase() || 'agent');
+
+  return (
+    <div className="min-h-screen bg-black text-white font-mono pb-32 relative overflow-hidden p-4 md:p-8">
+      <GodModeBackground />
+      
+      <div className="relative z-10 max-w-2xl mx-auto space-y-6 pt-12">
+        
+        {/* IDENTITY: FIXED CROWN CLIPPING */}
+        <div className="text-center space-y-4">
+          <div className="relative w-24 h-24 mx-auto">
+             {role?.rank === 'FOUNDER' && (
+               <Crown className="absolute -top-6 left-1/2 -translate-x-1/2 text-yellow-500 w-10 h-10 animate-bounce z-20 drop-shadow-[0_0_15px_rgba(255,215,0,0.6)]" />
+             )}
+             <div className="w-full h-full rounded-full border-4 border-yellow-500/20 overflow-hidden bg-white/5 relative z-10 shadow-2xl">
+                {user?.photoURL ? (
+                  <img src={user.photoURL} alt="Avatar" className="w-full h-full object-cover" />
+                ) : (
+                  <Shield className="w-10 h-10 text-gray-700 m-auto" />
+                )}
+             </div>
+          </div>
+          <h1 className="text-3xl font-black italic tracking-tighter uppercase">{user?.displayName}</h1>
+          
+          {/* BADGE LIST WITH HELP */}
+          <div className="flex flex-wrap justify-center gap-2 relative">
+            <button onClick={() => setHelpTab('badges')} className="absolute -right-6 top-1 text-gray-600 hover:text-white transition-colors">
+                <HelpCircle className="w-4 h-4" />
+            </button>
+            {badges.map(b => (
+              <span key={b.id} style={{ borderColor: `${b.color}44`, color: b.color }} className="text-[8px] font-black px-3 py-1 rounded-full border bg-black/50 uppercase tracking-widest shadow-lg">
+                {b.label}
+              </span>
+            ))}
+          </div>
+        </div>
+
+        {/* REPUTATION CARD WITH HELP */}
+        <div className="bg-[#0a0a0a] border border-white/5 p-8 rounded-[3rem] text-center relative overflow-hidden shadow-2xl group">
+          <button onClick={() => setHelpTab('reputation')} className="absolute right-6 top-6 text-gray-600 group-hover:text-yellow-500 transition-colors z-20">
+              <HelpCircle className="w-5 h-5" />
+          </button>
+          <div className="absolute top-0 left-0 h-1 bg-yellow-500 transition-all duration-1000" style={{width: `${rep}%`}} />
+          <h2 className="text-4xl font-black italic tracking-tighter mb-2">{rep} <span className="text-[10px] text-gray-600 uppercase tracking-widest">Reputation</span></h2>
+          <div className="flex justify-center gap-6 text-[9px] font-black uppercase tracking-widest">
+             <span className={status.canMic ? "text-[#00FF94]" : "text-red-600"}>Mic: {status.canMic ? "ON" : "OFF"}</span>
+             <span className={status.canCamera ? "text-[#00FF94]" : "text-red-600"}>Cam: {status.canCamera ? "ON" : "OFF"}</span>
+             <span className="text-yellow-500">Multiplier: {status.multiplier}x</span>
+          </div>
+        </div>
+
+        {/* CORE FOCUS STATS */}
+        <div className="grid grid-cols-2 gap-4">
+          <StatCard icon={<Zap className="w-4 h-4" />} label="Focus Points" value={stats?.totalPoints || 0} />
+          <StatCard icon={<Star className="w-4 h-4" />} label="Hours Learned" value={hours} />
+        </div>
+
+        {/* NEURAL TRANSCRIPT */}
+        <div className="bg-[#0a0a0a] border border-white/5 p-8 rounded-[3rem] space-y-6 shadow-2xl">
+          <h3 className="text-[10px] text-yellow-500 font-black uppercase tracking-[0.4em] flex items-center gap-3 border-b border-white/5 pb-6">
+            <BookOpen className="w-4 h-4"/> Neural Transcript
+          </h3>
+          <div className="space-y-3">
+            {stats?.subjects?.map((s: any) => (
+              <div key={s.id} className="flex justify-between items-center bg-white/5 p-4 rounded-2xl border border-white/5 group hover:border-yellow-500/20 transition-all">
+                <span className="text-[10px] font-black uppercase text-gray-500">{s.name}</span>
+                <div className="flex items-center gap-4">
+                  <span className="text-sm font-black text-yellow-500 italic">{s.grade}</span>
+                  <button onClick={() => updateDoc(doc(db, 'users', user.uid), { subjects: arrayRemove(s) })}><Trash2 className="w-3 h-3 text-red-900 hover:text-red-500 transition-colors" /></button>
+                </div>
+              </div>
+            ))}
+          </div>
+          
+          <div className="space-y-4 pt-6 border-t border-white/5">
+            <div className="grid grid-cols-2 gap-3">
+              <select value={newSub.name} onChange={e => setNewSub({...newSub, name: e.target.value})} className="bg-black border border-white/10 p-4 rounded-xl text-[10px] font-black uppercase outline-none focus:border-yellow-500">
+                {ACADEMIC_SUBJECTS.map(s => <option key={s} value={s}>{s}</option>)}
+              </select>
+              <select 
+                value={newSub.isCustom ? "custom" : newSub.val} 
+                onChange={e => {
+                  const val = e.target.value;
+                  if (val === "custom") setNewSub({...newSub, isCustom: true, val: ''});
+                  else setNewSub({...newSub, isCustom: false, val: val});
+                }} 
+                className="bg-black border border-white/10 p-4 rounded-xl text-[10px] font-black uppercase outline-none focus:border-yellow-500"
+              >
+                <option value="">Score...</option>
+                {VIETNAMESE_GRADES.map(g => <option key={g} value={g}>{g}</option>)}
+                <option value="custom">Manual Point</option>
+              </select>
+            </div>
+            
+            {newSub.isCustom && (
+              <input 
+                type="text" 
+                placeholder="Enter (e.g. 9.1)" 
+                value={newSub.val}
+                onChange={e => setNewSub({...newSub, val: e.target.value})} 
+                className="w-full bg-black border border-white/10 p-4 rounded-xl text-center text-xs font-black text-yellow-500 outline-none" 
+              />
+            )}
+            <button onClick={addSubject} className="w-full bg-yellow-500 text-black py-4 rounded-xl font-black uppercase text-[10px] tracking-widest flex items-center justify-center gap-2 hover:scale-[1.02] transition-transform">
+              <Plus className="w-4 h-4"/> Link Intel
+            </button>
+          </div>
+        </div>
+
+        {/* ADMIN ACTIONS & LOGOUT */}
+        <div className="space-y-4">
+            {/* RESTORED: Only Admins see this button */}
+            {role?.canManageRooms && (
+              <button onClick={() => router.push('/admin')} className="w-full bg-yellow-500 text-black py-6 rounded-[2rem] font-black uppercase text-xs tracking-widest shadow-[0_0_30px_rgba(255,215,0,0.2)]">
+                Enter Command Deck
+              </button>
+            )}
+            
+            <button onClick={() => auth.signOut()} className="w-full border border-red-900/30 text-red-500 py-6 rounded-[2rem] font-black text-xs uppercase tracking-widest hover:bg-red-900/10 transition-colors flex items-center justify-center gap-2">
+              <LogOut className="w-4 h-4" /> Terminate Session
+            </button>
+        </div>
+
+        {/* INFO OVERLAYS */}
+        {helpTab && (
+          <div className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-md flex items-center justify-center p-6 animate-in fade-in zoom-in duration-200">
+            <div className="max-w-md w-full bg-[#0a0a0a] border border-white/10 p-8 rounded-[3rem] space-y-6 relative overflow-y-auto max-h-[80vh] shadow-2xl">
+              <button onClick={() => setHelpTab(null)} className="absolute right-8 top-8 text-gray-500 hover:text-white"><X /></button>
+              
+              {helpTab === 'reputation' ? (
+                <div className="space-y-6">
+                  <h3 className="text-xl font-black italic text-yellow-500 uppercase tracking-tighter">Reputation Protocol</h3>
+                  <div className="space-y-4">
+                    <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest border-b border-white/5 pb-2">Penalties</p>
+                    {REPUTATION_RULES.VIOLATIONS.map(v => (
+                      <div key={v.label} className="flex justify-between items-center text-xs">
+                        <span className="text-gray-300 italic">{v.label}</span>
+                        <span className="text-red-600 font-black">-{v.deduction}</span>
+                      </div>
+                    ))}
+                    <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest border-b border-white/5 pb-2 pt-4">Neural Recovery</p>
+                    <p className="text-xs italic text-gray-300">{REPUTATION_RULES.RECOVERY}</p>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-6">
+                  <h3 className="text-xl font-black italic text-[#00FF94] uppercase tracking-tighter">Achievement Array</h3>
+                  <div className="space-y-4">
+                    {calculateBadges(stats, role?.rank?.toLowerCase() || 'agent').map(b => (
+                      <div key={b.id} className="space-y-1">
+                        <div className="flex items-center gap-2">
+                           <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: b.color }} />
+                           <span className="text-[10px] font-black uppercase tracking-widest" style={{ color: b.color }}>{b.label}</span>
+                        </div>
+                        <p className="text-[11px] text-gray-400 italic pl-3">{b.desc}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+      <BottomNav />
+    </div>
+  );
+}
+
+function StatCard({ icon, label, value }: any) {
+  return (
+    <div className="bg-[#0a0a0a] border border-white/5 p-6 rounded-[2.5rem] space-y-2 group hover:border-yellow-500/20 transition-colors shadow-xl">
+      <div className="text-yellow-500 group-hover:scale-110 transition-transform">{icon}</div>
+      <div className="text-[9px] text-gray-500 uppercase font-black tracking-widest">{label}</div>
+      <div className="text-2xl font-black italic">{value}</div>
+    </div>
+  );
+}
+</file>
+
+<file path="app/landing/page.tsx">
+"use client";
+
+import { useState, useEffect } from 'react';
+import { GodModeBackground } from '@/components/GodMode';
+import { db } from '@/lib/firebase';
+import { collection, onSnapshot } from 'firebase/firestore';
+import { CheckCircle, Radio, Lock, Cpu, Globe, ArrowRight } from 'lucide-react';
+
+export default function LandingPage() {
+  const [email, setEmail] = useState("");
+  const [status, setStatus] = useState({ joined: false, pos: 0 });
+  const [count, setCount] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, mins: 0, secs: 0 });
+
+  useEffect(() => {
+    // Sync Waitlist Count
+    const unsub = onSnapshot(collection(db, 'waitlist'), (snap) => setCount(snap.size));
+    
+    // NEW TARGET: Saturday, March 7, 2026, 19:00 (7 PM) ICT
+    const target = new Date("2026-03-07T19:00:00+07:00").getTime();
+    
+    const timer = setInterval(() => {
+      const now = new Date().getTime();
+      const distance = target - now;
+      
+      if (distance < 0) {
+        clearInterval(timer);
+        setTimeLeft({ days: 0, hours: 0, mins: 0, secs: 0 });
+      } else {
+        setTimeLeft({
+          days: Math.floor(distance / (1000 * 60 * 60 * 24)),
+          hours: Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
+          mins: Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60)),
+          secs: Math.floor((distance % (1000 * 60)) / 1000)
+        });
+      }
+    }, 1000);
+    
+    return () => { unsub(); clearInterval(timer); };
+  }, []);
+
+  const handleJoin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      const res = await fetch('/api/waitlist', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+      });
+      const data = await res.json();
+      if (res.ok) setStatus({ joined: true, pos: data.position });
+      else alert(`Uplink Failed: ${data.error}`);
+    } catch (err) {
+      alert("Network Timeout: Communication with High Command lost.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-[#020202] text-white flex flex-col font-sans overflow-x-hidden selection:bg-yellow-500 selection:text-black">
+      <GodModeBackground />
+
+      <main className="relative z-10 flex flex-col items-center p-6 text-center pt-32">
+        {/* Status Indicator */}
+        <div className="flex items-center gap-3 bg-yellow-500/10 border border-yellow-500/30 px-6 py-2 rounded-full mb-8">
+            <Radio className="w-3 h-3 text-yellow-500 animate-pulse" />
+            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-yellow-500">
+                {count} Agents Synchronized
+            </span>
+        </div>
+
+        {/* Big Title with Italic Correction */}
+        <h1 className="text-7xl md:text-9xl font-black italic tracking-tighter text-transparent bg-clip-text bg-gradient-to-b from-white via-yellow-500 to-yellow-900 mb-6 pr-6">
+          DESKMATES
+        </h1>
+        
+        <p className="text-lg md:text-2xl font-bold uppercase tracking-[0.4em] mb-24 max-w-3xl text-gray-500">
+            Smart Study <span className="text-white">Lobby</span> Protocol.
+        </p>
+
+        {/* Reverted Feature Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl w-full mb-32 px-4">
+            <FeatureCard icon={<Lock />} title="Neural Privacy" desc="Mic-off enforcement for absolute focus." />
+            <FeatureCard icon={<Cpu />} title="Smart Sync" desc="Real-time session aggregation." />
+            <FeatureCard icon={<Globe />} title="Global Link" desc="Study with students across the globe." />
+        </div>
+
+        {/* Waitlist Form */}
+        <div className="w-full max-w-xl mb-32">
+            {status.joined ? (
+              <div className="bg-[#0a0a0a] border border-yellow-500/40 p-12 rounded-[3rem] animate-in zoom-in">
+                <CheckCircle className="w-16 h-16 text-yellow-500 mx-auto mb-6" />
+                <h3 className="text-3xl font-black uppercase italic mb-2 tracking-tighter text-white">Protocol Accepted</h3>
+                <p className="text-gray-500 text-sm italic font-bold uppercase tracking-widest">Agent ID: #{status.pos}. Access Granted March 7.</p>
+              </div>
+            ) : (
+              <form onSubmit={handleJoin} className="relative group">
+                <div className="absolute -inset-1 bg-yellow-500 rounded-full blur opacity-10 group-focus-within:opacity-20 transition-all"></div>
+                <input 
+                  type="email" required value={email} onChange={(e) => setEmail(e.target.value)}
+                  placeholder="Enter student email..." 
+                  className="relative w-full bg-black border border-white/10 p-7 rounded-full text-sm focus:border-yellow-500 outline-none pr-44 placeholder:text-gray-800"
+                />
+                <button type="submit" disabled={loading} className="absolute right-3 top-3 bottom-3 bg-white text-black px-10 rounded-full font-black text-[11px] uppercase tracking-widest hover:bg-yellow-500 transition-all">
+                  {loading ? '...' : 'Request Access'}
+                </button>
+              </form>
+            )}
+        </div>
+
+        {/* Reverted Countdown */}
+        <div className="w-full max-w-2xl border-y border-white/5 py-16 mb-20">
+            <p className="text-[10px] uppercase tracking-[0.6em] text-yellow-800 font-black mb-10 italic">Uplink Activation Countdown</p>
+            <div className="grid grid-cols-4 gap-4">
+                <TimeUnit value={timeLeft.days} label="Days" />
+                <TimeUnit value={timeLeft.hours} label="Hours" />
+                <TimeUnit value={timeLeft.mins} label="Mins" />
+                <TimeUnit value={timeLeft.secs} label="Secs" />
+            </div>
+        </div>
+
+        {/* Required Verification Footer */}
+        <footer className="w-full max-w-6xl border-t border-white/5 pt-12 pb-20 flex flex-col md:flex-row justify-between items-center gap-8 opacity-40 hover:opacity-100 transition-opacity">
+            <p className="text-[10px] uppercase tracking-widest font-bold text-gray-600 italic">
+                © 2026 DESKMATES LABS • OMEGA CLEARANCE REQUIRED
+            </p>
+            <div className="flex gap-10">
+                <a href="/privacy" className="text-[10px] uppercase tracking-widest font-black hover:text-yellow-500 transition-colors">Privacy Policy</a>
+                <a href="/terms" className="text-[10px] uppercase tracking-widest font-black hover:text-yellow-500 transition-colors">Terms of Service</a>
+            </div>
+        </footer>
+      </main>
+    </div>
+  );
+}
+
+function FeatureCard({ icon, title, desc }: any) {
+    return (
+        <div className="bg-[#050505] border border-white/5 p-10 rounded-[3rem] text-left hover:border-yellow-500/20 transition-colors group">
+            <div className="text-yellow-500 mb-6 group-hover:scale-110 transition-transform">{icon}</div>
+            <h3 className="text-white font-black uppercase text-xl mb-3 tracking-tighter italic">{title}</h3>
+            <p className="text-gray-500 text-xs font-bold leading-relaxed uppercase">{desc}</p>
+        </div>
+    );
+}
+
+function TimeUnit({ value, label }: any) {
+    return (
+        <div className="flex flex-col items-center">
+            <div className="text-4xl md:text-6xl font-black text-white italic tabular-nums">{value.toString().padStart(2, '0')}</div>
+            <div className="text-[9px] uppercase text-yellow-800 font-black mt-2 tracking-[0.4em]">{label}</div>
+        </div>
+    );
+}
+</file>
+
 <file path="app/room/[id]/page.tsx">
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter, useSearchParams, useParams } from 'next/navigation';
-import { JitsiMeeting } from '@jitsi/react-sdk';
-import { 
-  doc, getDoc, updateDoc, setDoc, 
-  serverTimestamp, increment, onSnapshot 
-} from 'firebase/firestore';
+import { doc, getDoc, onSnapshot } from 'firebase/firestore';
 import { db, auth } from '@/lib/firebase';
-import { ShieldAlert, ShieldCheck } from 'lucide-react';
-import { GodModeBackground } from '@/components/GodMode';
-import { getRole } from '@/utils/roles';
 
 export default function RoomPage() {
-  const [role, setRole] = useState('agent');
   const [loading, setLoading] = useState(true);
+  const [roomData, setRoomData] = useState<any>(null);
   const router = useRouter();
-  const { id: rawRoomId } = useParams();
+  const params = useParams();
   const searchParams = useSearchParams();
+
+  // Safely extract and type the roomId
+  const rawId = params?.id;
+  const roomId = (Array.isArray(rawId) ? rawId[0] : rawId) as string | undefined;
   const sessionId = searchParams.get('sessionId');
-  const secondsRef = useRef(0);
 
-  // 🛑 THE GHOST BYPASS: Generate a unique ID so Jitsi doesn't ask for a login
-  const [jitsiRoomId] = useState(() => 
-    `Deskmates-Session-${Math.random().toString(36).substring(2, 10)}-${Date.now().toString(36)}`
-  );
-
-  const roomId = Array.isArray(rawRoomId) ? rawRoomId[0] : rawRoomId || "unknown";
-
-  // 1. AUTH & ROLE INIT
   useEffect(() => {
-    if (!sessionId || !roomId) return;
-    const init = async () => {
-       const user = auth.currentUser;
-       if (user) {
-           const userDoc = await getDoc(doc(db, 'users', user.uid));
-           setRole(getRole(user, userDoc.data()));
-       }
-       setLoading(false);
-    };
-    init();
-    const interval = setInterval(() => { secondsRef.current += 1; }, 1000);
-    return () => clearInterval(interval);
-  }, [sessionId, roomId]);
+    // Check for roomId existence to prevent doc() errors
+    if (!roomId) {
+      console.error("Room ID is missing.");
+      router.push('/');
+      return;
+    }
 
-  // 2. END SESSION & SYNC
-  const handleEndSession = useCallback(async () => {
-    if (!sessionId || !auth.currentUser) return;
-    const points = Math.floor(secondsRef.current / 60);
-    try {
-        await updateDoc(doc(db, 'sessions', sessionId as string), { 
-            status: 'completed', 
-            endTime: serverTimestamp(), 
-            durationSeconds: secondsRef.current, 
-            pointsEarned: points 
-        });
-        await setDoc(doc(db, 'users', auth.currentUser.uid), { 
-            totalPoints: increment(points), 
-            totalSeconds: increment(secondsRef.current), 
-            sessionsCount: increment(1) 
-        }, { merge: true });
-    } catch (e) { console.error("Sync Error:", e); }
-  }, [sessionId]);
+    let unsubRoom: (() => void) | null = null;
 
-  // 3. THE ENFORCER: Listen for Mod "Nuke"
-  useEffect(() => {
-    if (!roomId) return;
-    const unsub = onSnapshot(doc(db, 'rooms', roomId), (snap) => {
-        if (snap.data()?.status === 'closed') {
-            handleEndSession().then(() => {
-                alert("This protocol has been terminated by High Command.");
-                router.push('/profile');
-            });
-        }
+    const unsubAuth = auth.onAuthStateChanged(async (user) => {
+      if (!user) {
+        router.push('/login');
+        return;
+      }
+
+      try {
+        // Initialize room data listener
+        unsubRoom = onSnapshot(
+          doc(db, 'rooms', roomId), // Fixed: roomId is now verified
+          (snap) => {
+            if (!snap.exists()) {
+              alert("Room not found.");
+              router.push('/');
+            } else {
+              setRoomData(snap.data());
+              setLoading(false); // SUCCESS: Release spinner
+            }
+          },
+          (error) => {
+            console.error("Firebase Error:", error);
+            setLoading(false); // ERROR: Release spinner even on failure
+            router.push('/');
+          }
+        );
+      } catch (err) {
+        console.error("Initialization Error:", err);
+        setLoading(false);
+      }
     });
-    return () => unsub();
-  }, [roomId, handleEndSession, router]);
 
-  if (loading) return (
-    <div className="h-screen bg-black text-yellow-500 flex flex-col items-center justify-center font-mono gap-4">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-yellow-500"></div>
-        DECRYPTING CHANNEL...
-    </div>
-  );
+    return () => {
+      unsubAuth();
+      if (unsubRoom) unsubRoom();
+    };
+  }, [roomId, router]);
+
+  if (loading || !roomData) {
+    return (
+      <div className="h-screen bg-black flex flex-col items-center justify-center font-mono">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-yellow-500 mb-4" />
+        <p className="text-yellow-500 uppercase tracking-widest">Synchronizing Channel...</p>
+      </div>
+    );
+  }
 
   return (
-    <div className={`h-screen flex flex-col relative overflow-hidden ${role === 'founder' ? 'bg-black' : 'bg-[#050505]'}`}>
+    <div className="h-screen bg-black text-white p-10">
+      <h1 className="text-2xl font-bold uppercase">{roomData.title}</h1>
+      {/* Additional UI and Video Iframe Logic here */}
+    </div>
+  );
+}
+</file>
+
+<file path="app/admin/page.tsx">
+"use client";
+
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { db, auth } from '@/lib/firebase';
+import { collection, onSnapshot, doc, updateDoc, getDoc, addDoc, serverTimestamp, arrayUnion, Timestamp } from 'firebase/firestore';
+import { getRole, UserRole } from '@/utils/roles';
+import { ACADEMIC_SUBJECTS } from '@/utils/reputation';
+import { GodModeBackground, OmegaHeader, LoadingSequence, ReactorCore } from '@/components/GodMode';
+import BottomNav from '@/components/BottomNav';
+import { Check, X, Users, Trash2, Clock, Mic, Video, Loader2 } from 'lucide-react';
+
+export default function AdminPage() {
+  const router = useRouter();
+  const [role, setRole] = useState<UserRole | null>(null);
+  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [scheduledRooms, setScheduledRooms] = useState<any[]>([]);
+  const [apps, setApps] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [isDeploying, setIsDeploying] = useState(false);
+  const [view, setView] = useState<'rooms' | 'apps'>('rooms');
+
+  const [form, setForm] = useState({ title: '', desc: '', dateOffset: '0', hour: '09', min: '00', subject: ACADEMIC_SUBJECTS[0], reqMic: false, reqCamera: false });
+  const ROOMS_PATH = 'rooms';
+
+  useEffect(() => {
+    const unsubAuth = auth.onAuthStateChanged(async (user) => {
+      if (!user) return router.push('/login');
+      setCurrentUser(user);
+      const docSnap = await getDoc(doc(db, 'users', user.uid));
+      const r = getRole(user, docSnap.data());
+      setRole(r);
+
+      // RESTORED: Kick out normal users. Only Admins/Founders allowed.
+      if (!r.canManageRooms) return router.push('/profile');
       
-      {role === 'founder' && <GodModeBackground />}
+      const unsubRooms = onSnapshot(collection(db, ROOMS_PATH), (snap) => {
+        const activeRooms = snap.docs
+          .map(d => ({ id: d.id, ...d.data() }))
+          .filter((room: any) => room.status !== 'closed')
+          .filter((room: any) => r.isFounder || room.moderatorId === user.uid);
+          
+        setScheduledRooms(activeRooms);
+        setLoading(false);
+      });
 
-      {/* TOP STATUS BAR */}
-      <div className={`relative z-10 flex justify-between items-center px-6 py-4 border-b backdrop-blur-md ${role === 'founder' ? 'border-yellow-900/50 bg-black/50' : 'border-[#27272a] bg-[#121212]/80'}`}>
-         <div className="flex flex-col">
-            <span className={`text-[10px] font-black uppercase tracking-[0.3em] ${role === 'founder' ? 'text-yellow-600' : 'text-[#00FF94]'}`}>
-                {role === 'founder' ? 'Founder Priority' : 'Secure Uplink'}
-            </span>
-            <div className="font-bold text-white text-xs font-mono">{roomId.slice(0,8).toUpperCase()}</div>
-         </div>
-         <button 
-            onClick={async () => { await handleEndSession(); router.push('/profile'); }} 
-            className="text-[10px] bg-red-500/10 border border-red-500/30 text-red-500 px-4 py-2 rounded uppercase font-black tracking-widest hover:bg-red-500 hover:text-white transition-all"
-         >
-            Disconnect
-         </button>
+      let unsubApps = () => {};
+      if (r.isFounder) {
+        unsubApps = onSnapshot(collection(db, 'applications'), (snap) => {
+            const pendingApps = snap.docs.map(d => ({ id: d.id, ...d.data() })).filter((a: any) => a.status === 'pending');
+            setApps(pendingApps);
+        });
+      }
+      return () => { unsubRooms(); unsubApps(); };
+    });
+    return () => unsubAuth();
+  }, [router]);
+
+  const handleCreateReservation = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (isDeploying || !currentUser) return;
+    setIsDeploying(true);
+    
+    try {
+      const targetDate = new Date();
+      targetDate.setDate(targetDate.getDate() + parseInt(form.dateOffset));
+      targetDate.setHours(parseInt(form.hour), parseInt(form.min), 0, 0);
+
+      if (targetDate.getTime() <= new Date().getTime()) {
+        alert("ERROR: Protocol cannot be scheduled in the past.");
+        setIsDeploying(false);
+        return;
+      }
+
+      await addDoc(collection(db, ROOMS_PATH), {
+        title: form.title.toUpperCase(),
+        description: form.desc,
+        subject: form.subject,         
+        reqMic: form.reqMic,           
+        reqCamera: form.reqCamera,     
+        startTime: Timestamp.fromDate(targetDate),
+        moderatorId: currentUser.uid,
+        moderator: currentUser.displayName,
+        status: 'scheduled',
+        approvedAgents: [currentUser.uid],
+        pendingRequests: [],
+        createdAt: serverTimestamp()
+      });
+      alert("RESERVATION DEPLOYED.");
+      setForm({ ...form, title: '', desc: '' });
+    } catch (e) { alert("Deployment Failed."); }
+    setIsDeploying(false);
+  };
+
+  // THE CRITICAL FIX: Bypass `arrayRemove` to guarantee the approval works
+  const handleApproveAgent = async (roomId: string, agent: any) => {
+    try {
+      const roomRef = doc(db, ROOMS_PATH, roomId);
+      const roomSnap = await getDoc(roomRef);
+      if (!roomSnap.exists()) return;
+      
+      const roomData = roomSnap.data();
+      // Manually filter out the approved user from the pending array
+      const newPending = (roomData.pendingRequests || []).filter((r: any) => r.uid !== agent.uid);
+      
+      await updateDoc(roomRef, { 
+        approvedAgents: arrayUnion(agent.uid), 
+        pendingRequests: newPending 
+      });
+    } catch (e) {
+      alert("Approval Failed.");
+    }
+  };
+
+  if (loading) return <LoadingSequence />;
+
+  return (
+    <div className="min-h-screen bg-black text-white p-6 md:p-10 pb-32 relative overflow-hidden font-mono">
+      <GodModeBackground />
+      <OmegaHeader userName={role?.rank || "AGENT"} />
+
+      <div className="flex gap-4 mb-10 relative z-20 max-w-xl mx-auto">
+        <button onClick={() => setView('rooms')} className={`flex-1 py-4 rounded-2xl font-black text-[10px] uppercase border transition-all ${view === 'rooms' ? 'bg-yellow-500 text-black border-yellow-500' : 'border-white/10 text-gray-600'}`}>My Protocols</button>
+        {role?.isFounder && <button onClick={() => setView('apps')} className={`flex-1 py-4 rounded-2xl font-black text-[10px] uppercase border transition-all ${view === 'apps' ? 'bg-[#00FF94] text-black border-[#00FF94]' : 'border-white/10 text-gray-600'}`}>Global Clearance {apps.length > 0 && <span className="ml-2 bg-red-600 text-white px-2 py-0.5 rounded-full text-[8px]">{apps.length}</span>}</button>}
       </div>
 
-      {/* THE VIDEO ENGINE */}
-      <div className="flex-1 relative z-10">
-        <JitsiMeeting
-            domain="meet.jit.si"
-            roomName={jitsiRoomId} 
-            configOverwrite={{
-                startWithAudioMuted: true,
-                disableThirdPartyRequests: true,
-                prejoinPageEnabled: false,
-                enableWelcomePage: false,
-                enableClosePage: false,
-                disableLobby: true, // 🛑 KILL THE MODERATOR WALL
-                deploymentInfo: { userRegion: "us-west" }
-            }}
-            interfaceConfigOverwrite={{
-                SHOW_JITSI_WATERMARK: false,
-                HIDE_INVITE_MORE_HEADER: true,
-                TOOLBAR_BUTTONS: ['camera', 'chat', 'microphone', 'raisehand', 'tileview', 'hangup']
-            }}
-            userInfo={{ 
-                displayName: auth.currentUser?.displayName || "Agent",
-                email: auth.currentUser?.email || "" 
-            }}
-            onApiReady={(api) => {
-                api.addListener('videoConferenceLeft', () => { 
-                    handleEndSession(); 
-                    router.push('/profile'); 
-                });
-            }}
-            getIFrameRef={(iframe) => { 
-                iframe.style.height = '100%'; 
-                iframe.style.border = 'none';
-                if (role === 'founder') iframe.style.boxShadow = 'inset 0 0 100px rgba(255, 215, 0, 0.15)';
-                if (role === 'moderator') iframe.style.boxShadow = 'inset 0 0 100px rgba(0, 255, 148, 0.1)';
-            }}
-        />
-      </div>
+      {view === 'rooms' ? (
+        <>
+          <ReactorCore>
+            <form onSubmit={handleCreateReservation} className="space-y-4">
+              <input value={form.title} onChange={e => setForm({...form, title: e.target.value})} placeholder="SESSION TITLE (e.g. LATE NIGHT FOCUS)" className="w-full bg-black border-2 border-white/5 p-5 rounded-2xl text-yellow-500 font-black outline-none focus:border-yellow-500" required />
+              <textarea value={form.desc} onChange={e => setForm({...form, desc: e.target.value})} placeholder="Session Description..." className="w-full bg-black border-2 border-white/5 p-5 rounded-2xl text-xs outline-none focus:border-yellow-500 h-24" />
+              
+              <div className="grid grid-cols-3 gap-2">
+                <select value={form.dateOffset} onChange={e => setForm({...form, dateOffset: e.target.value})} className="bg-black border-2 border-white/5 p-4 rounded-xl text-[10px] font-black uppercase text-gray-400 focus:border-yellow-500 outline-none"><option value="0">Today</option><option value="1">Tomorrow</option><option value="2">Day After</option></select>
+                <select value={form.hour} onChange={e => setForm({...form, hour: e.target.value})} className="bg-black border-2 border-white/5 p-4 rounded-xl text-[10px] font-black uppercase text-gray-400 focus:border-yellow-500 outline-none">{Array.from({length: 24}).map((_, i) => <option key={i} value={String(i).padStart(2, '0')}>{String(i).padStart(2, '0')}:00</option>)}</select>
+                <select value={form.min} onChange={e => setForm({...form, min: e.target.value})} className="bg-black border-2 border-white/5 p-4 rounded-xl text-[10px] font-black uppercase text-gray-400 focus:border-yellow-500 outline-none"><option value="00">00</option><option value="15">15</option><option value="30">30</option><option value="45">45</option></select>
+              </div>
 
-      {/* MODERATOR OVERRIDE CONTROLS */}
-      {(role === 'founder' || role === 'moderator') && (
-         <div className="absolute bottom-10 left-10 z-20">
-             <button 
-                onClick={async () => {
-                    if (!confirm("⚠️ ALERT: Shutdown this session for all participants?")) return;
-                    await updateDoc(doc(db, 'rooms', roomId), { status: 'closed' });
-                }}
-                className={`backdrop-blur border px-6 py-4 rounded-xl font-black uppercase text-[10px] tracking-[0.3em] transition-all flex items-center gap-3 shadow-2xl ${
-                    role === 'founder' 
-                    ? 'bg-black/90 border-red-900 text-red-600 hover:bg-red-600 hover:text-white' 
-                    : 'bg-[#00FF94]/10 border-[#00FF94]/40 text-[#00FF94] hover:bg-[#00FF94] hover:text-black'
-                }`}
-             >
-                {role === 'founder' ? <ShieldAlert className="w-4 h-4" /> : <ShieldCheck className="w-4 h-4" />}
-                {role === 'founder' ? "EXECUTE NUKE" : "TERMINATE ROOM"}
-             </button>
-         </div>
+              <div className="flex gap-4 p-2">
+                <select value={form.subject} onChange={e => setForm({...form, subject: e.target.value})} className="flex-1 bg-black border-2 border-white/5 p-4 rounded-xl text-[10px] font-black uppercase focus:border-yellow-500 outline-none">{ACADEMIC_SUBJECTS.map(s => <option key={s} value={s}>{s}</option>)}</select>
+                <div className="flex flex-col justify-center gap-2 px-4">
+                  <label className="flex items-center gap-2 text-[10px] font-black uppercase text-gray-400 cursor-pointer hover:text-white"><input type="checkbox" checked={form.reqMic} onChange={e => setForm({...form, reqMic: e.target.checked})} className="accent-yellow-500 w-4 h-4" /> <Mic className="w-3 h-3" /> Mic Req</label>
+                  <label className="flex items-center gap-2 text-[10px] font-black uppercase text-gray-400 cursor-pointer hover:text-white"><input type="checkbox" checked={form.reqCamera} onChange={e => setForm({...form, reqCamera: e.target.checked})} className="accent-yellow-500 w-4 h-4" /> <Video className="w-3 h-3" /> Cam Req</label>
+                </div>
+              </div>
+
+              <button disabled={isDeploying} type="submit" className="w-full bg-yellow-500 text-black py-6 rounded-3xl font-black uppercase text-xs tracking-widest italic hover:scale-[1.01] transition-transform shadow-2xl shadow-yellow-500/10 flex justify-center items-center gap-2">
+                  {isDeploying ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Deploy Reservation'}
+              </button>
+            </form>
+          </ReactorCore>
+
+          <div className="max-w-4xl mx-auto space-y-6 mt-12">
+            {scheduledRooms.map(room => (
+              <div key={room.id} className="bg-[#0a0a0a] border border-white/5 p-8 rounded-[3rem] group hover:border-yellow-500/20 transition-all">
+                <div className="flex justify-between items-start mb-6">
+                  <div>
+                    <h3 className="text-2xl font-black italic uppercase text-white">{room.title}</h3>
+                    <p className="text-[10px] text-gray-600 font-bold uppercase mt-1 flex items-center gap-2"><Clock className="w-3 h-3" /> {room.startTime?.toDate ? room.startTime.toDate().toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' }) : 'No Time Set'}</p>
+                  </div>
+                  <button onClick={() => updateDoc(doc(db, ROOMS_PATH, room.id), {status: 'closed'})} className="p-4 bg-red-600/10 text-red-600 rounded-2xl hover:bg-red-600 hover:text-white transition-all"><Trash2 className="w-4 h-4" /></button>
+                </div>
+                <div className="space-y-4">
+                  <h4 className="text-[10px] text-gray-500 font-black uppercase tracking-[0.4em] mb-4 flex items-center gap-2"><Users className="w-3 h-3"/> Pending Clearances</h4>
+                  {(!room.pendingRequests || room.pendingRequests.length === 0) ? <p className="text-[10px] text-gray-700 italic">No incoming transmissions...</p> : 
+                    room.pendingRequests?.map((req: any) => (
+                      <div key={req.uid} className="flex justify-between items-center bg-white/5 p-6 rounded-3xl border border-white/5 group hover:border-[#00FF94]/30 transition-all">
+                        <div><p className="font-black text-white uppercase text-sm">{req.displayName}</p></div>
+                        <button onClick={() => handleApproveAgent(room.id, req)} className="bg-[#00FF94]/10 text-[#00FF94] p-4 rounded-xl border border-[#00FF94]/20 hover:bg-[#00FF94] hover:text-black transition-all"><Check/></button>
+                      </div>
+                    ))
+                  }
+                </div>
+              </div>
+            ))}
+          </div>
+        </>
+      ) : (
+        <div className="max-w-3xl mx-auto space-y-4 relative z-10">
+          {apps.map(app => (
+            <div key={app.id} className="bg-[#0a0a0a] border border-white/5 p-8 rounded-[2.5rem] flex justify-between items-center group hover:border-[#00FF94]/20 transition-all">
+              <div><p className="font-black uppercase text-lg italic text-white group-hover:text-[#00FF94] transition-colors">{app.displayName}</p><p className="text-[10px] text-gray-600 uppercase font-bold tracking-widest">{app.school}</p></div>
+              <button onClick={() => { updateDoc(doc(db, 'users', app.uid), { role: 'moderator' }); updateDoc(doc(db, 'applications', app.id), { status: 'approved' }); }} className="p-5 bg-[#00FF94]/10 text-[#00FF94] rounded-2xl border border-[#00FF94]/20 hover:bg-[#00FF94] hover:text-black transition-all"><Check /></button>
+            </div>
+          ))}
+        </div>
       )}
+      <BottomNav />
     </div>
   );
 }
