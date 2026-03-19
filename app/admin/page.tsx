@@ -3,12 +3,12 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { db, auth } from '@/lib/firebase';
-import { collection, onSnapshot, doc, updateDoc, getDoc, addDoc, serverTimestamp, arrayUnion, Timestamp } from 'firebase/firestore';
+import { collection, onSnapshot, doc, updateDoc, getDoc, addDoc, serverTimestamp, arrayUnion, arrayRemove, Timestamp } from 'firebase/firestore';
 import { getRole, UserRole } from '@/utils/roles';
 import { ACADEMIC_SUBJECTS } from '@/utils/reputation';
 import { GodModeBackground, OmegaHeader, LoadingSequence, ReactorCore } from '@/components/GodMode';
 import BottomNav from '@/components/BottomNav';
-import { Check, X, Users, Trash2, Clock, Mic, Video, Loader2, UserPlus } from 'lucide-react'; // Added UserPlus
+import { Check, Users, Trash2, Clock, Mic, Video, Loader2, UserPlus } from 'lucide-react';
 
 export default function AdminPage() {
   const router = useRouter();
@@ -18,11 +18,10 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(true);
   const [isDeploying, setIsDeploying] = useState(false);
 
-  // UPDATED: Added maxParticipants
   const [form, setForm] = useState({ 
     title: '', desc: '', dateOffset: '0', hour: '09', min: '00', 
     subject: ACADEMIC_SUBJECTS[0], reqMic: false, reqCamera: false,
-    maxParticipants: '10' // Default limit
+    maxParticipants: '10' // Restore Participant Limit
   });
 
   const ROOMS_PATH = 'rooms';
@@ -64,11 +63,11 @@ export default function AdminPage() {
 
       await addDoc(collection(db, ROOMS_PATH), {
         title: form.title.toUpperCase(),
-        description: form.desc,
+        description: form.desc, // Restored Description
         subject: form.subject,         
         reqMic: form.reqMic,           
         reqCamera: form.reqCamera,
-        maxParticipants: parseInt(form.maxParticipants), // NEW: Limit saved
+        maxParticipants: parseInt(form.maxParticipants), // Restored Limit
         startTime: Timestamp.fromDate(targetDate),
         moderatorId: currentUser.uid,
         moderator: currentUser.displayName,
@@ -100,17 +99,18 @@ export default function AdminPage() {
   if (loading) return <LoadingSequence />;
 
   return (
-    <div className="min-h-screen bg-black text-white p-6 md:p-10 pb-32 relative overflow-hidden font-mono">
+    <div className="min-h-screen bg-black text-white p-4 md:p-10 pb-32 relative overflow-hidden font-mono w-full">
       <GodModeBackground />
       <OmegaHeader userName={role?.rank || "AGENT"} />
 
       <ReactorCore>
         <form onSubmit={handleCreateReservation} className="space-y-4">
-          <input value={form.title} onChange={e => setForm({...form, title: e.target.value})} placeholder="SESSION TITLE" className="w-full bg-black border-2 border-white/5 p-5 rounded-2xl text-yellow-500 font-black outline-none focus:border-yellow-500" required />
+          <input value={form.title} onChange={e => setForm({...form, title: e.target.value})} placeholder="MISSION TITLE" className="w-full bg-black border-2 border-white/5 p-5 rounded-2xl text-yellow-500 font-black outline-none focus:border-yellow-500" required />
+          <textarea value={form.desc} onChange={e => setForm({...form, desc: e.target.value})} placeholder="SESSION DESCRIPTION..." className="w-full bg-black border-2 border-white/5 p-5 rounded-2xl text-xs outline-none focus:border-yellow-500 h-24" />
           
           <div className="grid grid-cols-2 gap-4">
              <div className="space-y-1">
-                <label className="text-[9px] uppercase font-black text-gray-500 ml-2">Limit Agents</label>
+                <label className="text-[9px] uppercase font-black text-gray-500 ml-2">Participant Limit</label>
                 <input type="number" value={form.maxParticipants} onChange={e => setForm({...form, maxParticipants: e.target.value})} className="w-full bg-black border-2 border-white/5 p-4 rounded-xl text-xs outline-none focus:border-yellow-500" />
              </div>
              <div className="space-y-1">
@@ -127,12 +127,12 @@ export default function AdminPage() {
         </form>
       </ReactorCore>
 
-      {/* FIXED: AGGRESSIVE APPROVAL UI */}
-      <div className="max-w-4xl mx-auto space-y-6 mt-12">
+      {/* ADMIN APPROVAL INTERFACE: "The Clearance Area" */}
+      <div className="max-w-4xl mx-auto space-y-6 mt-12 px-2">
         <h2 className="text-sm font-black text-yellow-500 uppercase tracking-[0.5em] mb-4 border-b border-white/5 pb-4">Protocol Management</h2>
         {scheduledRooms.map(room => (
-          <div key={room.id} className="bg-[#0a0a0a] border border-white/5 p-8 rounded-[3rem] shadow-2xl">
-            <div className="flex justify-between items-start mb-10">
+          <div key={room.id} className="bg-[#0a0a0a] border border-white/5 p-6 md:p-8 rounded-[3rem] shadow-2xl mb-6">
+            <div className="flex justify-between items-start mb-8">
               <div>
                 <h3 className="text-2xl font-black italic uppercase text-white">{room.title}</h3>
                 <p className="text-[9px] text-yellow-700 font-bold uppercase mt-2">{room.approvedAgents?.length || 0} / {room.maxParticipants || '∞'} Agents Authorized</p>
@@ -140,14 +140,13 @@ export default function AdminPage() {
               <button onClick={() => updateDoc(doc(db, ROOMS_PATH, room.id), {status: 'closed'})} className="p-4 bg-red-600/10 text-red-600 rounded-2xl hover:bg-red-600 transition-all"><Trash2 className="w-4 h-4" /></button>
             </div>
 
-            {/* THE CLEARANCE AREA: This is where you allow users */}
-            <div className="bg-white/2 p-6 rounded-[2rem] border border-dashed border-white/10">
+            <div className="bg-white/2 p-6 rounded-[2.5rem] border border-dashed border-white/10">
               <h4 className="text-[10px] text-gray-400 font-black uppercase tracking-[0.3em] mb-6 flex items-center gap-2">
                 <UserPlus className="w-4 h-4 text-[#00FF94]"/> Inbound Clearances ({room.pendingRequests?.length || 0})
               </h4>
               <div className="space-y-3">
                 {(!room.pendingRequests || room.pendingRequests.length === 0) ? (
-                  <p className="text-[9px] text-gray-700 italic uppercase font-bold text-center py-4">No pending signals...</p>
+                  <p className="text-[9px] text-gray-700 italic text-center py-4">No pending signals...</p>
                 ) : (
                   room.pendingRequests.map((req: any) => (
                     <div key={req.uid} className="flex justify-between items-center bg-white/5 p-5 rounded-2xl border border-white/5 hover:border-[#00FF94]/30 transition-all">
