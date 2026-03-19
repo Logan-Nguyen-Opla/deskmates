@@ -1,82 +1,62 @@
 "use client";
 
-import { useState, useEffect, useRef } from 'react';
-import { useRouter, useSearchParams, useParams } from 'next/navigation';
-import { doc, getDoc, onSnapshot } from 'firebase/firestore';
+import { useState, useEffect } from 'react';
+import { useRouter, useParams } from 'next/navigation';
+import { doc, onSnapshot, getDoc } from 'firebase/firestore';
 import { db, auth } from '@/lib/firebase';
+import { GodModeBackground } from '@/components/GodMode';
+import { getRole } from '@/utils/roles';
 
 export default function RoomPage() {
   const [loading, setLoading] = useState(true);
-  const [roomData, setRoomData] = useState<any>(null);
+  const [room, setRoom] = useState<any>(null);
+  const [role, setRole] = useState<any>(null);
+  const { id } = useParams();
   const router = useRouter();
-  const params = useParams();
-  const searchParams = useSearchParams();
-
-  // Safely extract and type the roomId
-  const rawId = params?.id;
-  const roomId = (Array.isArray(rawId) ? rawId[0] : rawId) as string | undefined;
-  const sessionId = searchParams.get('sessionId');
 
   useEffect(() => {
-    // Check for roomId existence to prevent doc() errors
-    if (!roomId) {
-      console.error("Room ID is missing.");
-      router.push('/');
-      return;
-    }
-
-    let unsubRoom: (() => void) | null = null;
-
+    if (!id) return;
+    
+    // FIX: Auth check inside Effect
     const unsubAuth = auth.onAuthStateChanged(async (user) => {
-      if (!user) {
-        router.push('/login');
-        return;
-      }
-
-      try {
-        // Initialize room data listener
-        unsubRoom = onSnapshot(
-          doc(db, 'rooms', roomId), // Fixed: roomId is now verified
-          (snap) => {
-            if (!snap.exists()) {
-              alert("Room not found.");
-              router.push('/');
-            } else {
-              setRoomData(snap.data());
-              setLoading(false); // SUCCESS: Release spinner
-            }
-          },
-          (error) => {
-            console.error("Firebase Error:", error);
-            setLoading(false); // ERROR: Release spinner even on failure
-            router.push('/');
-          }
-        );
-      } catch (err) {
-        console.error("Initialization Error:", err);
-        setLoading(false);
+      if (user) {
+        const uDoc = await getDoc(doc(db, 'users', user.uid));
+        setRole(getRole(user, uDoc.data()));
       }
     });
 
-    return () => {
-      unsubAuth();
-      if (unsubRoom) unsubRoom();
-    };
-  }, [roomId, router]);
+    const unsubRoom = onSnapshot(doc(db, 'rooms', id as string), (snap) => {
+      if (snap.exists() && snap.data().status !== 'closed') {
+        setRoom(snap.data());
+        setLoading(false); // RELEASES SPINNER
+      } else {
+        router.push('/');
+      }
+    });
 
-  if (loading || !roomData) {
-    return (
-      <div className="h-screen bg-black flex flex-col items-center justify-center font-mono">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-yellow-500 mb-4" />
-        <p className="text-yellow-500 uppercase tracking-widest">Synchronizing Channel...</p>
-      </div>
-    );
-  }
+    return () => { unsubAuth(); unsubRoom(); };
+  }, [id, router]);
+
+  if (loading || !room) return (
+    <div className="h-screen bg-black flex flex-col items-center justify-center font-mono gap-6">
+      <div className="w-12 h-12 border-4 border-yellow-500 border-t-transparent rounded-full animate-spin shadow-[0_0_30px_rgba(255,215,0,0.3)]" />
+      <p className="text-yellow-500 font-black text-[10px] uppercase tracking-[1em] animate-pulse">Synchronizing Link...</p>
+    </div>
+  );
+
+  const isPrivileged = role?.isFounder || auth.currentUser?.uid === room.moderatorId;
+  const finalUrl = isPrivileged ? (room.hostUrl || room.userUrl) : room.userUrl;
 
   return (
-    <div className="h-screen bg-black text-white p-10">
-      <h1 className="text-2xl font-bold uppercase">{roomData.title}</h1>
-      {/* Additional UI and Video Iframe Logic here */}
+    <div className="h-screen bg-black overflow-hidden relative">
+      <GodModeBackground />
+      <div className="h-full w-full relative z-10 p-4 md:p-8">
+        <iframe 
+          src={`${finalUrl?.replace('deskmates.whereby', 'deskmate.whereby')}?embed&displayNames=on&background=off&chat=on&people=off`}
+          className="w-full h-full border-none rounded-[3rem] shadow-2xl bg-black"
+          allow="camera; microphone; fullscreen; display-capture"
+        />
+      </div>
     </div>
   );
 }

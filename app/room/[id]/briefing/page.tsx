@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { doc, onSnapshot, updateDoc, arrayUnion, collection, query, where, getDocs, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db, auth } from '@/lib/firebase';
 import { GodModeBackground } from '@/components/GodMode';
-import { ShieldCheck, ArrowRight, Clock, BookOpen, Mic, Video, MicOff, VideoOff, Loader2 } from 'lucide-react';
+import { ShieldCheck, ArrowRight, Clock, BookOpen, ShieldAlert, Loader2, AlertTriangle } from 'lucide-react';
 
 export default function BriefingPage() {
   const { id } = useParams();
@@ -13,124 +13,92 @@ export default function BriefingPage() {
   const [room, setRoom] = useState<any>(null);
   const [userStats, setUserStats] = useState<any>(null);
   const [isSyncing, setIsSyncing] = useState(false);
-  const [isRequesting, setIsRequesting] = useState(false);
+  const [currentTime, setCurrentTime] = useState(new Date());
 
   const ROOMS_PATH = 'rooms';
 
   useEffect(() => {
+    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
     if (!id) return;
     const unsubRoom = onSnapshot(doc(db, ROOMS_PATH, id as string), (snap) => {
-        if (!snap.exists()) router.push('/');
-        else setRoom(snap.data());
+        if (!snap.exists()) router.push('/'); else setRoom(snap.data());
     });
-    
     const unsubAuth = auth.onAuthStateChanged((user) => {
-      if (user) {
-        onSnapshot(doc(db, 'users', user.uid), (snap) => setUserStats(snap.data() || {}));
-      }
+      if (user) onSnapshot(doc(db, 'users', user.uid), (snap) => setUserStats(snap.data() || {}));
     });
-    return () => { unsubRoom(); unsubAuth(); };
+    return () => { unsubRoom(); unsubAuth(); clearInterval(timer); };
   }, [id, router]);
-
-  // THE CRITICAL FIX: Explicitly strip out undefined values so the request works for Normal Users
-  const requestAccess = async () => {
-    if (!auth.currentUser) return router.push('/login');
-    setIsRequesting(true);
-    try {
-      const payload = {
-        uid: auth.currentUser.uid,
-        displayName: auth.currentUser.displayName || "Unknown Agent",
-        academic: {
-            reputation: userStats?.reputation ?? 100,
-            subjects: userStats?.subjects || []
-        }
-      };
-
-      await updateDoc(doc(db, ROOMS_PATH, id as string), {
-        pendingRequests: arrayUnion(payload)
-      });
-      alert("TRANSMISSION SENT. AWAITING ROOM ADMIN APPROVAL.");
-    } catch (error: any) {
-      alert("Error sending request. Signal Lost.");
-    }
-    setIsRequesting(false);
-  };
-
-  const handleJoin = async () => {
-    if (!auth.currentUser) return router.push('/login');
-    setIsSyncing(true);
-    try {
-      const q = query(collection(db, 'sessions'), where("userId", "==", auth.currentUser.uid), where("roomId", "==", id), where("status", "==", "active"));
-      const snapshot = await getDocs(q);
-      
-      let sessionId = snapshot.empty ? (await addDoc(collection(db, 'sessions'), { userId: auth.currentUser.uid, roomId: id, startTime: serverTimestamp(), status: 'active', pointsEarned: 0 })).id : snapshot.docs[0].id;
-      
-      router.push(`/room/${id}?sessionId=${sessionId}`);
-    } catch (e) {
-      alert("Handshake Failed. Try again.");
-      setIsSyncing(false);
-    }
-  };
 
   if (!room) return <div className="h-screen bg-black" />;
 
+  // LOGIC: Entry Checks
+  const startTime = room.startTime?.toDate();
+  const isTooEarly = startTime && currentTime < startTime;
+  const isFull = room.approvedAgents?.length >= room.maxParticipants;
   const isApproved = room.approvedAgents?.includes(auth.currentUser?.uid);
   const hasRequested = room.pendingRequests?.some((r: any) => r.uid === auth.currentUser?.uid);
 
+  const handleJoin = async () => {
+    if (isTooEarly) return alert("PROTOCOL NOT YET ACTIVE.");
+    setIsSyncing(true);
+    try {
+      // PRE-FETCH Whereby data to ensure room exists
+      const res = await fetch('/api/rooms/create', { method: 'POST', body: JSON.stringify({ title: room.title }) });
+      const sessionRef = await addDoc(collection(db, 'sessions'), { userId: auth.currentUser?.uid, roomId: id, startTime: serverTimestamp(), status: 'active' });
+      router.push(`/room/${id}?sessionId=${sessionRef.id}`);
+    } catch (e) { setIsSyncing(false); }
+  };
+
   return (
-    <div className="min-h-screen bg-black text-white font-mono p-4 md:p-8 flex flex-col items-center justify-center">
+    <div className="min-h-screen bg-black text-white font-mono p-4 flex flex-col items-center justify-center">
       <GodModeBackground />
-      <div className="max-w-3xl w-full space-y-8 relative z-10 pt-10">
-        <div className="bg-[#0a0a0a] border border-white/5 p-8 md:p-12 rounded-[4rem] space-y-12 shadow-2xl">
+      <div className="max-w-3xl w-full relative z-10">
+        <div className="bg-[#0a0a0a] border border-white/5 p-8 md:p-12 rounded-[4rem] space-y-10 shadow-2xl">
+            <h1 className="text-5xl font-black italic text-white uppercase tracking-tighter">{room.title}</h1>
+
+            {/* WARNING SYSTEM */}
             <div className="space-y-4">
-                <div className="flex items-center gap-3 text-yellow-500">
-                    <ShieldCheck className="w-5 h-5" />
-                    <span className="text-[10px] font-black uppercase tracking-[0.5em]">Neural Briefing Protocol</span>
+              {isTooEarly && (
+                <div className="bg-blue-600/10 border border-blue-600/30 p-6 rounded-3xl flex items-center gap-4 text-blue-500">
+                  <Clock className="w-6 h-6 animate-pulse" />
+                  <div>
+                    <p className="text-[10px] font-black uppercase">Temporal Lock Active</p>
+                    <p className="text-xs italic font-bold">Opens in: {Math.ceil((startTime.getTime() - currentTime.getTime()) / 60000)} minutes</p>
+                  </div>
                 </div>
-                <h1 className="text-5xl md:text-6xl font-black italic text-white uppercase tracking-tighter leading-none">{room.title}</h1>
+              )}
+              {isFull && !isApproved && (
+                <div className="bg-red-600/10 border border-red-600/30 p-6 rounded-3xl flex items-center gap-4 text-red-600">
+                  <AlertTriangle className="w-6 h-6" />
+                  <p className="text-[10px] font-black uppercase tracking-widest">Protocol Maximum Capacity Reached</p>
+                </div>
+              )}
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="bg-white/5 p-6 rounded-3xl border border-white/5">
-                    <p className="text-[9px] text-gray-500 uppercase font-black tracking-widest mb-2 flex items-center gap-2"><Clock className="w-3 h-3"/> Session Time</p>
-                    <p className="text-sm font-black text-yellow-500 italic uppercase">
-                      {room.startTime?.toDate ? room.startTime.toDate().toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh', dateStyle: 'short', timeStyle: 'short' }) : 'ASAP'}
-                    </p>
+            <div className="grid grid-cols-2 gap-4">
+                <div className="bg-white/5 p-6 rounded-3xl border border-white/5 text-center">
+                    <p className="text-[8px] text-gray-500 uppercase font-black mb-1">Time (VN)</p>
+                    <p className="text-xs font-black text-yellow-500">{startTime?.toLocaleTimeString('vi-VN') || 'ASAP'}</p>
                 </div>
-                <div className="bg-white/5 p-6 rounded-3xl border border-white/5">
-                    <p className="text-[9px] text-gray-500 uppercase font-black tracking-widest mb-2 flex items-center gap-2"><BookOpen className="w-3 h-3"/> Target Subject</p>
-                    <p className="text-sm font-black text-yellow-500 italic uppercase">{room.subject || 'GENERAL STUDY'}</p>
-                </div>
-            </div>
-
-            <div className="space-y-6">
-                <p className="text-gray-400 text-sm leading-relaxed italic border-l-4 border-yellow-500 pl-8 py-4 bg-white/5 rounded-r-3xl">
-                    {room.description || "Standard study session initiated. Complete focus is required."}
-                </p>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className={`p-4 rounded-2xl flex items-center gap-4 border ${room.reqMic ? 'bg-red-600/10 border-red-600/20 text-red-600' : 'bg-[#00FF94]/10 border-[#00FF94]/20 text-[#00FF94]'}`}>
-                      {room.reqMic ? <Mic className="w-5 h-5" /> : <MicOff className="w-5 h-5" />}
-                      <p className="text-[10px] font-black uppercase tracking-widest">{room.reqMic ? "Mic Required" : "Mic Optional"}</p>
-                  </div>
-                  <div className={`p-4 rounded-2xl flex items-center gap-4 border ${room.reqCamera ? 'bg-red-600/10 border-red-600/20 text-red-600' : 'bg-[#00FF94]/10 border-[#00FF94]/20 text-[#00FF94]'}`}>
-                      {room.reqCamera ? <Video className="w-5 h-5" /> : <VideoOff className="w-5 h-5" />}
-                      <p className="text-[10px] font-black uppercase tracking-widest">{room.reqCamera ? "Cam Required" : "Cam Optional"}</p>
-                  </div>
+                <div className="bg-white/5 p-6 rounded-3xl border border-white/5 text-center">
+                    <p className="text-[8px] text-gray-500 uppercase font-black mb-1">Occupancy</p>
+                    <p className="text-xs font-black text-yellow-500">{room.approvedAgents?.length || 0} / {room.maxParticipants || '∞'}</p>
                 </div>
             </div>
 
             {isApproved ? (
-              <button disabled={isSyncing} onClick={handleJoin} className="w-full bg-yellow-500 text-black py-8 rounded-[2.5rem] font-black uppercase text-sm tracking-[0.5em] flex items-center justify-center gap-6 hover:scale-[1.02] transition-transform shadow-[0_0_40px_rgba(255,215,0,0.2)]">
-                  {isSyncing ? <Loader2 className="w-5 h-5 animate-spin" /> : <>Synchronize Link <ArrowRight className="w-5 h-5" /></>}
+              <button disabled={isSyncing || isTooEarly} onClick={handleJoin} className={`w-full py-8 rounded-[2.5rem] font-black uppercase text-sm flex items-center justify-center gap-6 transition-all ${isTooEarly ? 'bg-gray-800 text-gray-500 grayscale' : 'bg-yellow-500 text-black shadow-2xl hover:scale-[1.02]'}`}>
+                {isSyncing ? <Loader2 className="animate-spin" /> : "Establish Neural Link"}
               </button>
             ) : (
-              <button onClick={requestAccess} disabled={hasRequested || isRequesting} className="w-full border border-white/20 text-gray-400 py-8 rounded-[2.5rem] font-black uppercase text-sm tracking-[0.5em] hover:text-white hover:border-white transition-all flex items-center justify-center gap-4">
-                {isRequesting ? <Loader2 className="w-5 h-5 animate-spin" /> : null}
-                {isRequesting ? 'TRANSMITTING...' : (hasRequested ? 'Clearance Pending...' : 'Request Operation Access')}
+              <button onClick={async () => {
+                await updateDoc(doc(db, ROOMS_PATH, id as string), { pendingRequests: arrayUnion({ uid: auth.currentUser?.uid, displayName: auth.currentUser?.displayName, academic: { reputation: userStats?.reputation || 100 } }) });
+                alert("REQUEST TRANSMITTED.");
+              }} disabled={hasRequested || isFull} className="w-full border border-white/20 text-gray-400 py-8 rounded-[2.5rem] font-black uppercase text-sm">
+                {hasRequested ? 'Clearance Pending...' : 'Request Access'}
               </button>
             )}
         </div>
-        <button onClick={() => router.push('/')} className="text-[10px] text-gray-700 uppercase font-black tracking-widest mx-auto block hover:text-white transition-colors">Abort Mission</button>
       </div>
     </div>
   );
